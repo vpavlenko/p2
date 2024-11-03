@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { BookOpen, Piano, Music, Menu, X } from "lucide-react";
+import { BookOpen, Piano as PianoIcon, Music, Menu, X } from "lucide-react";
 import Navigation from "./components/Navigation";
-import PianoKeyboard from "./components/PianoKeyboard";
+import { PianoUI } from "./components/PianoUI";
 import { lessons } from "./data/lessons";
 
 const App: React.FC = () => {
@@ -40,7 +40,7 @@ const App: React.FC = () => {
                 <span className="font-medium">Library</span>
               </button>
               <button className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors">
-                <Piano className="w-5 h-5" />
+                <PianoIcon className="w-5 h-5" />
                 <span className="font-medium">Practice</span>
               </button>
             </nav>
@@ -90,8 +90,8 @@ const App: React.FC = () => {
               </h3>
 
               {/* Piano Keyboard */}
-              <div>
-                <PianoKeyboard />
+              <div className="w-full">
+                <PianoUI />
               </div>
 
               {/* Controls */}
