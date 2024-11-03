@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+.prose {
+  @apply tracking-wide leading-relaxed;
+}
+
+.prose strong {
+  @apply text-indigo-400 font-semibold;
+}
+
+.prose a {
+  @apply text-purple-400 no-underline hover:text-purple-300 transition-colors;
+}
