@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { BookOpen, Piano, Music, Menu, X } from 'lucide-react';
-import Navigation from './components/Navigation';
-import PianoKeyboard from './components/PianoKeyboard';
-import { lessons } from './data/lessons';
+import React, { useState } from "react";
+import { BookOpen, Piano, Music, Menu, X } from "lucide-react";
+import Navigation from "./components/Navigation";
+import PianoKeyboard from "./components/PianoKeyboard";
+import { lessons } from "./data/lessons";
 
-function App() {
+const App: React.FC = () => {
   const [activeLesson, setActiveLesson] = useState(lessons[0].chapters[0]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  
+
   return (
     <div className="min-h-screen bg-black text-gray-100 font-sans relative">
       <div className="fixed inset-0 bg-gradient-to-br from-indigo-950/30 via-black to-purple-950/30 pointer-events-none" />
-      
+
       {/* Ambient glow effects */}
       <div className="fixed top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[128px] animate-glow" />
       <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[128px] animate-glow" />
@@ -21,7 +21,7 @@ function App() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button 
+              <button
                 onClick={() => setIsDrawerOpen(!isDrawerOpen)}
                 className="text-gray-400 hover:text-white transition-colors"
               >
@@ -49,19 +49,21 @@ function App() {
       </header>
 
       {/* Navigation Drawer */}
-      <div className={`fixed inset-y-0 left-0 w-80 bg-black/95 border-r border-gray-800/50 backdrop-blur-xl transform transition-transform duration-300 ease-in-out z-40 ${
-        isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 w-80 bg-black/95 border-r border-gray-800/50 backdrop-blur-xl transform transition-transform duration-300 ease-in-out z-40 ${
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="p-6 h-full pt-24">
-          <button 
+          <button
             onClick={() => setIsDrawerOpen(false)}
             className="absolute top-6 right-6 text-gray-400 hover:text-white"
           >
             <X className="w-6 h-6" />
           </button>
-          <Navigation 
-            lessons={lessons} 
-            setActiveLesson={setActiveLesson} 
+          <Navigation
+            lessons={lessons}
+            setActiveLesson={setActiveLesson}
             activeLesson={activeLesson}
           />
         </div>
@@ -86,7 +88,7 @@ function App() {
               <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                 Interactive Playground
               </h3>
-              
+
               {/* Piano Keyboard */}
               <div>
                 <PianoKeyboard />
@@ -95,7 +97,9 @@ function App() {
               {/* Controls */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-400">Chord Progression</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Chord Progression
+                  </span>
                   <div className="flex gap-2">
                     <button className="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 transition-all duration-300 text-sm font-medium shadow-lg shadow-indigo-500/20">
                       Play
@@ -107,7 +111,7 @@ function App() {
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
-                  {['I', 'IV', 'V', 'vi'].map((chord) => (
+                  {["I", "IV", "V", "vi"].map((chord) => (
                     <button
                       key={chord}
                       className="p-4 rounded-lg bg-gray-800/30 hover:bg-gray-700/30 transition-colors border border-gray-800/50 backdrop-blur-sm font-medium"
@@ -123,6 +127,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;

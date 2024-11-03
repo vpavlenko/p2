@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface Chapter {
   id: string;
@@ -18,7 +18,11 @@ interface NavigationProps {
   activeLesson?: Chapter;
 }
 
-function Navigation({ lessons, setActiveLesson, activeLesson }: NavigationProps) {
+const Navigation: React.FC<NavigationProps> = ({
+  lessons,
+  setActiveLesson,
+  activeLesson,
+}) => {
   return (
     <nav className="space-y-6">
       <div className="space-y-6">
@@ -36,8 +40,8 @@ function Navigation({ lessons, setActiveLesson, activeLesson }: NavigationProps)
                     onClick={() => setActiveLesson(chapter)}
                     className={`w-full text-left py-2 px-3 text-sm rounded-lg transition-colors relative ${
                       isActive
-                        ? 'text-white bg-indigo-500/10'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                        ? "text-white bg-indigo-500/10"
+                        : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                     }`}
                   >
                     {isActive && (
@@ -53,6 +57,6 @@ function Navigation({ lessons, setActiveLesson, activeLesson }: NavigationProps)
       </div>
     </nav>
   );
-}
+};
 
 export default Navigation;
