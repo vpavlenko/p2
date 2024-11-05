@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
-const NUM_OCTAVES = 7;
+const NUM_OCTAVES = 6;
 
 const KEY_WIDTH = 14;
 const KEY_HEIGHT = 40;
@@ -418,15 +418,22 @@ export const PianoUI: React.FC = () => {
       if (event.code in KEYBOARD_MAP) {
         const { note, octave } =
           KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
-        const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
-        const noteString = `${
-          ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
-            note
-          ]
-        }${actualOctave}`;
 
-        sampler.triggerRelease(noteString);
-        handleNoteEnd(note, actualOctave);
+        // Release both normal and shifted octave notes
+        const normalOctave = octave;
+        const shiftedOctave = getShiftedOctave(octave);
+
+        [normalOctave, shiftedOctave].forEach((currentOctave) => {
+          const noteString = `${
+            ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
+              note
+            ]
+          }${currentOctave}`;
+
+          sampler.triggerRelease(noteString);
+          handleNoteEnd(note, currentOctave);
+        });
+
         setActiveKeys((prev) => {
           const next = new Set(prev);
           next.delete(event.code);
@@ -450,8 +457,11 @@ export const PianoUI: React.FC = () => {
       setFallingNotes((prev) =>
         prev.filter(
           (note) =>
-            now - note.startTime <
-            (VISUALIZATION_HEIGHT * 1000) / PIXELS_PER_SECOND
+            // Keep notes that are still active (no endTime)
+            !note.endTime ||
+            // Or notes that haven't scrolled off screen yet
+            now - note.endTime <
+              (VISUALIZATION_HEIGHT * 1000) / PIXELS_PER_SECOND
         )
       );
     }, 1000);
