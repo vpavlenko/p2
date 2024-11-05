@@ -68,6 +68,15 @@ const PIXELS_PER_SECOND = 100; // Adjust this to control falling speed
 // Add this constant near the other ones
 const NOTE_DURATION_MS = 500; // 2 seconds note duration
 
+// Add this constant for black key offsets (relative to white keys)
+const BLACK_KEY_OFFSETS: { [key: number]: number } = {
+  1: 0.75, // C#
+  3: 1.75, // D#
+  6: 3.75, // F#
+  8: 4.75, // G#
+  10: 5.75, // A#
+};
+
 // Modify the KEYBOARD_MAP to start from C2 (octave 2)
 const KEYBOARD_MAP = {
   // Bottom row - octave 2
@@ -305,20 +314,19 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
   );
 };
 
-// Helper function to get key position
+// Replace the getNotePosition function with this updated version
 const getNotePosition = (note: number, octave: number, startOctave: number) => {
   const isBlack = [1, 3, 6, 8, 10].includes(note);
-  const whiteKeysBeforeOctave = (octave - startOctave) * 7;
+  const octaveOffset = (octave - startOctave) * 7 * KEY_WIDTH;
 
-  // Count white keys before this note in the current octave
-  const whiteKeysBefore = WHITE_KEYS.findIndex((n) => n === note);
-  const totalWhiteKeys =
-    whiteKeysBeforeOctave +
-    (whiteKeysBefore >= 0
-      ? whiteKeysBefore
-      : WHITE_KEYS.filter((n) => n < note).length);
+  if (isBlack) {
+    // Use the predefined offset for black keys
+    return octaveOffset + BLACK_KEY_OFFSETS[note] * KEY_WIDTH;
+  }
 
-  return KEY_WIDTH * totalWhiteKeys + (isBlack ? KEY_WIDTH * 0.5 : 0);
+  // For white keys, count the number of white keys before this note
+  const whiteKeyIndex = WHITE_KEYS.indexOf(note);
+  return octaveOffset + whiteKeyIndex * KEY_WIDTH;
 };
 
 // Simplified PianoUI component
