@@ -269,7 +269,7 @@ const PianoKey: React.FC<{
       {(keyboardKey || shiftedKeyboardKey) && (
         <div
           style={{
-            fontSize: "8px",
+            fontSize: "16px",
             fontWeight: "bold",
             marginBottom: "2px",
             fontFamily: "monospace",
@@ -312,7 +312,7 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
         top: KEY_HEIGHT + ROW_DISTANCE,
         left: 0,
         right: 0,
-        height: VISUALIZATION_HEIGHT,
+        bottom: -2000,
         overflow: "hidden",
       }}
     >
@@ -355,6 +355,55 @@ const getShiftedOctave = (
   // Always shift exactly 3 octaves, no special cases
   return down ? octave - 3 : octave + 3;
 };
+
+// Add this new component for the Ctrl+letter legend
+const TonicLegend: React.FC = () => (
+  <div
+    style={{
+      position: "absolute",
+      right: "-180px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "white",
+      fontSize: "14px",
+      textAlign: "left",
+      padding: "10px",
+      background: "rgba(0, 0, 0, 0.5)",
+      borderRadius: "5px",
+    }}
+  >
+    Press Ctrl + key
+    <br />
+    to change tonic
+  </div>
+);
+
+// Update the ShiftIndicator component to only cover the right half
+const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: -30,
+      left: totalWidth / 2, // Start from the middle
+      width: totalWidth / 2, // Only cover right half
+      textAlign: "center",
+      color: "white",
+      fontSize: "14px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "8px",
+    }}
+  >
+    <div
+      style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.3)" }}
+    />
+    <div>Shift</div>
+    <div
+      style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.3)" }}
+    />
+  </div>
+);
 
 export const PianoUI: React.FC = () => {
   const startOctave = 2;
@@ -495,14 +544,20 @@ export const PianoUI: React.FC = () => {
     };
   }, []);
 
+  const totalWidth = WHITE_KEYS.length * KEY_WIDTH * NUM_OCTAVES;
+
   return (
     <div
       style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         backgroundColor: "black",
         padding: "5px",
-        height: VISUALIZATION_HEIGHT + KEY_HEIGHT + ROW_DISTANCE,
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
         alignItems: "center",
         overflow: "hidden",
       }}
@@ -510,10 +565,12 @@ export const PianoUI: React.FC = () => {
       <div
         style={{
           position: "relative",
-          width: WHITE_KEYS.length * KEY_WIDTH * NUM_OCTAVES,
-          height: KEY_HEIGHT + ROW_DISTANCE,
+          width: totalWidth,
+          marginTop: "40px",
         }}
       >
+        <ShiftIndicator totalWidth={totalWidth} />
+        <TonicLegend />
         {Array.from({ length: WHITE_KEYS.length * NUM_OCTAVES }, (_, i) => {
           const currentOctave = startOctave + Math.floor(i / 7);
           const keyIndex = i % 7;
