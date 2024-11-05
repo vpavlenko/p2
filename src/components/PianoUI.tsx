@@ -182,8 +182,10 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
         const timeSinceEnd = note.endTime ? (time - note.endTime) / 1000 : 0;
         const top = isActive ? 0 : timeSinceEnd * PIXELS_PER_SECOND;
 
-        // Calculate height starting from 0, growing as time passes
-        const duration = time - note.startTime;
+        // Calculate height based on whether the note is active or finished
+        const duration = isActive
+          ? time - note.startTime // Growing height while active
+          : note.endTime! - note.startTime; // Fixed height after end
         const height = duration * (PIXELS_PER_SECOND / 1000);
 
         return (
@@ -196,7 +198,6 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
               width: KEY_WIDTH,
               height: height,
               backgroundColor: COLORS[note.note],
-              opacity: 0.7,
               borderRadius: "3px",
               willChange: "transform, height",
             }}
