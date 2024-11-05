@@ -120,6 +120,9 @@ const KEYBOARD_MAP = {
   "]": { note: 0, octave: 5 },
 } as const;
 
+const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
+const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
+
 const getNotePosition = (note: number, octave: number, startOctave: number) => {
   const isBlack = [1, 3, 6, 8, 10].includes(note);
   const octaveOffset = (octave - startOctave) * 7 * KEY_WIDTH;
@@ -130,6 +133,15 @@ const getNotePosition = (note: number, octave: number, startOctave: number) => {
 
   const whiteKeyIndex = WHITE_KEYS.indexOf(note);
   return octaveOffset + whiteKeyIndex * KEY_WIDTH;
+};
+
+const getFallingNotePosition = (
+  note: number,
+  octave: number,
+  startOctave: number
+) => {
+  const semitonesFromC0 = (octave - startOctave) * 12 + note;
+  return (semitonesFromC0 * FALLING_NOTE_WIDTH) / 2;
 };
 
 const PianoKey: React.FC<{
@@ -263,7 +275,7 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
               position: "absolute",
               left: note.left,
               top: top,
-              width: KEY_WIDTH,
+              width: FALLING_NOTE_WIDTH,
               height: height,
               backgroundColor: colors[note.note],
               borderRadius: "3px",
@@ -283,18 +295,18 @@ export const PianoUI: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0); // Default tonic is C (0)
 
   const handleNoteStart = useCallback(
-    (note: number, octave: number, left: number) => {
+    (note: number, octave: number, _left: number) => {
       const newNote: FallingNote = {
         id: `${note}-${octave}-${Date.now()}`,
         note,
         octave,
         startTime: Date.now(),
         endTime: null,
-        left,
+        left: getFallingNotePosition(note, octave, startOctave),
       };
       setFallingNotes((prev) => [...prev, newNote]);
     },
-    []
+    [startOctave]
   );
 
   const handleNoteEnd = useCallback((note: number, octave: number) => {
