@@ -184,6 +184,8 @@ const getFallingNotePosition = (
   return (semitonesFromC0 * FALLING_NOTE_WIDTH) / 2;
 };
 
+const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
+
 const PianoKey: React.FC<{
   note: number;
   octave: number;
@@ -244,9 +246,7 @@ const PianoKey: React.FC<{
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: note === tonic % 12 ? "black" : "white",
-    textShadow:
-      note === tonic % 12 ? "none" : "0px 0px 3px black, 0px 0px 2px black",
+    color: SPECIAL_NOTE_COLORS.includes(note % 12) ? "black" : "white",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
