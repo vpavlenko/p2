@@ -81,43 +81,83 @@ const BLACK_KEY_OFFSETS: { [key: number]: number } = {
 };
 
 const KEYBOARD_MAP = {
-  z: { note: 0, octave: 2 },
-  s: { note: 1, octave: 2 },
-  x: { note: 2, octave: 2 },
-  d: { note: 3, octave: 2 },
-  c: { note: 4, octave: 2 },
-  v: { note: 5, octave: 2 },
-  g: { note: 6, octave: 2 },
-  b: { note: 7, octave: 2 },
-  h: { note: 8, octave: 2 },
-  n: { note: 9, octave: 2 },
-  j: { note: 10, octave: 2 },
-  m: { note: 11, octave: 2 },
-  ",": { note: 0, octave: 3 },
-  l: { note: 1, octave: 3 },
-  ".": { note: 2, octave: 3 },
-  ";": { note: 3, octave: 3 },
-  "/": { note: 4, octave: 3 },
-  q: { note: 5, octave: 3 },
-  "2": { note: 6, octave: 3 },
-  w: { note: 7, octave: 3 },
-  "3": { note: 8, octave: 3 },
-  e: { note: 9, octave: 3 },
-  "4": { note: 10, octave: 3 },
-  r: { note: 11, octave: 3 },
-  t: { note: 0, octave: 4 },
-  "6": { note: 1, octave: 4 },
-  y: { note: 2, octave: 4 },
-  "7": { note: 3, octave: 4 },
-  u: { note: 4, octave: 4 },
-  i: { note: 5, octave: 4 },
-  "9": { note: 6, octave: 4 },
-  o: { note: 7, octave: 4 },
-  "0": { note: 8, octave: 4 },
-  p: { note: 9, octave: 4 },
-  "-": { note: 10, octave: 4 },
-  "[": { note: 11, octave: 4 },
-  "]": { note: 0, octave: 5 },
+  KeyZ: { note: 0, octave: 2 },
+  KeyS: { note: 1, octave: 2 },
+  KeyX: { note: 2, octave: 2 },
+  KeyD: { note: 3, octave: 2 },
+  KeyC: { note: 4, octave: 2 },
+  KeyV: { note: 5, octave: 2 },
+  KeyG: { note: 6, octave: 2 },
+  KeyB: { note: 7, octave: 2 },
+  KeyH: { note: 8, octave: 2 },
+  KeyN: { note: 9, octave: 2 },
+  KeyJ: { note: 10, octave: 2 },
+  KeyM: { note: 11, octave: 2 },
+  Comma: { note: 0, octave: 3 },
+  KeyL: { note: 1, octave: 3 },
+  Period: { note: 2, octave: 3 },
+  Semicolon: { note: 3, octave: 3 },
+  Slash: { note: 4, octave: 3 },
+  KeyQ: { note: 5, octave: 3 },
+  Digit2: { note: 6, octave: 3 },
+  KeyW: { note: 7, octave: 3 },
+  Digit3: { note: 8, octave: 3 },
+  KeyE: { note: 9, octave: 3 },
+  Digit4: { note: 10, octave: 3 },
+  KeyR: { note: 11, octave: 3 },
+  KeyT: { note: 0, octave: 4 },
+  Digit6: { note: 1, octave: 4 },
+  KeyY: { note: 2, octave: 4 },
+  Digit7: { note: 3, octave: 4 },
+  KeyU: { note: 4, octave: 4 },
+  KeyI: { note: 5, octave: 4 },
+  Digit9: { note: 6, octave: 4 },
+  KeyO: { note: 7, octave: 4 },
+  Digit0: { note: 8, octave: 4 },
+  KeyP: { note: 9, octave: 4 },
+  Minus: { note: 10, octave: 4 },
+  BracketLeft: { note: 11, octave: 4 },
+  BracketRight: { note: 0, octave: 5 },
+} as const;
+
+const KEY_DISPLAY_LABELS: { [key: string]: string } = {
+  KeyZ: "z",
+  KeyS: "s",
+  KeyX: "x",
+  KeyD: "d",
+  KeyC: "c",
+  KeyV: "v",
+  KeyG: "g",
+  KeyB: "b",
+  KeyH: "h",
+  KeyN: "n",
+  KeyJ: "j",
+  KeyM: "m",
+  Comma: ",",
+  KeyL: "l",
+  Period: ".",
+  Semicolon: ";",
+  Slash: "/",
+  KeyQ: "q",
+  Digit2: "2",
+  KeyW: "w",
+  Digit3: "3",
+  KeyE: "e",
+  Digit4: "4",
+  KeyR: "r",
+  KeyT: "t",
+  Digit6: "6",
+  KeyY: "y",
+  Digit7: "7",
+  KeyU: "u",
+  KeyI: "i",
+  Digit9: "9",
+  KeyO: "o",
+  Digit0: "0",
+  KeyP: "p",
+  Minus: "-",
+  BracketLeft: "[",
+  BracketRight: "]",
 } as const;
 
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
@@ -349,44 +389,15 @@ export const PianoUI: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-
-      // Handle tonic change with Ctrl key
-      if (event.ctrlKey && key in KEYBOARD_MAP) {
-        const { note } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
+      if (event.ctrlKey && event.code in KEYBOARD_MAP) {
+        const { note } = KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
         setTonic(note % 12);
         return;
       }
 
-      // Special handling for shifted symbols that might not match the keyboard map
-      let lookupKey = key;
-      if (event.shiftKey) {
-        // Map shifted characters to their unshifted equivalents
-        const shiftedKeyMap: { [key: string]: string } = {
-          "<": ",",
-          ">": ".",
-          "?": "/",
-          "@": "2",
-          "#": "3",
-          $: "4",
-          "%": "5",
-          "^": "6",
-          "&": "7",
-          "*": "8",
-          "(": "9",
-          ")": "0",
-          _: "-",
-          "{": "[",
-          "}": "]",
-          ":": ";",
-          '"': "'",
-        };
-        lookupKey = shiftedKeyMap[key] || key;
-      }
-
-      if (lookupKey in KEYBOARD_MAP && !activeKeys.has(lookupKey)) {
+      if (event.code in KEYBOARD_MAP && !activeKeys.has(event.code)) {
         const { note, octave } =
-          KEYBOARD_MAP[lookupKey as keyof typeof KEYBOARD_MAP];
+          KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         const left = getNotePosition(note, actualOctave, startOctave);
 
@@ -398,42 +409,15 @@ export const PianoUI: React.FC = () => {
         }${actualOctave}`;
 
         sampler.triggerAttack(noteString);
-        setActiveKeys((prev) => new Set([...prev, lookupKey]));
+        setActiveKeys((prev) => new Set([...prev, event.code]));
         handleNoteStart(note, actualOctave, left);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-
-      // Use the same shifted key mapping as in handleKeyDown
-      let lookupKey = key;
-      if (event.shiftKey) {
-        const shiftedKeyMap: { [key: string]: string } = {
-          "<": ",",
-          ">": ".",
-          "?": "/",
-          "@": "2",
-          "#": "3",
-          $: "4",
-          "%": "5",
-          "^": "6",
-          "&": "7",
-          "*": "8",
-          "(": "9",
-          ")": "0",
-          _: "-",
-          "{": "[",
-          "}": "]",
-          ":": ";",
-          '"': "'",
-        };
-        lookupKey = shiftedKeyMap[key] || key;
-      }
-
-      if (lookupKey in KEYBOARD_MAP) {
+      if (event.code in KEYBOARD_MAP) {
         const { note, octave } =
-          KEYBOARD_MAP[lookupKey as keyof typeof KEYBOARD_MAP];
+          KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         const noteString = `${
           ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
@@ -445,7 +429,7 @@ export const PianoUI: React.FC = () => {
         handleNoteEnd(note, actualOctave);
         setActiveKeys((prev) => {
           const next = new Set(prev);
-          next.delete(lookupKey);
+          next.delete(event.code);
           return next;
         });
       }
@@ -558,8 +542,16 @@ export const PianoUI: React.FC = () => {
                 note={whiteNote}
                 octave={currentOctave}
                 label={(keyIndex + 1).toString()}
-                keyboardKey={whiteKeyMapping}
-                shiftedKeyboardKey={shiftedWhiteKeyMapping}
+                keyboardKey={
+                  whiteKeyMapping
+                    ? KEY_DISPLAY_LABELS[whiteKeyMapping]
+                    : undefined
+                }
+                shiftedKeyboardKey={
+                  shiftedWhiteKeyMapping
+                    ? KEY_DISPLAY_LABELS[shiftedWhiteKeyMapping]
+                    : undefined
+                }
                 onNoteStart={handleNoteStart}
                 onNoteEnd={handleNoteEnd}
                 tonic={tonic}
@@ -577,8 +569,16 @@ export const PianoUI: React.FC = () => {
                   note={blackNote}
                   octave={currentOctave}
                   label={BLACK_KEY_LABELS[keyIndex]}
-                  keyboardKey={blackKeyMapping}
-                  shiftedKeyboardKey={shiftedBlackKeyMapping}
+                  keyboardKey={
+                    blackKeyMapping
+                      ? KEY_DISPLAY_LABELS[blackKeyMapping]
+                      : undefined
+                  }
+                  shiftedKeyboardKey={
+                    shiftedBlackKeyMapping
+                      ? KEY_DISPLAY_LABELS[shiftedBlackKeyMapping]
+                      : undefined
+                  }
                   onNoteStart={handleNoteStart}
                   onNoteEnd={handleNoteEnd}
                   tonic={tonic}
