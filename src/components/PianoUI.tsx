@@ -7,8 +7,8 @@ const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
 const NUM_OCTAVES = 6;
 
-const KEY_WIDTH = 14;
-const KEY_HEIGHT = 40;
+const KEY_WIDTH = 28;
+const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
 // Modified to be a function that takes tonic as parameter
@@ -68,7 +68,7 @@ interface FallingNote {
   left: number;
 }
 
-const VISUALIZATION_HEIGHT = 1000;
+const VISUALIZATION_HEIGHT = 500;
 const PIXELS_PER_SECOND = 100;
 const NOTE_DURATION_MS = 500;
 
@@ -501,6 +501,10 @@ export const PianoUI: React.FC = () => {
         backgroundColor: "black",
         padding: "5px",
         height: VISUALIZATION_HEIGHT + KEY_HEIGHT + ROW_DISTANCE,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
