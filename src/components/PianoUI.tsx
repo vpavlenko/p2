@@ -150,10 +150,22 @@ const PianoKey: React.FC<{
   label: string;
   style: React.CSSProperties;
   keyboardKey?: string;
+  shiftedKeyboardKey?: string;
   onNoteStart: (note: number, octave: number, left: number) => void;
   onNoteEnd: (note: number, octave: number) => void;
   tonic: number;
-}> = ({ note, octave, style, keyboardKey, onNoteStart, onNoteEnd, tonic }) => {
+  isShiftPressed: boolean;
+}> = ({
+  note,
+  octave,
+  style,
+  keyboardKey,
+  shiftedKeyboardKey,
+  onNoteStart,
+  onNoteEnd,
+  tonic,
+  isShiftPressed,
+}) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const colors = getColors(tonic);
 
@@ -214,16 +226,22 @@ const PianoKey: React.FC<{
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
     >
-      {keyboardKey && (
+      {(keyboardKey || shiftedKeyboardKey) && (
         <div
           style={{
             fontSize: "8px",
             fontWeight: "bold",
             marginBottom: "2px",
             fontFamily: "monospace",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1px",
           }}
         >
-          {keyboardKey}
+          {isShiftPressed
+            ? shiftedKeyboardKey && <div>{shiftedKeyboardKey}</div>
+            : keyboardKey && <div>{keyboardKey}</div>}
         </div>
       )}
     </div>
@@ -288,6 +306,11 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
   );
 };
 
+// Update the getShiftedOctave function to handle both directions
+const getShiftedOctave = (octave: number, down: boolean = false): number => {
+  return down ? octave - 3 : octave + 3;
+};
+
 export const PianoUI: React.FC = () => {
   const startOctave = 2;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
@@ -323,8 +346,8 @@ export const PianoUI: React.FC = () => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
 
-      // Handle tonic change with Shift key
-      if (event.shiftKey && key in KEYBOARD_MAP) {
+      // Handle tonic change with Ctrl key
+      if (event.ctrlKey && key in KEYBOARD_MAP) {
         const { note } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
         setTonic(note % 12);
         return;
@@ -332,18 +355,20 @@ export const PianoUI: React.FC = () => {
 
       if (key in KEYBOARD_MAP && !activeKeys.has(key)) {
         const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
-        const left = getNotePosition(note, octave, startOctave);
+        // When shift is pressed, play 3 octaves higher
+        const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
+        const left = getNotePosition(note, actualOctave, startOctave);
 
         await Tone.start();
         const noteString = `${
           ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
             note
           ]
-        }${octave}`;
+        }${actualOctave}`;
 
         sampler.triggerAttack(noteString);
         setActiveKeys((prev) => new Set([...prev, key]));
-        handleNoteStart(note, octave, left);
+        handleNoteStart(note, actualOctave, left);
       }
     };
 
@@ -351,14 +376,16 @@ export const PianoUI: React.FC = () => {
       const key = event.key.toLowerCase();
       if (key in KEYBOARD_MAP) {
         const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
+        // When shift is pressed, play 3 octaves higher
+        const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         const noteString = `${
           ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
             note
           ]
-        }${octave}`;
+        }${actualOctave}`;
 
         sampler.triggerRelease(noteString);
-        handleNoteEnd(note, octave);
+        handleNoteEnd(note, actualOctave);
         setActiveKeys((prev) => {
           const next = new Set(prev);
           next.delete(key);
@@ -391,6 +418,32 @@ export const PianoUI: React.FC = () => {
     return () => clearInterval(cleanup);
   }, []);
 
+  // Add state to track shift key
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+
+  // Add shift key tracking to useEffect
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        setIsShiftPressed(true);
+      }
+    };
+
+    const handleGlobalKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    window.addEventListener("keyup", handleGlobalKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+      window.removeEventListener("keyup", handleGlobalKeyUp);
+    };
+  }, []);
+
   return (
     <div
       style={{
@@ -412,6 +465,7 @@ export const PianoUI: React.FC = () => {
           const whiteNote = WHITE_KEYS[keyIndex];
           const blackNote = BLACK_KEYS[keyIndex];
 
+          // Find normal key mapping
           const whiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
             ([, value]) =>
               value.note === whiteNote && value.octave === currentOctave
@@ -425,6 +479,22 @@ export const PianoUI: React.FC = () => {
                 )?.[0]
               : undefined;
 
+          // Find shifted key mappings (3 octaves LOWER to trigger HIGHER notes)
+          const shiftedWhiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
+            ([, value]) =>
+              value.note === whiteNote &&
+              value.octave === getShiftedOctave(currentOctave, true)
+          )?.[0];
+
+          const shiftedBlackKeyMapping =
+            blackNote !== -1
+              ? Object.entries(KEYBOARD_MAP).find(
+                  ([, value]) =>
+                    value.note === blackNote &&
+                    value.octave === getShiftedOctave(currentOctave, true)
+                )?.[0]
+              : undefined;
+
           return (
             <React.Fragment key={i}>
               <PianoKey
@@ -432,6 +502,7 @@ export const PianoUI: React.FC = () => {
                 octave={currentOctave}
                 label={(keyIndex + 1).toString()}
                 keyboardKey={whiteKeyMapping}
+                shiftedKeyboardKey={shiftedWhiteKeyMapping}
                 onNoteStart={handleNoteStart}
                 onNoteEnd={handleNoteEnd}
                 tonic={tonic}
@@ -442,6 +513,7 @@ export const PianoUI: React.FC = () => {
                   height: KEY_HEIGHT,
                   borderRadius: "3px",
                 }}
+                isShiftPressed={isShiftPressed}
               />
               {blackNote !== -1 && (
                 <PianoKey
@@ -449,6 +521,7 @@ export const PianoUI: React.FC = () => {
                   octave={currentOctave}
                   label={BLACK_KEY_LABELS[keyIndex]}
                   keyboardKey={blackKeyMapping}
+                  shiftedKeyboardKey={shiftedBlackKeyMapping}
                   onNoteStart={handleNoteStart}
                   onNoteEnd={handleNoteEnd}
                   tonic={tonic}
@@ -460,6 +533,7 @@ export const PianoUI: React.FC = () => {
                     height: KEY_HEIGHT,
                     borderRadius: "3px",
                   }}
+                  isShiftPressed={isShiftPressed}
                 />
               )}
             </React.Fragment>
