@@ -70,16 +70,16 @@ const NOTE_DURATION_MS = 500; // 2 seconds note duration
 
 // Add this constant for black key offsets (relative to white keys)
 const BLACK_KEY_OFFSETS: { [key: number]: number } = {
-  1: 0.75, // C#
-  3: 1.75, // D#
-  6: 3.75, // F#
-  8: 4.75, // G#
-  10: 5.75, // A#
+  1: 0.5, // C#
+  3: 1.5, // D#
+  6: 3.5, // F#
+  8: 4.5, // G#
+  10: 5.5, // A#
 };
 
-// Modify the KEYBOARD_MAP to start from C2 (octave 2)
+// Replace the existing KEYBOARD_MAP with this updated version
 const KEYBOARD_MAP = {
-  // Bottom row - octave 2
+  // Lower octave (C2-B2)
   z: { note: 0, octave: 2 }, // C2
   s: { note: 1, octave: 2 }, // C#2
   x: { note: 2, octave: 2 }, // D2
@@ -93,29 +93,34 @@ const KEYBOARD_MAP = {
   j: { note: 10, octave: 2 }, // A#2
   m: { note: 11, octave: 2 }, // B2
 
-  // Middle row - octave 3
-  q: { note: 0, octave: 3 }, // C3
-  "2": { note: 1, octave: 3 }, // C#3
-  w: { note: 2, octave: 3 }, // D3
-  "3": { note: 3, octave: 3 }, // D#3
-  e: { note: 4, octave: 3 }, // E3
-  r: { note: 5, octave: 3 }, // F3
-  "5": { note: 6, octave: 3 }, // F#3
-  t: { note: 7, octave: 3 }, // G3
-  "6": { note: 8, octave: 3 }, // G#3
-  y: { note: 9, octave: 3 }, // A3
-  "7": { note: 10, octave: 3 }, // A#3
-  u: { note: 11, octave: 3 }, // B3
+  // Middle octave (C3-B3)
+  ",": { note: 0, octave: 3 }, // C3
+  l: { note: 1, octave: 3 }, // C#3
+  ".": { note: 2, octave: 3 }, // D3
+  ";": { note: 3, octave: 3 }, // D#3
+  "/": { note: 4, octave: 3 }, // E3
+  q: { note: 5, octave: 3 }, // F3
+  "2": { note: 6, octave: 3 }, // F#3
+  w: { note: 7, octave: 3 }, // G3
+  "3": { note: 8, octave: 3 }, // G#3
+  e: { note: 9, octave: 3 }, // A3
+  "4": { note: 10, octave: 3 }, // A#3
+  r: { note: 11, octave: 3 }, // B3
 
-  // Top row - octave 4
-  i: { note: 0, octave: 4 }, // C4
-  "9": { note: 1, octave: 4 }, // C#4
-  o: { note: 2, octave: 4 }, // D4
-  "0": { note: 3, octave: 4 }, // D#4
-  p: { note: 4, octave: 4 }, // E4
-  "[": { note: 5, octave: 4 }, // F4
-  "=": { note: 6, octave: 4 }, // F#4
-  "]": { note: 7, octave: 4 }, // G4
+  // Upper octave (C4-E5)
+  t: { note: 0, octave: 4 }, // C4
+  "6": { note: 1, octave: 4 }, // C#4
+  y: { note: 2, octave: 4 }, // D4
+  "7": { note: 3, octave: 4 }, // D#4
+  u: { note: 4, octave: 4 }, // E4
+  i: { note: 5, octave: 4 }, // F4
+  "9": { note: 6, octave: 4 }, // F#4
+  o: { note: 7, octave: 4 }, // G4
+  "0": { note: 8, octave: 4 }, // G#4
+  p: { note: 9, octave: 4 }, // A4
+  "-": { note: 10, octave: 4 }, // A#4
+  "[": { note: 11, octave: 4 }, // B4
+  "]": { note: 0, octave: 5 }, // C5
 } as const;
 
 // Add these arrays after KEYBOARD_MAP definition
