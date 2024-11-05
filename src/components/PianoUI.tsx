@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as Tone from "tone";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -8,7 +9,6 @@ const NUM_OCTAVES = 7;
 const KEY_WIDTH = 14;
 const KEY_HEIGHT = 40;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
-const PADDING = 0;
 
 const COLORS: { [key: number]: string } = {
   0: "white",
@@ -25,15 +25,55 @@ const COLORS: { [key: number]: string } = {
   11: "#ff0",
 };
 
+// Create a Sampler instead of Piano
+const sampler = new Tone.Sampler({
+  urls: {
+    C4: "C4.mp3",
+    "D#4": "Ds4.mp3",
+    "F#4": "Fs4.mp3",
+    A4: "A4.mp3",
+  },
+  baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
+
 const PianoKey: React.FC<{
   note: number;
   label: string;
   style: React.CSSProperties;
-}> = ({ note, label, style }) => {
-  const backgroundColor = COLORS[note];
+}> = ({ note, style }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const getNoteString = (noteNum: number, octave: number) => {
+    const notes = [
+      "C",
+      "C#",
+      "D",
+      "D#",
+      "E",
+      "F",
+      "F#",
+      "G",
+      "G#",
+      "A",
+      "A#",
+      "B",
+    ];
+    return `${notes[noteNum]}${octave}`;
+  };
+
+  const handleClick = async () => {
+    // Ensure audio context is started
+    await Tone.start();
+
+    const octave = Math.floor(note / 12) + 4;
+    const noteString = getNoteString(note % 12, octave);
+
+    sampler.triggerAttackRelease(noteString, "8n");
+  };
+
   const keyStyle = {
     ...style,
-    backgroundColor,
+    backgroundColor: COLORS[note],
     position: "absolute" as const,
     userSelect: "none" as const,
     fontSize: "10px",
@@ -43,11 +83,19 @@ const PianoKey: React.FC<{
     display: "grid",
     alignContent: "end",
     boxSizing: "border-box" as const,
+    transform: isHovered ? "scale(1.1)" : "scale(1)",
+    transition: "transform 0.1s ease-in-out",
+    cursor: "pointer",
+    zIndex: isHovered ? 3 : style.zIndex || 1,
   };
 
   return (
-    <div style={keyStyle}>
-      {/* {label} */}
+    <div
+      style={keyStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
+    >
       {note === 1 && (
         <div
           style={{
