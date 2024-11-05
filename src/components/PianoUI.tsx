@@ -11,19 +11,29 @@ const KEY_WIDTH = 14;
 const KEY_HEIGHT = 40;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
-const COLORS: { [key: number]: string } = {
-  0: "white",
-  1: "rgb(130, 0, 0)",
-  2: "red",
-  3: "#007000",
-  4: "#00fb47",
-  5: "#9500b3",
-  6: "#ea7eff",
-  7: "rgb(120, 120, 120)",
-  8: "rgb(0, 0, 255)",
-  9: "#03b9d5",
-  10: "#ff7328",
-  11: "#ff0",
+// Modified to be a function that takes tonic as parameter
+const getColors = (tonic: number): { [key: number]: string } => {
+  const colors = {
+    0: "white",
+    1: "rgb(130, 0, 0)",
+    2: "red",
+    3: "#007000",
+    4: "#00fb47",
+    5: "#9500b3",
+    6: "#ea7eff",
+    7: "rgb(120, 120, 120)",
+    8: "rgb(0, 0, 255)",
+    9: "#03b9d5",
+    10: "#ff7328",
+    11: "#ff0",
+  };
+
+  // Rotate colors based on tonic
+  const rotatedColors: { [key: number]: string } = {};
+  for (let i = 0; i < 12; i++) {
+    rotatedColors[i] = colors[(i - tonic + 12) % 12];
+  }
+  return rotatedColors;
 };
 
 // Create a Sampler instead of Piano
@@ -49,7 +59,6 @@ const sampler = new Tone.Sampler({
   release: 0.5,
 }).toDestination();
 
-// Add these interfaces after the existing constants
 interface FallingNote {
   id: string;
   note: number;
@@ -59,96 +68,69 @@ interface FallingNote {
   left: number;
 }
 
-// Add these constants near the other ones
 const VISUALIZATION_HEIGHT = 1000;
+const PIXELS_PER_SECOND = 100;
+const NOTE_DURATION_MS = 500;
 
-// Add this constant with the others
-const PIXELS_PER_SECOND = 100; // Adjust this to control falling speed
-
-// Add this constant near the other ones
-const NOTE_DURATION_MS = 500; // 2 seconds note duration
-
-// Add this constant for black key offsets (relative to white keys)
 const BLACK_KEY_OFFSETS: { [key: number]: number } = {
-  1: 0.5, // C#
-  3: 1.5, // D#
-  6: 3.5, // F#
-  8: 4.5, // G#
-  10: 5.5, // A#
+  1: 0.5,
+  3: 1.5,
+  6: 3.5,
+  8: 4.5,
+  10: 5.5,
 };
 
-// Replace the existing KEYBOARD_MAP with this updated version
 const KEYBOARD_MAP = {
-  // Lower octave (C2-B2)
-  z: { note: 0, octave: 2 }, // C2
-  s: { note: 1, octave: 2 }, // C#2
-  x: { note: 2, octave: 2 }, // D2
-  d: { note: 3, octave: 2 }, // D#2
-  c: { note: 4, octave: 2 }, // E2
-  v: { note: 5, octave: 2 }, // F2
-  g: { note: 6, octave: 2 }, // F#2
-  b: { note: 7, octave: 2 }, // G2
-  h: { note: 8, octave: 2 }, // G#2
-  n: { note: 9, octave: 2 }, // A2
-  j: { note: 10, octave: 2 }, // A#2
-  m: { note: 11, octave: 2 }, // B2
-
-  // Middle octave (C3-B3)
-  ",": { note: 0, octave: 3 }, // C3
-  l: { note: 1, octave: 3 }, // C#3
-  ".": { note: 2, octave: 3 }, // D3
-  ";": { note: 3, octave: 3 }, // D#3
-  "/": { note: 4, octave: 3 }, // E3
-  q: { note: 5, octave: 3 }, // F3
-  "2": { note: 6, octave: 3 }, // F#3
-  w: { note: 7, octave: 3 }, // G3
-  "3": { note: 8, octave: 3 }, // G#3
-  e: { note: 9, octave: 3 }, // A3
-  "4": { note: 10, octave: 3 }, // A#3
-  r: { note: 11, octave: 3 }, // B3
-
-  // Upper octave (C4-E5)
-  t: { note: 0, octave: 4 }, // C4
-  "6": { note: 1, octave: 4 }, // C#4
-  y: { note: 2, octave: 4 }, // D4
-  "7": { note: 3, octave: 4 }, // D#4
-  u: { note: 4, octave: 4 }, // E4
-  i: { note: 5, octave: 4 }, // F4
-  "9": { note: 6, octave: 4 }, // F#4
-  o: { note: 7, octave: 4 }, // G4
-  "0": { note: 8, octave: 4 }, // G#4
-  p: { note: 9, octave: 4 }, // A4
-  "-": { note: 10, octave: 4 }, // A#4
-  "[": { note: 11, octave: 4 }, // B4
-  "]": { note: 0, octave: 5 }, // C5
+  z: { note: 0, octave: 2 },
+  s: { note: 1, octave: 2 },
+  x: { note: 2, octave: 2 },
+  d: { note: 3, octave: 2 },
+  c: { note: 4, octave: 2 },
+  v: { note: 5, octave: 2 },
+  g: { note: 6, octave: 2 },
+  b: { note: 7, octave: 2 },
+  h: { note: 8, octave: 2 },
+  n: { note: 9, octave: 2 },
+  j: { note: 10, octave: 2 },
+  m: { note: 11, octave: 2 },
+  ",": { note: 0, octave: 3 },
+  l: { note: 1, octave: 3 },
+  ".": { note: 2, octave: 3 },
+  ";": { note: 3, octave: 3 },
+  "/": { note: 4, octave: 3 },
+  q: { note: 5, octave: 3 },
+  "2": { note: 6, octave: 3 },
+  w: { note: 7, octave: 3 },
+  "3": { note: 8, octave: 3 },
+  e: { note: 9, octave: 3 },
+  "4": { note: 10, octave: 3 },
+  r: { note: 11, octave: 3 },
+  t: { note: 0, octave: 4 },
+  "6": { note: 1, octave: 4 },
+  y: { note: 2, octave: 4 },
+  "7": { note: 3, octave: 4 },
+  u: { note: 4, octave: 4 },
+  i: { note: 5, octave: 4 },
+  "9": { note: 6, octave: 4 },
+  o: { note: 7, octave: 4 },
+  "0": { note: 8, octave: 4 },
+  p: { note: 9, octave: 4 },
+  "-": { note: 10, octave: 4 },
+  "[": { note: 11, octave: 4 },
+  "]": { note: 0, octave: 5 },
 } as const;
 
-// Add these arrays after KEYBOARD_MAP definition
-const getKeyboardMappings = () => {
-  const whiteKeys: string[] = [];
-  const blackKeys: string[] = [];
+const getNotePosition = (note: number, octave: number, startOctave: number) => {
+  const isBlack = [1, 3, 6, 8, 10].includes(note);
+  const octaveOffset = (octave - startOctave) * 7 * KEY_WIDTH;
 
-  Object.entries(KEYBOARD_MAP).forEach(([key, value]) => {
-    const isBlack = [1, 3, 6, 8, 10].includes(value.note);
-    if (isBlack) {
-      blackKeys[value.octave * 7 + Math.floor(value.note / 2)] = key;
-    } else {
-      whiteKeys[value.octave * 7 + Math.floor(value.note / 2)] = key;
-    }
-  });
+  if (isBlack) {
+    return octaveOffset + BLACK_KEY_OFFSETS[note] * KEY_WIDTH;
+  }
 
-  return { whiteKeys, blackKeys };
+  const whiteKeyIndex = WHITE_KEYS.indexOf(note);
+  return octaveOffset + whiteKeyIndex * KEY_WIDTH;
 };
-
-const { whiteKeys: WHITE_KEY_MAPPING, blackKeys: BLACK_KEY_MAPPING } =
-  getKeyboardMappings();
-
-// Add this type for tracking active keys
-interface ActiveKey {
-  note: number;
-  octave: number;
-  left: number;
-}
 
 const PianoKey: React.FC<{
   note: number;
@@ -158,8 +140,10 @@ const PianoKey: React.FC<{
   keyboardKey?: string;
   onNoteStart: (note: number, octave: number, left: number) => void;
   onNoteEnd: (note: number, octave: number) => void;
-}> = ({ note, octave, style, keyboardKey, onNoteStart, onNoteEnd }) => {
+  tonic: number;
+}> = ({ note, octave, style, keyboardKey, onNoteStart, onNoteEnd, tonic }) => {
   const [isHovered, setIsHovered] = React.useState(false);
+  const colors = getColors(tonic);
 
   const getNoteString = (noteNum: number, octave: number) => {
     const notes = [
@@ -191,13 +175,14 @@ const PianoKey: React.FC<{
 
   const keyStyle = {
     ...style,
-    backgroundColor: COLORS[note],
+    backgroundColor: colors[note],
     position: "absolute" as const,
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: note === 0 ? "black" : "white", // Make text black on white keys
-    textShadow: note === 0 ? "none" : "0px 0px 3px black, 0px 0px 2px black",
+    color: note === tonic % 12 ? "black" : "white",
+    textShadow:
+      note === tonic % 12 ? "none" : "0px 0px 3px black, 0px 0px 2px black",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -229,43 +214,16 @@ const PianoKey: React.FC<{
           {keyboardKey}
         </div>
       )}
-      {note === 1 && (
-        <div
-          style={{
-            content: "''",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "1px",
-            height: "1px",
-            backgroundColor: "white",
-            borderRadius: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-      )}
-      {note === 6 && (
-        <div
-          style={{
-            content: "''",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "2px",
-            height: "2px",
-            backgroundColor: "black",
-            borderRadius: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-      )}
     </div>
   );
 };
 
-// Update the FallingNotes component
-const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
+const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
+  notes,
+  tonic,
+}) => {
   const [time, setTime] = useState(Date.now());
+  const colors = getColors(tonic);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -293,10 +251,9 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
         const timeSinceEnd = note.endTime ? (time - note.endTime) / 1000 : 0;
         const top = isActive ? 0 : timeSinceEnd * PIXELS_PER_SECOND;
 
-        // Calculate height based on whether the note is active or finished
         const duration = isActive
-          ? time - note.startTime // Growing height while active
-          : note.endTime! - note.startTime; // Fixed height after end
+          ? time - note.startTime
+          : note.endTime! - note.startTime;
         const height = duration * (PIXELS_PER_SECOND / 1000);
 
         return (
@@ -308,7 +265,7 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
               top: top,
               width: KEY_WIDTH,
               height: height,
-              backgroundColor: COLORS[note.note],
+              backgroundColor: colors[note.note],
               borderRadius: "3px",
               willChange: "transform, height",
             }}
@@ -319,26 +276,11 @@ const FallingNotes: React.FC<{ notes: FallingNote[] }> = ({ notes }) => {
   );
 };
 
-// Replace the getNotePosition function with this updated version
-const getNotePosition = (note: number, octave: number, startOctave: number) => {
-  const isBlack = [1, 3, 6, 8, 10].includes(note);
-  const octaveOffset = (octave - startOctave) * 7 * KEY_WIDTH;
-
-  if (isBlack) {
-    // Use the predefined offset for black keys
-    return octaveOffset + BLACK_KEY_OFFSETS[note] * KEY_WIDTH;
-  }
-
-  // For white keys, count the number of white keys before this note
-  const whiteKeyIndex = WHITE_KEYS.indexOf(note);
-  return octaveOffset + whiteKeyIndex * KEY_WIDTH;
-};
-
-// Simplified PianoUI component
 export const PianoUI: React.FC = () => {
-  const startOctave = 2; // Start from C2
+  const startOctave = 2;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const [tonic, setTonic] = useState<number>(0); // Default tonic is C (0)
 
   const handleNoteStart = useCallback(
     (note: number, octave: number, left: number) => {
@@ -365,10 +307,17 @@ export const PianoUI: React.FC = () => {
     );
   }, []);
 
-  // Updated keyboard event handlers
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+
+      // Handle tonic change with Shift key
+      if (event.shiftKey && key in KEYBOARD_MAP) {
+        const { note } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
+        setTonic(note % 12);
+        return;
+      }
+
       if (key in KEYBOARD_MAP && !activeKeys.has(key)) {
         const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
         const left = getNotePosition(note, octave, startOctave);
@@ -380,9 +329,7 @@ export const PianoUI: React.FC = () => {
           ]
         }${octave}`;
 
-        // Only trigger attack on key down
         sampler.triggerAttack(noteString);
-
         setActiveKeys((prev) => new Set([...prev, key]));
         handleNoteStart(note, octave, left);
       }
@@ -392,15 +339,13 @@ export const PianoUI: React.FC = () => {
       const key = event.key.toLowerCase();
       if (key in KEYBOARD_MAP) {
         const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
-
-        // Trigger release on key up
         const noteString = `${
           ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
             note
           ]
         }${octave}`;
-        sampler.triggerRelease(noteString);
 
+        sampler.triggerRelease(noteString);
         handleNoteEnd(note, octave);
         setActiveKeys((prev) => {
           const next = new Set(prev);
@@ -419,7 +364,6 @@ export const PianoUI: React.FC = () => {
     };
   }, [activeKeys, handleNoteStart, handleNoteEnd, startOctave]);
 
-  // Update the cleanup interval in PianoUI component
   useEffect(() => {
     const cleanup = setInterval(() => {
       const now = Date.now();
@@ -456,16 +400,15 @@ export const PianoUI: React.FC = () => {
           const whiteNote = WHITE_KEYS[keyIndex];
           const blackNote = BLACK_KEYS[keyIndex];
 
-          // Find keyboard mapping for this note
           const whiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
-            ([_, value]) =>
+            ([, value]) =>
               value.note === whiteNote && value.octave === currentOctave
           )?.[0];
 
           const blackKeyMapping =
             blackNote !== -1
               ? Object.entries(KEYBOARD_MAP).find(
-                  ([_, value]) =>
+                  ([, value]) =>
                     value.note === blackNote && value.octave === currentOctave
                 )?.[0]
               : undefined;
@@ -479,6 +422,7 @@ export const PianoUI: React.FC = () => {
                 keyboardKey={whiteKeyMapping}
                 onNoteStart={handleNoteStart}
                 onNoteEnd={handleNoteEnd}
+                tonic={tonic}
                 style={{
                   top: ROW_DISTANCE,
                   left: KEY_WIDTH * i,
@@ -495,6 +439,7 @@ export const PianoUI: React.FC = () => {
                   keyboardKey={blackKeyMapping}
                   onNoteStart={handleNoteStart}
                   onNoteEnd={handleNoteEnd}
+                  tonic={tonic}
                   style={{
                     top: 0,
                     left: KEY_WIDTH * (i + 0.5),
@@ -508,7 +453,7 @@ export const PianoUI: React.FC = () => {
             </React.Fragment>
           );
         })}
-        <FallingNotes notes={fallingNotes} />
+        <FallingNotes notes={fallingNotes} tonic={tonic} />
       </div>
     </div>
   );
