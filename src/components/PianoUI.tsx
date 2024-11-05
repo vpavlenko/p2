@@ -313,7 +313,6 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
         left: 0,
         right: 0,
         bottom: -2000,
-        overflow: "hidden",
       }}
     >
       {notes.map((note) => {
@@ -504,14 +503,16 @@ export const PianoUI: React.FC = () => {
     const cleanup = setInterval(() => {
       const now = Date.now();
       setFallingNotes((prev) =>
-        prev.filter(
-          (note) =>
-            // Keep notes that are still active (no endTime)
-            !note.endTime ||
-            // Or notes that haven't scrolled off screen yet
-            now - note.endTime <
-              (VISUALIZATION_HEIGHT * 1000) / PIXELS_PER_SECOND
-        )
+        prev.filter((note) => {
+          if (!note.endTime) return true;
+
+          // Calculate how far the note has fallen
+          const timeSinceEnd = (now - note.endTime) / 1000;
+          const distanceFallen = timeSinceEnd * PIXELS_PER_SECOND;
+
+          // Only remove notes that have fallen far beyond the viewport (e.g., 2000px below)
+          return distanceFallen < 2000;
+        })
       );
     }, 1000);
 
