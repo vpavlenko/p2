@@ -306,8 +306,13 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
   );
 };
 
-// Update the getShiftedOctave function to handle both directions
-const getShiftedOctave = (octave: number, down: boolean = false): number => {
+// Simplify getShiftedOctave to always shift exactly 3 octaves
+const getShiftedOctave = (
+  octave: number,
+  down: boolean = false,
+  forLabels: boolean = false
+): number => {
+  // Always shift exactly 3 octaves, no special cases
   return down ? octave - 3 : octave + 3;
 };
 
@@ -353,9 +358,35 @@ export const PianoUI: React.FC = () => {
         return;
       }
 
-      if (key in KEYBOARD_MAP && !activeKeys.has(key)) {
-        const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
-        // When shift is pressed, play 3 octaves higher
+      // Special handling for shifted symbols that might not match the keyboard map
+      let lookupKey = key;
+      if (event.shiftKey) {
+        // Map shifted characters to their unshifted equivalents
+        const shiftedKeyMap: { [key: string]: string } = {
+          "<": ",",
+          ">": ".",
+          "?": "/",
+          "@": "2",
+          "#": "3",
+          $: "4",
+          "%": "5",
+          "^": "6",
+          "&": "7",
+          "*": "8",
+          "(": "9",
+          ")": "0",
+          _: "-",
+          "{": "[",
+          "}": "]",
+          ":": ";",
+          '"': "'",
+        };
+        lookupKey = shiftedKeyMap[key] || key;
+      }
+
+      if (lookupKey in KEYBOARD_MAP && !activeKeys.has(lookupKey)) {
+        const { note, octave } =
+          KEYBOARD_MAP[lookupKey as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         const left = getNotePosition(note, actualOctave, startOctave);
 
@@ -367,16 +398,42 @@ export const PianoUI: React.FC = () => {
         }${actualOctave}`;
 
         sampler.triggerAttack(noteString);
-        setActiveKeys((prev) => new Set([...prev, key]));
+        setActiveKeys((prev) => new Set([...prev, lookupKey]));
         handleNoteStart(note, actualOctave, left);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      if (key in KEYBOARD_MAP) {
-        const { note, octave } = KEYBOARD_MAP[key as keyof typeof KEYBOARD_MAP];
-        // When shift is pressed, play 3 octaves higher
+
+      // Use the same shifted key mapping as in handleKeyDown
+      let lookupKey = key;
+      if (event.shiftKey) {
+        const shiftedKeyMap: { [key: string]: string } = {
+          "<": ",",
+          ">": ".",
+          "?": "/",
+          "@": "2",
+          "#": "3",
+          $: "4",
+          "%": "5",
+          "^": "6",
+          "&": "7",
+          "*": "8",
+          "(": "9",
+          ")": "0",
+          _: "-",
+          "{": "[",
+          "}": "]",
+          ":": ";",
+          '"': "'",
+        };
+        lookupKey = shiftedKeyMap[key] || key;
+      }
+
+      if (lookupKey in KEYBOARD_MAP) {
+        const { note, octave } =
+          KEYBOARD_MAP[lookupKey as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         const noteString = `${
           ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
@@ -388,7 +445,7 @@ export const PianoUI: React.FC = () => {
         handleNoteEnd(note, actualOctave);
         setActiveKeys((prev) => {
           const next = new Set(prev);
-          next.delete(key);
+          next.delete(lookupKey);
           return next;
         });
       }
@@ -483,7 +540,7 @@ export const PianoUI: React.FC = () => {
           const shiftedWhiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
             ([, value]) =>
               value.note === whiteNote &&
-              value.octave === getShiftedOctave(currentOctave, true)
+              value.octave === getShiftedOctave(currentOctave, true, true)
           )?.[0];
 
           const shiftedBlackKeyMapping =
@@ -491,7 +548,7 @@ export const PianoUI: React.FC = () => {
               ? Object.entries(KEYBOARD_MAP).find(
                   ([, value]) =>
                     value.note === blackNote &&
-                    value.octave === getShiftedOctave(currentOctave, true)
+                    value.octave === getShiftedOctave(currentOctave, true, true)
                 )?.[0]
               : undefined;
 
