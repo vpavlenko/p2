@@ -38,9 +38,10 @@ const sampler = new Tone.Sampler({
 
 const PianoKey: React.FC<{
   note: number;
+  octave: number;
   label: string;
   style: React.CSSProperties;
-}> = ({ note, style }) => {
+}> = ({ note, octave, style }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   const getNoteString = (noteNum: number, octave: number) => {
@@ -62,12 +63,8 @@ const PianoKey: React.FC<{
   };
 
   const handleClick = async () => {
-    // Ensure audio context is started
     await Tone.start();
-
-    const octave = Math.floor(note / 12) + 4;
-    const noteString = getNoteString(note % 12, octave);
-
+    const noteString = getNoteString(note, octave);
     sampler.triggerAttackRelease(noteString, "8n");
   };
 
@@ -131,6 +128,8 @@ const PianoKey: React.FC<{
 };
 
 export const PianoUI: React.FC = () => {
+  const startOctave = 1;
+
   return (
     <div style={{ backgroundColor: "black", padding: "5px" }}>
       <div
@@ -140,35 +139,41 @@ export const PianoUI: React.FC = () => {
           height: KEY_HEIGHT + ROW_DISTANCE,
         }}
       >
-        {Array.from({ length: WHITE_KEYS.length * NUM_OCTAVES }, (_, i) => (
-          <React.Fragment key={i}>
-            <PianoKey
-              note={WHITE_KEYS[i % 7]}
-              label={((i % 7) + 1).toString()}
-              style={{
-                top: ROW_DISTANCE,
-                left: KEY_WIDTH * i,
-                width: KEY_WIDTH,
-                height: KEY_HEIGHT,
-                borderRadius: "3px",
-              }}
-            />
-            {BLACK_KEYS[i % 7] !== -1 && (
+        {Array.from({ length: WHITE_KEYS.length * NUM_OCTAVES }, (_, i) => {
+          const currentOctave = startOctave + Math.floor(i / 7);
+
+          return (
+            <React.Fragment key={i}>
               <PianoKey
-                note={BLACK_KEYS[i % 7]}
-                label={BLACK_KEY_LABELS[i % 7]}
+                note={WHITE_KEYS[i % 7]}
+                octave={currentOctave}
+                label={((i % 7) + 1).toString()}
                 style={{
-                  top: 0,
-                  left: KEY_WIDTH * (i + 0.5),
-                  zIndex: 2,
+                  top: ROW_DISTANCE,
+                  left: KEY_WIDTH * i,
                   width: KEY_WIDTH,
                   height: KEY_HEIGHT,
                   borderRadius: "3px",
                 }}
               />
-            )}
-          </React.Fragment>
-        ))}
+              {BLACK_KEYS[i % 7] !== -1 && (
+                <PianoKey
+                  note={BLACK_KEYS[i % 7]}
+                  octave={currentOctave}
+                  label={BLACK_KEY_LABELS[i % 7]}
+                  style={{
+                    top: 0,
+                    left: KEY_WIDTH * (i + 0.5),
+                    zIndex: 2,
+                    width: KEY_WIDTH,
+                    height: KEY_HEIGHT,
+                    borderRadius: "3px",
+                  }}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
     </div>
   );
