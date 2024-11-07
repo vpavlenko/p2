@@ -7,7 +7,7 @@ import { Voicing, VOICINGS } from "../constants/voicings";
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
-const NUM_OCTAVES = 6;
+const NUM_OCTAVES = 7;
 
 const KEY_WIDTH = 28;
 const KEY_HEIGHT = 80;
@@ -475,8 +475,40 @@ const isNoteInScale = (
 // Add this constant near the top of the file with other constants
 const NOTE_SHRINK_AMOUNT = 7; // Amount to shrink on each side
 
+// Update these constants near the top of the file
+const START_OCTAVE = 0; // Changed from 2 to 0 to start at A0
+
+// Replace the EXTRA_LOW_KEYS constant with a more structured octave range system
+interface OctaveRange {
+  start: number; // Starting note number (0-11, where 0 is C)
+  length: number; // How many notes in this octave range
+}
+
+const OCTAVE_RANGES: { [key: number]: OctaveRange } = {
+  0: { start: 9, length: 3 }, // A0, A#0, B0
+  1: { start: 0, length: 12 }, // C1 to B1
+  2: { start: 0, length: 12 }, // C2 to B2
+  3: { start: 0, length: 12 }, // C3 to B3
+  4: { start: 0, length: 12 }, // C4 to B4
+  5: { start: 0, length: 12 }, // C5 to B5
+  6: { start: 0, length: 12 }, // C6 to B6
+  7: { start: 0, length: 12 }, // C7 to B7
+  8: { start: 0, length: 1 }, // C8 only
+};
+
+// Add this helper function to count white keys in a range
+const countWhiteKeysInRange = (start: number, length: number): number => {
+  let count = 0;
+  for (let i = 0; i < length; i++) {
+    if (WHITE_KEYS.includes((start + i) % 12)) {
+      count++;
+    }
+  }
+  return count;
+};
+
 export const PianoUI: React.FC = () => {
-  const startOctave = 2;
+  const startOctave = START_OCTAVE;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [tonic, setTonic] = useState<number>(0); // Default tonic is C (0)
@@ -669,7 +701,12 @@ export const PianoUI: React.FC = () => {
     };
   }, []);
 
-  const totalWidth = WHITE_KEYS.length * KEY_WIDTH * NUM_OCTAVES;
+  const totalWidth =
+    Object.values(OCTAVE_RANGES).reduce(
+      (total, range) =>
+        total + countWhiteKeysInRange(range.start, range.length),
+      0
+    ) * KEY_WIDTH;
 
   return (
     <div
@@ -698,84 +735,81 @@ export const PianoUI: React.FC = () => {
       >
         <ShiftIndicator totalWidth={totalWidth} />
         <TonicLegend />
-        {Array.from({ length: WHITE_KEYS.length * NUM_OCTAVES }, (_, i) => {
-          const currentOctave = startOctave + Math.floor(i / 7);
-          const keyIndex = i % 7;
-          const whiteNote = WHITE_KEYS[keyIndex];
-          const blackNote = BLACK_KEYS[keyIndex];
 
-          // Find normal key mapping
-          const whiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
-            ([, value]) =>
-              value.note === whiteNote && value.octave === currentOctave
-          )?.[0];
+        {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
+          const octaveNum = parseInt(octave);
+          return Array.from({ length: range.length }, (_, i) => {
+            const noteNum = (range.start + i) % 12;
+            const isWhiteKey = WHITE_KEYS.includes(noteNum);
+            const keyIndex = WHITE_KEYS.indexOf(noteNum);
+            const blackKeyIndex = BLACK_KEYS.indexOf(noteNum);
 
-          const blackKeyMapping =
-            blackNote !== -1
-              ? Object.entries(KEYBOARD_MAP).find(
-                  ([, value]) =>
-                    value.note === blackNote && value.octave === currentOctave
-                )?.[0]
-              : undefined;
+            // Calculate position based on cumulative white keys before this note
+            let whiteKeyCount = 0;
+            // Count white keys in previous octaves
+            for (let o = 0; o < octaveNum; o++) {
+              whiteKeyCount += countWhiteKeysInRange(
+                OCTAVE_RANGES[o].start,
+                OCTAVE_RANGES[o].length
+              );
+            }
+            // Count white keys in current octave up to this note
+            whiteKeyCount += countWhiteKeysInRange(range.start, i);
 
-          // Find shifted key mappings (3 octaves LOWER to trigger HIGHER notes)
-          const shiftedWhiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
-            ([, value]) =>
-              value.note === whiteNote &&
-              value.octave === getShiftedOctave(currentOctave, true)
-          )?.[0];
+            // Find keyboard mappings
+            const keyMapping = Object.entries(KEYBOARD_MAP).find(
+              ([, value]) =>
+                value.note === noteNum && value.octave === octaveNum
+            )?.[0];
 
-          const shiftedBlackKeyMapping =
-            blackNote !== -1
-              ? Object.entries(KEYBOARD_MAP).find(
-                  ([, value]) =>
-                    value.note === blackNote &&
-                    value.octave === getShiftedOctave(currentOctave, true)
-                )?.[0]
-              : undefined;
+            const shiftedKeyMapping = Object.entries(KEYBOARD_MAP).find(
+              ([, value]) =>
+                value.note === noteNum &&
+                value.octave === getShiftedOctave(octaveNum, true)
+            )?.[0];
 
-          return (
-            <React.Fragment key={i}>
-              <PianoKey
-                note={whiteNote}
-                octave={currentOctave}
-                label={(keyIndex + 1).toString()}
-                keyboardKey={
-                  whiteKeyMapping
-                    ? KEY_DISPLAY_LABELS[whiteKeyMapping]
-                    : undefined
-                }
-                shiftedKeyboardKey={
-                  shiftedWhiteKeyMapping
-                    ? KEY_DISPLAY_LABELS[shiftedWhiteKeyMapping]
-                    : undefined
-                }
-                onNoteStart={handleNoteStart}
-                onNoteEnd={handleNoteEnd}
-                tonic={tonic}
-                style={{
-                  top: ROW_DISTANCE,
-                  left: KEY_WIDTH * i,
-                  width: KEY_WIDTH,
-                  height: KEY_HEIGHT,
-                  borderRadius: "3px",
-                }}
-                isShiftPressed={isShiftPressed}
-                scaleMode={scaleMode}
-              />
-              {blackNote !== -1 && (
+            if (isWhiteKey) {
+              return (
                 <PianoKey
-                  note={blackNote}
-                  octave={currentOctave}
-                  label={BLACK_KEY_LABELS[keyIndex]}
+                  key={`${octaveNum}-${noteNum}`}
+                  note={noteNum}
+                  octave={octaveNum}
+                  label={keyIndex !== -1 ? (keyIndex + 1).toString() : ""}
                   keyboardKey={
-                    blackKeyMapping
-                      ? KEY_DISPLAY_LABELS[blackKeyMapping]
-                      : undefined
+                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
                   }
                   shiftedKeyboardKey={
-                    shiftedBlackKeyMapping
-                      ? KEY_DISPLAY_LABELS[shiftedBlackKeyMapping]
+                    shiftedKeyMapping
+                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
+                      : undefined
+                  }
+                  onNoteStart={handleNoteStart}
+                  onNoteEnd={handleNoteEnd}
+                  tonic={tonic}
+                  style={{
+                    top: ROW_DISTANCE,
+                    left: KEY_WIDTH * whiteKeyCount,
+                    width: KEY_WIDTH,
+                    height: KEY_HEIGHT,
+                    borderRadius: "3px",
+                  }}
+                  isShiftPressed={isShiftPressed}
+                  scaleMode={scaleMode}
+                />
+              );
+            } else if (blackKeyIndex !== -1) {
+              return (
+                <PianoKey
+                  key={`${octaveNum}-${noteNum}`}
+                  note={noteNum}
+                  octave={octaveNum}
+                  label={BLACK_KEY_LABELS[blackKeyIndex]}
+                  keyboardKey={
+                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
+                  }
+                  shiftedKeyboardKey={
+                    shiftedKeyMapping
+                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
                       : undefined
                   }
                   onNoteStart={handleNoteStart}
@@ -783,7 +817,7 @@ export const PianoUI: React.FC = () => {
                   tonic={tonic}
                   style={{
                     top: 0,
-                    left: KEY_WIDTH * (i + 0.5),
+                    left: KEY_WIDTH * (whiteKeyCount - 0.5),
                     zIndex: 2,
                     width: KEY_WIDTH,
                     height: KEY_HEIGHT,
@@ -792,9 +826,10 @@ export const PianoUI: React.FC = () => {
                   isShiftPressed={isShiftPressed}
                   scaleMode={scaleMode}
                 />
-              )}
-            </React.Fragment>
-          );
+              );
+            }
+            return null;
+          });
         })}
         <FallingNotes notes={fallingNotes} tonic={tonic} />
       </div>
