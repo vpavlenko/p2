@@ -156,13 +156,15 @@ const KEY_DISPLAY_LABELS: { [key: string]: string } = {
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
 const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
 
+const FALLING_NOTE_OFFSET = -140; // Adjust this value to align falling notes with keys
+
 const getFallingNotePosition = (
   note: number,
   octave: number,
   startOctave: number
 ) => {
   const semitonesFromC0 = (octave - startOctave) * 12 + note;
-  return (semitonesFromC0 * FALLING_NOTE_WIDTH) / 2;
+  return (semitonesFromC0 * FALLING_NOTE_WIDTH) / 2 + FALLING_NOTE_OFFSET;
 };
 
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
