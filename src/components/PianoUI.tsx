@@ -196,6 +196,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   scaleMode,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isPressed, setIsPressed] = React.useState(false);
   const colors = getColors(tonic);
   const relativeNote = (note - tonic + 12) % 12;
   const isInScale = isNoteInScale(note, tonic, scaleMode);
@@ -218,14 +219,40 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     return `${notes[noteNum]}${octave}`;
   };
 
-  const handleClick = async () => {
+  const handleMouseDown = async () => {
     await Tone.start();
     const noteString = getNoteString(note, octave);
-    sampler.triggerAttackRelease(noteString, NOTE_DURATION_MS / 1000);
+    sampler.triggerAttack(noteString);
     onNoteStart(note, octave);
-    setTimeout(() => {
+    setIsPressed(true);
+  };
+
+  const handleMouseUp = () => {
+    if (isPressed) {
+      const noteString = getNoteString(note, octave);
+      sampler.triggerRelease(noteString);
       onNoteEnd(note, octave);
-    }, NOTE_DURATION_MS);
+      setIsPressed(false);
+    }
+  };
+
+  // Handle case where mouse leaves key while pressed
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (isPressed) {
+      handleMouseUp();
+    }
+  };
+
+  // Add touch support for mobile devices
+  const handleTouchStart = async (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent default touch behavior
+    await handleMouseDown();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseUp();
   };
 
   const keyStyle = {
@@ -262,9 +289,12 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   return (
     <div
       style={keyStyle}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {(keyboardKey || shiftedKeyboardKey) && (
         <div
