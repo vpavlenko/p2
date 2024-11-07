@@ -14,7 +14,20 @@ const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
 // Modified colors type definition
-const getColors = (tonic: number): { [key: number]: string } => {
+const getColors = (
+  tonic: number,
+  colorMode: ColorMode
+): { [key: number]: string } => {
+  if (colorMode === "traditional") {
+    // Return traditional piano colors
+    const traditionalColors: { [key: number]: string } = {};
+    for (let i = 0; i < 12; i++) {
+      traditionalColors[i] = [1, 3, 6, 8, 10].includes(i) ? "#222222" : "white";
+    }
+    return traditionalColors;
+  }
+
+  // Original chromatic colors
   const colors: { [key: number]: string } = {
     0: "white",
     1: "rgb(130, 0, 0)",
@@ -181,6 +194,7 @@ interface PianoKeyProps {
   tonic: number;
   isShiftPressed: boolean;
   scaleMode: ScaleMode;
+  colorMode: ColorMode;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -194,10 +208,11 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   tonic,
   isShiftPressed,
   scaleMode,
+  colorMode,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
-  const colors = getColors(tonic);
+  const colors = getColors(tonic, colorMode);
   const relativeNote = (note - tonic + 12) % 12;
   const isInScale = isNoteInScale(note, tonic, scaleMode);
 
@@ -283,7 +298,18 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     height: !isInScale
       ? `${parseInt(style.height as string) - NOTE_SHRINK_AMOUNT * 2}px`
       : style.height,
-    margin: !isInScale ? `${NOTE_SHRINK_AMOUNT}px` : "0",
+    margin: !isInScale
+      ? `0 ${NOTE_SHRINK_AMOUNT}px ${NOTE_SHRINK_AMOUNT}px ${NOTE_SHRINK_AMOUNT}px`
+      : "0",
+    ...(colorMode === "traditional" && {
+      border:
+        colors[note] === "white" ? "1px solid rgba(0, 0, 0, 0.8)" : "none",
+      height:
+        colors[note] === "white"
+          ? `${KEY_HEIGHT + ROW_DISTANCE}px`
+          : `${KEY_HEIGHT}px`,
+      top: colors[note] === "white" ? "0" : "0",
+    }),
   };
 
   return (
@@ -318,12 +344,13 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   );
 };
 
-const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
-  notes,
-  tonic,
-}) => {
+const FallingNotes: React.FC<{
+  notes: FallingNote[];
+  tonic: number;
+  colorMode: ColorMode;
+}> = ({ notes, tonic, colorMode }) => {
   const [time, setTime] = useState(Date.now());
-  const colors = getColors(tonic);
+  const colors = getColors(tonic, colorMode);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -539,6 +566,55 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
+// Add this near the top with other constants
+type ColorMode = "chromatic" | "traditional";
+
+// Add ColorModePicker component
+const ColorModePicker: React.FC<{
+  currentMode: ColorMode;
+  onModeChange: (mode: ColorMode) => void;
+}> = ({ currentMode, onModeChange }) => (
+  <div
+    style={{
+      position: "fixed",
+      right: "20px",
+      top: "20px",
+      color: "white",
+      fontSize: "14px",
+      padding: "15px",
+      background: "rgba(0, 0, 0, 0.7)",
+      borderRadius: "8px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "10px",
+      zIndex: 1000,
+    }}
+  >
+    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Color Mode</div>
+    {["chromatic", "traditional"].map((mode) => (
+      <button
+        key={mode}
+        onClick={() => onModeChange(mode as ColorMode)}
+        style={{
+          background:
+            mode === currentMode
+              ? "rgba(255, 255, 255, 0.3)"
+              : "rgba(0, 0, 0, 0.3)",
+          border: "1px solid rgba(255, 255, 255, 0.4)",
+          color: "white",
+          padding: "10px 15px",
+          borderRadius: "4px",
+          cursor: "pointer",
+          width: "150px",
+          textAlign: "left",
+        }}
+      >
+        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+      </button>
+    ))}
+  </div>
+);
+
 export const PianoUI: React.FC = () => {
   const startOctave = START_OCTAVE;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
@@ -547,6 +623,9 @@ export const PianoUI: React.FC = () => {
 
   const [voicing, setVoicing] = useState<Voicing>("single");
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
+
+  // Add colorMode state
+  const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
 
   const handleNoteStart = useCallback(
     (note: number, octave: number) => {
@@ -758,6 +837,7 @@ export const PianoUI: React.FC = () => {
     >
       <VoicingSidebar currentVoicing={voicing} onVoicingChange={setVoicing} />
       <ScaleModePicker currentMode={scaleMode} onModeChange={setScaleMode} />
+      <ColorModePicker currentMode={colorMode} onModeChange={setColorMode} />
       <div
         style={{
           position: "relative",
@@ -827,6 +907,7 @@ export const PianoUI: React.FC = () => {
                   }}
                   isShiftPressed={isShiftPressed}
                   scaleMode={scaleMode}
+                  colorMode={colorMode}
                 />
               );
             } else if (blackKeyIndex !== -1) {
@@ -857,13 +938,18 @@ export const PianoUI: React.FC = () => {
                   }}
                   isShiftPressed={isShiftPressed}
                   scaleMode={scaleMode}
+                  colorMode={colorMode}
                 />
               );
             }
             return null;
           });
         })}
-        <FallingNotes notes={fallingNotes} tonic={tonic} />
+        <FallingNotes
+          notes={fallingNotes}
+          tonic={tonic}
+          colorMode={colorMode}
+        />
       </div>
     </div>
   );
