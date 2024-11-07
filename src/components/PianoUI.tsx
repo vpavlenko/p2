@@ -9,7 +9,7 @@ const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
 const NUM_OCTAVES = 7;
 
-const KEY_WIDTH = 28;
+const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
@@ -169,7 +169,7 @@ const KEY_DISPLAY_LABELS: { [key: string]: string } = {
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
 const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
 
-const FALLING_NOTE_OFFSET = -140; // Adjust this value to align falling notes with keys
+const FALLING_NOTE_OFFSET = -125; // Adjust this value to align falling notes with keys
 
 const getFallingNotePosition = (
   note: number,
@@ -277,11 +277,16 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: SPECIAL_NOTE_COLORS.includes(
-      relativeNote as (typeof SPECIAL_NOTE_COLORS)[number]
-    )
-      ? "black"
-      : "white",
+    color:
+      colorMode === "traditional"
+        ? colors[note] === "white"
+          ? "black"
+          : "white" // Traditional: white keys get black text, black keys get white text
+        : SPECIAL_NOTE_COLORS.includes(
+            relativeNote as (typeof SPECIAL_NOTE_COLORS)[number]
+          )
+        ? "black"
+        : "white", // Chromatic: use existing logic
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -382,6 +387,10 @@ const FallingNotes: React.FC<{
           : note.endTime! - note.startTime;
         const height = duration * (PIXELS_PER_SECOND / 1000);
 
+        // In traditional mode, all falling notes are white
+        const noteColor =
+          colorMode === "traditional" ? "white" : colors[note.note];
+
         return (
           <div
             key={note.id}
@@ -391,7 +400,7 @@ const FallingNotes: React.FC<{
               top: top,
               width: FALLING_NOTE_WIDTH,
               height: height,
-              backgroundColor: colors[note.note],
+              backgroundColor: noteColor,
               borderRadius: "3px",
               willChange: "transform, height",
             }}
@@ -435,8 +444,8 @@ const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
     style={{
       position: "absolute",
       top: -30,
-      left: totalWidth / 2, // Start from the middle
-      width: totalWidth / 2, // Only cover right half
+      left: totalWidth * 0.58, // Start from the middle
+      width: totalWidth * 0.42, // Only cover right half
       textAlign: "center",
       color: "white",
       fontSize: "14px",
@@ -532,7 +541,7 @@ const isNoteInScale = (
 };
 
 // Add this constant near the top of the file with other constants
-const NOTE_SHRINK_AMOUNT = 7; // Amount to shrink on each side
+const NOTE_SHRINK_AMOUNT = 5; // Amount to shrink on each side
 
 // Update these constants near the top of the file
 const START_OCTAVE = 0; // Changed from 2 to 0 to start at A0
@@ -577,7 +586,7 @@ const ColorModePicker: React.FC<{
   <div
     style={{
       position: "fixed",
-      right: "20px",
+      left: "20px",
       top: "20px",
       color: "white",
       fontSize: "14px",
