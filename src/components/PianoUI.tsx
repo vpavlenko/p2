@@ -211,6 +211,9 @@ const PianoKey: React.FC<{
   const [isHovered, setIsHovered] = React.useState(false);
   const colors = getColors(tonic);
 
+  // Calculate the note relative to the tonic
+  const relativeNote = (note - tonic + 12) % 12;
+
   const getNoteString = (noteNum: number, octave: number) => {
     const notes = [
       "C",
@@ -246,7 +249,7 @@ const PianoKey: React.FC<{
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: SPECIAL_NOTE_COLORS.includes(note % 12) ? "black" : "white",
+    color: SPECIAL_NOTE_COLORS.includes(relativeNote) ? "black" : "white",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
