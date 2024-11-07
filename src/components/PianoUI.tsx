@@ -12,9 +12,9 @@ const KEY_WIDTH = 28;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
-// Modified to be a function that takes tonic as parameter
+// Modified colors type definition
 const getColors = (tonic: number): { [key: number]: string } => {
-  const colors = {
+  const colors: { [key: number]: string } = {
     0: "white",
     1: "rgb(130, 0, 0)",
     2: "red",
@@ -69,17 +69,8 @@ interface FallingNote {
   left: number;
 }
 
-const VISUALIZATION_HEIGHT = 500;
 const PIXELS_PER_SECOND = 100;
 const NOTE_DURATION_MS = 500;
-
-const BLACK_KEY_OFFSETS: { [key: number]: number } = {
-  1: 0.5,
-  3: 1.5,
-  6: 3.5,
-  8: 4.5,
-  10: 5.5,
-};
 
 const KEYBOARD_MAP = {
   KeyZ: { note: 0, octave: 2 },
@@ -164,18 +155,6 @@ const KEY_DISPLAY_LABELS: { [key: string]: string } = {
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
 const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
 
-const getNotePosition = (note: number, octave: number, startOctave: number) => {
-  const isBlack = [1, 3, 6, 8, 10].includes(note);
-  const octaveOffset = (octave - startOctave) * 7 * KEY_WIDTH;
-
-  if (isBlack) {
-    return octaveOffset + BLACK_KEY_OFFSETS[note] * KEY_WIDTH;
-  }
-
-  const whiteKeyIndex = WHITE_KEYS.indexOf(note);
-  return octaveOffset + whiteKeyIndex * KEY_WIDTH;
-};
-
 const getFallingNotePosition = (
   note: number,
   octave: number,
@@ -187,18 +166,20 @@ const getFallingNotePosition = (
 
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
-const PianoKey: React.FC<{
+interface PianoKeyProps {
   note: number;
   octave: number;
   label: string;
   style: React.CSSProperties;
   keyboardKey?: string;
   shiftedKeyboardKey?: string;
-  onNoteStart: (note: number, octave: number, left: number) => void;
+  onNoteStart: (note: number, octave: number) => void;
   onNoteEnd: (note: number, octave: number) => void;
   tonic: number;
   isShiftPressed: boolean;
-}> = ({
+}
+
+const PianoKey: React.FC<PianoKeyProps> = ({
   note,
   octave,
   style,
@@ -237,7 +218,7 @@ const PianoKey: React.FC<{
     await Tone.start();
     const noteString = getNoteString(note, octave);
     sampler.triggerAttackRelease(noteString, NOTE_DURATION_MS / 1000);
-    onNoteStart(note, octave, parseFloat(style.left as string));
+    onNoteStart(note, octave);
     setTimeout(() => {
       onNoteEnd(note, octave);
     }, NOTE_DURATION_MS);
@@ -250,7 +231,11 @@ const PianoKey: React.FC<{
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: SPECIAL_NOTE_COLORS.includes(relativeNote) ? "black" : "white",
+    color: SPECIAL_NOTE_COLORS.includes(
+      relativeNote as (typeof SPECIAL_NOTE_COLORS)[number]
+    )
+      ? "black"
+      : "white",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -349,13 +334,8 @@ const FallingNotes: React.FC<{ notes: FallingNote[]; tonic: number }> = ({
   );
 };
 
-// Simplify getShiftedOctave to always shift exactly 3 octaves
-const getShiftedOctave = (
-  octave: number,
-  down: boolean = false,
-  forLabels: boolean = false
-): number => {
-  // Always shift exactly 3 octaves, no special cases
+// Simplify getShiftedOctave by removing unused parameter
+const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
@@ -483,8 +463,8 @@ export const PianoUI: React.FC = () => {
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
 
   const handleNoteStart = useCallback(
-    (note: number, octave: number, _left: number) => {
-      const notesToPlay = VOICINGS[voicing].getNotes(note, octave, scaleMode);
+    (note: number, octave: number) => {
+      const notesToPlay = VOICINGS[voicing].getNotes(note, octave);
 
       notesToPlay.forEach(({ note: n, octave: o }) => {
         const newNote: FallingNote = {
@@ -498,7 +478,7 @@ export const PianoUI: React.FC = () => {
         setFallingNotes((prev) => [...prev, newNote]);
       });
     },
-    [voicing, scaleMode]
+    [voicing, startOctave]
   );
 
   const handleNoteEnd = useCallback((note: number, octave: number) => {
@@ -523,16 +503,11 @@ export const PianoUI: React.FC = () => {
         const { note, octave } =
           KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
-        const left = getNotePosition(note, actualOctave, startOctave);
 
         await Tone.start();
 
         // Play all notes for the current mode
-        const notesToPlay = VOICINGS[voicing].getNotes(
-          note,
-          actualOctave,
-          scaleMode
-        );
+        const notesToPlay = VOICINGS[voicing].getNotes(note, actualOctave);
         notesToPlay.forEach(({ note: n, octave: o }) => {
           const noteString = `${
             ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][n]
@@ -541,7 +516,7 @@ export const PianoUI: React.FC = () => {
         });
 
         setActiveKeys((prev) => new Set([...prev, event.code]));
-        handleNoteStart(note, actualOctave, left);
+        handleNoteStart(note, actualOctave);
       }
     };
 
@@ -557,8 +532,7 @@ export const PianoUI: React.FC = () => {
         [normalOctave, shiftedOctave].forEach((currentOctave) => {
           const notesToRelease = VOICINGS[voicing].getNotes(
             note,
-            currentOctave,
-            scaleMode
+            currentOctave
           );
           notesToRelease.forEach(({ note: n, octave: o }) => {
             const noteString = `${
@@ -694,7 +668,7 @@ export const PianoUI: React.FC = () => {
           const shiftedWhiteKeyMapping = Object.entries(KEYBOARD_MAP).find(
             ([, value]) =>
               value.note === whiteNote &&
-              value.octave === getShiftedOctave(currentOctave, true, true)
+              value.octave === getShiftedOctave(currentOctave, true)
           )?.[0];
 
           const shiftedBlackKeyMapping =
@@ -702,7 +676,7 @@ export const PianoUI: React.FC = () => {
               ? Object.entries(KEYBOARD_MAP).find(
                   ([, value]) =>
                     value.note === blackNote &&
-                    value.octave === getShiftedOctave(currentOctave, true, true)
+                    value.octave === getShiftedOctave(currentOctave, true)
                 )?.[0]
               : undefined;
 
