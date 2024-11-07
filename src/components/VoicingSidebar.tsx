@@ -1,8 +1,8 @@
 import * as React from "react";
 
-export type PlayMode = "single" | "fifth" | "major";
+export type Voicing = "single" | "fifth" | "major" | "diatonic";
 
-export interface PlayModeConfig {
+export interface VoicingConfig {
   label: string;
   getNotes: (
     baseNote: number,
@@ -10,7 +10,7 @@ export interface PlayModeConfig {
   ) => Array<{ note: number; octave: number }>;
 }
 
-export const PLAY_MODES: Record<PlayMode, PlayModeConfig> = {
+export const VOICINGS: Record<Voicing, VoicingConfig> = {
   single: {
     label: "Single Note",
     getNotes: (note, octave) => [{ note, octave }],
@@ -23,18 +23,31 @@ export const PLAY_MODES: Record<PlayMode, PlayModeConfig> = {
     ],
   },
   major: {
-    label: "Major Chord",
+    label: "Major Triad",
     getNotes: (note, octave) => [
       { note, octave },
       { note: (note + 4) % 12, octave: note + 4 >= 12 ? octave + 1 : octave },
       { note: (note + 7) % 12, octave: note + 7 >= 12 ? octave + 1 : octave },
     ],
   },
+  diatonic: {
+    label: "Diatonic Triad",
+    getNotes: (note, octave, scale) => {
+      const intervals =
+        scale === "major"
+          ? [0, 4, 7] // Major scale intervals
+          : [0, 3, 7]; // Minor scale intervals
+      return intervals.map((interval) => ({
+        note: (note + interval) % 12,
+        octave: note + interval >= 12 ? octave + 1 : octave,
+      }));
+    },
+  },
 };
 
-interface ModeSidebarProps {
-  currentMode: PlayMode;
-  onModeChange: (mode: PlayMode) => void;
+interface VoicingSidebarProps {
+  currentVoicing: Voicing;
+  onVoicingChange: (voicing: Voicing) => void;
 }
 
 const buttonStyle = (isActive: boolean) => ({
@@ -54,9 +67,9 @@ const buttonStyle = (isActive: boolean) => ({
   },
 });
 
-export const ModeSidebar: React.FC<ModeSidebarProps> = ({
-  currentMode,
-  onModeChange,
+export const VoicingSidebar: React.FC<VoicingSidebarProps> = ({
+  currentVoicing,
+  onVoicingChange,
 }) => (
   <div
     style={{
@@ -75,13 +88,13 @@ export const ModeSidebar: React.FC<ModeSidebarProps> = ({
       zIndex: 1000,
     }}
   >
-    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Play Mode</div>
-    {(Object.entries(PLAY_MODES) as [PlayMode, PlayModeConfig][]).map(
-      ([mode, config]) => (
+    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
+    {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
+      ([voicing, config]) => (
         <button
-          key={mode}
-          onClick={() => onModeChange(mode)}
-          style={buttonStyle(mode === currentMode)}
+          key={voicing}
+          onClick={() => onVoicingChange(voicing)}
+          style={buttonStyle(voicing === currentVoicing)}
         >
           {config.label}
         </button>

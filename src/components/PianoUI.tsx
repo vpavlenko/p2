@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Tone from "tone";
 import { useState, useEffect, useCallback } from "react";
-import { ModeSidebar, PlayMode, PLAY_MODES } from "./ModeSidebar";
+import { VoicingSidebar, Voicing, VOICINGS } from "./VoicingSidebar";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -408,17 +408,83 @@ const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   </div>
 );
 
+type ScaleMode = "major" | "minor";
+
+interface ScaleModeConfig {
+  label: string;
+  intervals: number[];
+}
+
+const SCALE_MODES: Record<ScaleMode, ScaleModeConfig> = {
+  major: {
+    label: "Major",
+    intervals: [0, 2, 4, 5, 7, 9, 11],
+  },
+  minor: {
+    label: "Minor",
+    intervals: [0, 2, 3, 5, 7, 8, 10],
+  },
+};
+
+// Add ScaleModePicker component
+const ScaleModePicker: React.FC<{
+  currentMode: ScaleMode;
+  onModeChange: (mode: ScaleMode) => void;
+}> = ({ currentMode, onModeChange }) => (
+  <div
+    style={{
+      position: "fixed",
+      right: "20px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "white",
+      fontSize: "14px",
+      padding: "15px",
+      background: "rgba(0, 0, 0, 0.7)",
+      borderRadius: "8px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "10px",
+      zIndex: 1000,
+    }}
+  >
+    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
+    {Object.entries(SCALE_MODES).map(([mode, config]) => (
+      <button
+        key={mode}
+        onClick={() => onModeChange(mode as ScaleMode)}
+        style={{
+          background:
+            mode === currentMode
+              ? "rgba(255, 255, 255, 0.3)"
+              : "rgba(0, 0, 0, 0.3)",
+          border: "1px solid rgba(255, 255, 255, 0.4)",
+          color: "white",
+          padding: "10px 15px",
+          borderRadius: "4px",
+          cursor: "pointer",
+          width: "150px",
+          textAlign: "left",
+        }}
+      >
+        {config.label}
+      </button>
+    ))}
+  </div>
+);
+
 export const PianoUI: React.FC = () => {
   const startOctave = 2;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [tonic, setTonic] = useState<number>(0); // Default tonic is C (0)
 
-  const [playMode, setPlayMode] = useState<PlayMode>("single");
+  const [voicing, setVoicing] = useState<Voicing>("single");
+  const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
 
   const handleNoteStart = useCallback(
     (note: number, octave: number, _left: number) => {
-      const notesToPlay = PLAY_MODES[playMode].getNotes(note, octave);
+      const notesToPlay = VOICINGS[voicing].getNotes(note, octave, scaleMode);
 
       notesToPlay.forEach(({ note: n, octave: o }) => {
         const newNote: FallingNote = {
@@ -432,7 +498,7 @@ export const PianoUI: React.FC = () => {
         setFallingNotes((prev) => [...prev, newNote]);
       });
     },
-    [startOctave, playMode]
+    [voicing, scaleMode]
   );
 
   const handleNoteEnd = useCallback((note: number, octave: number) => {
@@ -462,7 +528,11 @@ export const PianoUI: React.FC = () => {
         await Tone.start();
 
         // Play all notes for the current mode
-        const notesToPlay = PLAY_MODES[playMode].getNotes(note, actualOctave);
+        const notesToPlay = VOICINGS[voicing].getNotes(
+          note,
+          actualOctave,
+          scaleMode
+        );
         notesToPlay.forEach(({ note: n, octave: o }) => {
           const noteString = `${
             ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][n]
@@ -485,9 +555,10 @@ export const PianoUI: React.FC = () => {
         const shiftedOctave = getShiftedOctave(octave);
 
         [normalOctave, shiftedOctave].forEach((currentOctave) => {
-          const notesToRelease = PLAY_MODES[playMode].getNotes(
+          const notesToRelease = VOICINGS[voicing].getNotes(
             note,
-            currentOctave
+            currentOctave,
+            scaleMode
           );
           notesToRelease.forEach(({ note: n, octave: o }) => {
             const noteString = `${
@@ -515,7 +586,14 @@ export const PianoUI: React.FC = () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [activeKeys, handleNoteStart, handleNoteEnd, startOctave, playMode]);
+  }, [
+    activeKeys,
+    handleNoteStart,
+    handleNoteEnd,
+    startOctave,
+    voicing,
+    scaleMode,
+  ]);
 
   useEffect(() => {
     const cleanup = setInterval(() => {
@@ -581,7 +659,8 @@ export const PianoUI: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      <ModeSidebar currentMode={playMode} onModeChange={setPlayMode} />
+      <VoicingSidebar currentVoicing={voicing} onVoicingChange={setVoicing} />
+      <ScaleModePicker currentMode={scaleMode} onModeChange={setScaleMode} />
       <div
         style={{
           position: "relative",
