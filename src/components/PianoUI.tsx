@@ -178,6 +178,7 @@ interface PianoKeyProps {
   onNoteEnd: (note: number, octave: number) => void;
   tonic: number;
   isShiftPressed: boolean;
+  scaleMode: ScaleMode;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -190,12 +191,12 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   onNoteEnd,
   tonic,
   isShiftPressed,
+  scaleMode,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const colors = getColors(tonic);
-
-  // Calculate the note relative to the tonic
   const relativeNote = (note - tonic + 12) % 12;
+  const isInScale = isNoteInScale(note, tonic, scaleMode);
 
   const getNoteString = (noteNum: number, octave: number) => {
     const notes = [
@@ -244,9 +245,16 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     paddingBottom: "3px",
     boxSizing: "border-box" as const,
     transform: isHovered ? "scale(1.1)" : "scale(1)",
-    transition: "transform 0.1s ease-in-out",
+    transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
+    width: !isInScale
+      ? `${parseInt(style.width as string) - NOTE_SHRINK_AMOUNT * 2}px`
+      : style.width,
+    height: !isInScale
+      ? `${parseInt(style.height as string) - NOTE_SHRINK_AMOUNT * 2}px`
+      : style.height,
+    margin: !isInScale ? `${NOTE_SHRINK_AMOUNT}px` : "0",
   };
 
   return (
@@ -453,6 +461,19 @@ const ScaleModePicker: React.FC<{
     ))}
   </div>
 );
+
+// Add this helper function near the top of the file, after SCALE_MODES
+const isNoteInScale = (
+  note: number,
+  tonic: number,
+  mode: ScaleMode
+): boolean => {
+  const relativeNote = (note - tonic + 12) % 12;
+  return SCALE_MODES[mode].intervals.includes(relativeNote);
+};
+
+// Add this constant near the top of the file with other constants
+const NOTE_SHRINK_AMOUNT = 7; // Amount to shrink on each side
 
 export const PianoUI: React.FC = () => {
   const startOctave = 2;
@@ -740,6 +761,7 @@ export const PianoUI: React.FC = () => {
                   borderRadius: "3px",
                 }}
                 isShiftPressed={isShiftPressed}
+                scaleMode={scaleMode}
               />
               {blackNote !== -1 && (
                 <PianoKey
@@ -768,6 +790,7 @@ export const PianoUI: React.FC = () => {
                     borderRadius: "3px",
                   }}
                   isShiftPressed={isShiftPressed}
+                  scaleMode={scaleMode}
                 />
               )}
             </React.Fragment>
