@@ -1,7 +1,8 @@
 import * as React from "react";
 import * as Tone from "tone";
 import { useState, useEffect, useCallback } from "react";
-import { VoicingSidebar, Voicing, VOICINGS } from "./VoicingSidebar";
+import { VoicingSidebar } from "./VoicingSidebar";
+import { Voicing, VOICINGS } from "../constants/voicings";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -464,21 +465,37 @@ export const PianoUI: React.FC = () => {
 
   const handleNoteStart = useCallback(
     (note: number, octave: number) => {
-      const notesToPlay = VOICINGS[voicing].getNotes(note, octave);
+      // Calculate note relative to tonic
+      const relativeNote = (note - tonic + 12) % 12;
+      const notesToPlay = VOICINGS[voicing].getNotes(
+        relativeNote,
+        octave,
+        scaleMode
+      );
 
       notesToPlay.forEach(({ note: n, octave: o }) => {
+        // Convert back to absolute note
+        const absoluteNote = (n + tonic) % 12;
         const newNote: FallingNote = {
-          id: `${n}-${o}-${Date.now()}`,
-          note: n,
+          id: `${absoluteNote}-${o}-${Date.now()}`,
+          note: absoluteNote,
           octave: o,
           startTime: Date.now(),
           endTime: null,
-          left: getFallingNotePosition(n, o, startOctave),
+          left: getFallingNotePosition(absoluteNote, o, startOctave),
         };
         setFallingNotes((prev) => [...prev, newNote]);
+
+        // Play the note with sampler
+        const noteString = `${
+          ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
+            absoluteNote
+          ]
+        }${o}`;
+        sampler.triggerAttack(noteString);
       });
     },
-    [voicing, startOctave]
+    [voicing, startOctave, scaleMode, tonic] // Add tonic to dependencies
   );
 
   const handleNoteEnd = useCallback((note: number, octave: number) => {
@@ -506,11 +523,21 @@ export const PianoUI: React.FC = () => {
 
         await Tone.start();
 
+        // Calculate note relative to tonic
+        const relativeNote = (note - tonic + 12) % 12;
+        const notesToPlay = VOICINGS[voicing].getNotes(
+          relativeNote,
+          actualOctave,
+          scaleMode
+        );
+
         // Play all notes for the current mode
-        const notesToPlay = VOICINGS[voicing].getNotes(note, actualOctave);
         notesToPlay.forEach(({ note: n, octave: o }) => {
+          const absoluteNote = (n + tonic) % 12;
           const noteString = `${
-            ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][n]
+            ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
+              absoluteNote
+            ]
           }${o}`;
           sampler.triggerAttack(noteString);
         });
@@ -530,18 +557,24 @@ export const PianoUI: React.FC = () => {
         const shiftedOctave = getShiftedOctave(octave);
 
         [normalOctave, shiftedOctave].forEach((currentOctave) => {
+          // Calculate note relative to tonic, just like in handleKeyDown
+          const relativeNote = (note - tonic + 12) % 12;
           const notesToRelease = VOICINGS[voicing].getNotes(
-            note,
-            currentOctave
+            relativeNote,
+            currentOctave,
+            scaleMode // Pass the scale mode
           );
+
           notesToRelease.forEach(({ note: n, octave: o }) => {
+            // Convert back to absolute note
+            const absoluteNote = (n + tonic) % 12;
             const noteString = `${
               ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
-                n
+                absoluteNote
               ]
             }${o}`;
             sampler.triggerRelease(noteString);
-            handleNoteEnd(n, o);
+            handleNoteEnd(absoluteNote, o); // Use absolute note here too
           });
         });
 
