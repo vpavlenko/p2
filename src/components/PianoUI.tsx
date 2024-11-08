@@ -60,7 +60,7 @@ const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 interface PianoKeyProps {
   note: number;
   octave: number;
-  label: string;
+  label?: string;
   style: React.CSSProperties;
   keyboardKey?: string;
   shiftedKeyboardKey?: string;
@@ -105,7 +105,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     }
   };
 
-  // Handle case where mouse leaves key while pressed
   const handleMouseLeave = () => {
     setIsHovered(false);
     if (isPressed) {
@@ -113,7 +112,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     }
   };
 
-  // Add touch support for mobile devices
   const handleTouchStart = async (e: React.TouchEvent) => {
     e.preventDefault(); // Prevent default touch behavior
     await handleMouseDown();
@@ -629,6 +627,20 @@ export const PianoUI: React.FC = () => {
     [voicing, scaleMode, tonic, handleNoteEnd]
   );
 
+  const commonKeyProps: Omit<
+    PianoKeyProps,
+    "note" | "octave" | "style" | "label" | "keyboardKey" | "shiftedKeyboardKey"
+  > = {
+    onNoteStart: handleNoteStart,
+    onNoteEnd: handleNoteEnd,
+    tonic,
+    isShiftPressed,
+    scaleMode,
+    colorMode,
+    playNotes,
+    releaseNotes,
+  };
+
   return (
     <div
       style={{
@@ -694,6 +706,7 @@ export const PianoUI: React.FC = () => {
               return (
                 <PianoKey
                   key={`${octaveNum}-${noteNum}`}
+                  {...commonKeyProps}
                   note={noteNum}
                   octave={octaveNum}
                   label={keyIndex !== -1 ? (keyIndex + 1).toString() : ""}
@@ -705,9 +718,6 @@ export const PianoUI: React.FC = () => {
                       ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
                       : undefined
                   }
-                  onNoteStart={handleNoteStart}
-                  onNoteEnd={handleNoteEnd}
-                  tonic={tonic}
                   style={{
                     top: ROW_DISTANCE,
                     left: KEY_WIDTH * whiteKeyCount,
@@ -715,17 +725,13 @@ export const PianoUI: React.FC = () => {
                     height: KEY_HEIGHT,
                     borderRadius: "3px",
                   }}
-                  isShiftPressed={isShiftPressed}
-                  scaleMode={scaleMode}
-                  colorMode={colorMode}
-                  playNotes={playNotes}
-                  releaseNotes={releaseNotes}
                 />
               );
             } else if (blackKeyIndex !== -1) {
               return (
                 <PianoKey
                   key={`${octaveNum}-${noteNum}`}
+                  {...commonKeyProps}
                   note={noteNum}
                   octave={octaveNum}
                   label={BLACK_KEY_LABELS[blackKeyIndex]}
@@ -737,9 +743,6 @@ export const PianoUI: React.FC = () => {
                       ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
                       : undefined
                   }
-                  onNoteStart={handleNoteStart}
-                  onNoteEnd={handleNoteEnd}
-                  tonic={tonic}
                   style={{
                     top: 0,
                     left: KEY_WIDTH * (whiteKeyCount - 0.5),
@@ -748,11 +751,6 @@ export const PianoUI: React.FC = () => {
                     height: KEY_HEIGHT,
                     borderRadius: "3px",
                   }}
-                  isShiftPressed={isShiftPressed}
-                  scaleMode={scaleMode}
-                  colorMode={colorMode}
-                  playNotes={playNotes}
-                  releaseNotes={releaseNotes}
                 />
               );
             }
