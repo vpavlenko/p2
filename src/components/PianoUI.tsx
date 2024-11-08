@@ -70,6 +70,8 @@ interface PianoKeyProps {
   isShiftPressed: boolean;
   scaleMode: ScaleMode;
   colorMode: ColorMode;
+  playNotes: (note: number, octave: number) => Promise<void>;
+  releaseNotes: (note: number, octave: number) => void;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -78,12 +80,12 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   style,
   keyboardKey,
   shiftedKeyboardKey,
-  onNoteStart,
-  onNoteEnd,
   tonic,
   isShiftPressed,
   scaleMode,
   colorMode,
+  playNotes,
+  releaseNotes,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
@@ -91,23 +93,14 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   const relativeNote = (note - tonic + 12) % 12;
   const isInScale = isNoteInScale(note, tonic, scaleMode);
 
-  const getNoteString = (noteNum: number, octave: number) => {
-    return `${NOTE_NAMES[noteNum]}${octave}`;
-  };
-
   const handleMouseDown = async () => {
-    await Tone.start();
-    const noteString = getNoteString(note, octave);
-    sampler.triggerAttack(noteString);
-    onNoteStart(note, octave);
+    await playNotes(note, octave);
     setIsPressed(true);
   };
 
   const handleMouseUp = () => {
     if (isPressed) {
-      const noteString = getNoteString(note, octave);
-      sampler.triggerRelease(noteString);
-      onNoteEnd(note, octave);
+      releaseNotes(note, octave);
       setIsPressed(false);
     }
   };
@@ -448,8 +441,7 @@ export const PianoUI: React.FC = () => {
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
 
   const handleNoteStart = useCallback(
-    (note: number, octave: number) => {
-      // Calculate note relative to tonic
+    (note: number, octave: number, playSound: boolean = true) => {
       const relativeNote = (note - tonic + 12) % 12;
       const notesToPlay = VOICINGS[voicing].getNotes(
         relativeNote,
@@ -458,7 +450,6 @@ export const PianoUI: React.FC = () => {
       );
 
       notesToPlay.forEach(({ note: n, octave: o }) => {
-        // Convert back to absolute note
         const absoluteNote = (n + tonic) % 12;
         const newNote: FallingNote = {
           id: `${absoluteNote}-${o}-${Date.now()}`,
@@ -470,12 +461,14 @@ export const PianoUI: React.FC = () => {
         };
         setFallingNotes((prev) => [...prev, newNote]);
 
-        // Play the note with sampler
-        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-        sampler.triggerAttack(noteString);
+        // Only play sound if playSound is true
+        if (playSound) {
+          const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+          sampler.triggerAttack(noteString);
+        }
       });
     },
-    [voicing, startOctave, scaleMode, tonic] // Add tonic to dependencies
+    [voicing, startOctave, scaleMode, tonic]
   );
 
   const handleNoteEnd = useCallback((note: number, octave: number) => {
@@ -500,26 +493,8 @@ export const PianoUI: React.FC = () => {
         const { note, octave } =
           KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
-
-        await Tone.start();
-
-        // Calculate note relative to tonic
-        const relativeNote = (note - tonic + 12) % 12;
-        const notesToPlay = VOICINGS[voicing].getNotes(
-          relativeNote,
-          actualOctave,
-          scaleMode
-        );
-
-        // Play all notes for the current mode
-        notesToPlay.forEach(({ note: n, octave: o }) => {
-          const absoluteNote = (n + tonic) % 12;
-          const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-          sampler.triggerAttack(noteString);
-        });
-
+        await playNotes(note, actualOctave);
         setActiveKeys((prev) => new Set([...prev, event.code]));
-        handleNoteStart(note, actualOctave);
       }
     };
 
@@ -533,21 +508,7 @@ export const PianoUI: React.FC = () => {
         const shiftedOctave = getShiftedOctave(octave);
 
         [normalOctave, shiftedOctave].forEach((currentOctave) => {
-          // Calculate note relative to tonic, just like in handleKeyDown
-          const relativeNote = (note - tonic + 12) % 12;
-          const notesToRelease = VOICINGS[voicing].getNotes(
-            relativeNote,
-            currentOctave,
-            scaleMode // Pass the scale mode
-          );
-
-          notesToRelease.forEach(({ note: n, octave: o }) => {
-            // Convert back to absolute note
-            const absoluteNote = (n + tonic) % 12;
-            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-            sampler.triggerRelease(noteString);
-            handleNoteEnd(absoluteNote, o); // Use absolute note here too
-          });
+          releaseNotes(note, currentOctave);
         });
 
         setActiveKeys((prev) => {
@@ -626,6 +587,47 @@ export const PianoUI: React.FC = () => {
         total + countWhiteKeysInRange(range.start, range.length),
       0
     ) * KEY_WIDTH;
+
+  const playNotes = useCallback(
+    async (note: number, octave: number) => {
+      await Tone.start();
+      const relativeNote = (note - tonic + 12) % 12;
+      const notesToPlay = VOICINGS[voicing].getNotes(
+        relativeNote,
+        octave,
+        scaleMode
+      );
+
+      notesToPlay.forEach(({ note: n, octave: o }) => {
+        const absoluteNote = (n + tonic) % 12;
+        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+        sampler.triggerAttack(noteString);
+      });
+
+      handleNoteStart(note, octave, false);
+    },
+    [tonic, voicing, scaleMode, handleNoteStart]
+  );
+
+  // Add this new function alongside playNotes in PianoUI
+  const releaseNotes = useCallback(
+    (note: number, octave: number) => {
+      const relativeNote = (note - tonic + 12) % 12;
+      const notesToRelease = VOICINGS[voicing].getNotes(
+        relativeNote,
+        octave,
+        scaleMode
+      );
+
+      notesToRelease.forEach(({ note: n, octave: o }) => {
+        const absoluteNote = (n + tonic) % 12;
+        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+        sampler.triggerRelease(noteString);
+        handleNoteEnd(absoluteNote, o);
+      });
+    },
+    [voicing, scaleMode, tonic, handleNoteEnd]
+  );
 
   return (
     <div
@@ -716,6 +718,8 @@ export const PianoUI: React.FC = () => {
                   isShiftPressed={isShiftPressed}
                   scaleMode={scaleMode}
                   colorMode={colorMode}
+                  playNotes={playNotes}
+                  releaseNotes={releaseNotes}
                 />
               );
             } else if (blackKeyIndex !== -1) {
@@ -747,6 +751,8 @@ export const PianoUI: React.FC = () => {
                   isShiftPressed={isShiftPressed}
                   scaleMode={scaleMode}
                   colorMode={colorMode}
+                  playNotes={playNotes}
+                  releaseNotes={releaseNotes}
                 />
               );
             }
