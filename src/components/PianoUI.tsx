@@ -273,53 +273,6 @@ const SCALE_MODES: Record<ScaleMode, ScaleModeConfig> = {
   },
 };
 
-// Add ScaleModePicker component
-const ScaleModePicker: React.FC<{
-  currentMode: ScaleMode;
-  onModeChange: (mode: ScaleMode) => void;
-}> = ({ currentMode, onModeChange }) => (
-  <div
-    style={{
-      position: "fixed",
-      right: "20px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      color: "white",
-      fontSize: "14px",
-      padding: "15px",
-      background: "rgba(0, 0, 0, 0.7)",
-      borderRadius: "8px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-      zIndex: 1000,
-    }}
-  >
-    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
-    {Object.entries(SCALE_MODES).map(([mode, config]) => (
-      <button
-        key={mode}
-        onClick={() => onModeChange(mode as ScaleMode)}
-        style={{
-          background:
-            mode === currentMode
-              ? "rgba(255, 255, 255, 0.3)"
-              : "rgba(0, 0, 0, 0.3)",
-          border: "1px solid rgba(255, 255, 255, 0.4)",
-          color: "white",
-          padding: "10px 15px",
-          borderRadius: "4px",
-          cursor: "pointer",
-          width: "150px",
-          textAlign: "left",
-        }}
-      >
-        {config.label}
-      </button>
-    ))}
-  </div>
-);
-
 // Add this helper function near the top of the file, after SCALE_MODES
 const isNoteInScale = (
   note: number,
@@ -657,8 +610,12 @@ export const PianoUI: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      <VoicingSidebar currentVoicing={voicing} onVoicingChange={setVoicing} />
-      <ScaleModePicker currentMode={scaleMode} onModeChange={setScaleMode} />
+      <VoicingSidebar
+        currentVoicing={voicing}
+        onVoicingChange={setVoicing}
+        currentScaleMode={scaleMode}
+        onScaleModeChange={setScaleMode}
+      />
       <ColorModePicker currentMode={colorMode} onModeChange={setColorMode} />
       <div
         style={{

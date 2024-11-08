@@ -1,9 +1,12 @@
 import * as React from "react";
 import { Voicing, VOICINGS, VoicingConfig } from "../constants/voicings";
+import { ScaleMode, SCALE_MODES } from "../constants/scales";
 
 interface VoicingSidebarProps {
   currentVoicing: Voicing;
   onVoicingChange: (voicing: Voicing) => void;
+  currentScaleMode: ScaleMode;
+  onScaleModeChange: (mode: ScaleMode) => void;
 }
 
 const buttonStyle = (isActive: boolean) => ({
@@ -26,6 +29,8 @@ const buttonStyle = (isActive: boolean) => ({
 export const VoicingSidebar: React.FC<VoicingSidebarProps> = ({
   currentVoicing,
   onVoicingChange,
+  currentScaleMode,
+  onScaleModeChange,
 }) => (
   <div
     style={{
@@ -40,21 +45,36 @@ export const VoicingSidebar: React.FC<VoicingSidebarProps> = ({
       borderRadius: "8px",
       display: "flex",
       flexDirection: "column",
-      gap: "10px",
+      gap: "20px",
       zIndex: 1000,
     }}
   >
-    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
-    {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
-      ([voicing, config]) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
+      {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
+        ([voicing, config]) => (
+          <button
+            key={voicing}
+            onClick={() => onVoicingChange(voicing)}
+            style={buttonStyle(voicing === currentVoicing)}
+          >
+            {config.label}
+          </button>
+        )
+      )}
+    </div>
+
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
+      {Object.entries(SCALE_MODES).map(([mode, config]) => (
         <button
-          key={voicing}
-          onClick={() => onVoicingChange(voicing)}
-          style={buttonStyle(voicing === currentVoicing)}
+          key={mode}
+          onClick={() => onScaleModeChange(mode as ScaleMode)}
+          style={buttonStyle(mode === currentScaleMode)}
         >
           {config.label}
         </button>
-      )
-    )}
+      ))}
+    </div>
   </div>
 );
