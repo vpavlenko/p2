@@ -171,21 +171,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   const isInScale = isNoteInScale(note, tonic, scaleMode);
 
   const getNoteString = (noteNum: number, octave: number) => {
-    const notes = [
-      "C",
-      "C#",
-      "D",
-      "D#",
-      "E",
-      "F",
-      "F#",
-      "G",
-      "G#",
-      "A",
-      "A#",
-      "B",
-    ];
-    return `${notes[noteNum]}${octave}`;
+    return `${NOTE_NAMES[noteNum]}${octave}`;
   };
 
   const handleMouseDown = async () => {
@@ -512,6 +498,22 @@ const ColorModePicker: React.FC<{
   </div>
 );
 
+// Add this constant near the top with other constants
+const NOTE_NAMES = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
+] as const;
+
 export const PianoUI: React.FC = () => {
   const startOctave = START_OCTAVE;
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
@@ -548,11 +550,7 @@ export const PianoUI: React.FC = () => {
         setFallingNotes((prev) => [...prev, newNote]);
 
         // Play the note with sampler
-        const noteString = `${
-          ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
-            absoluteNote
-          ]
-        }${o}`;
+        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
         sampler.triggerAttack(noteString);
       });
     },
@@ -595,11 +593,7 @@ export const PianoUI: React.FC = () => {
         // Play all notes for the current mode
         notesToPlay.forEach(({ note: n, octave: o }) => {
           const absoluteNote = (n + tonic) % 12;
-          const noteString = `${
-            ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
-              absoluteNote
-            ]
-          }${o}`;
+          const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
           sampler.triggerAttack(noteString);
         });
 
@@ -629,11 +623,7 @@ export const PianoUI: React.FC = () => {
           notesToRelease.forEach(({ note: n, octave: o }) => {
             // Convert back to absolute note
             const absoluteNote = (n + tonic) % 12;
-            const noteString = `${
-              ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][
-                absoluteNote
-              ]
-            }${o}`;
+            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
             sampler.triggerRelease(noteString);
             handleNoteEnd(absoluteNote, o); // Use absolute note here too
           });
