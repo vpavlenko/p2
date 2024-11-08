@@ -7,7 +7,6 @@ import { Voicing, VOICINGS } from "../constants/voicings";
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
-const NUM_OCTAVES = 7;
 
 const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
@@ -84,7 +83,6 @@ interface FallingNote {
 }
 
 const PIXELS_PER_SECOND = 100;
-const NOTE_DURATION_MS = 500;
 
 const KEYBOARD_MAP = {
   KeyZ: { note: 0, octave: 2 },
