@@ -3,6 +3,9 @@ import * as Tone from "tone";
 import { useState, useEffect, useCallback } from "react";
 import { VoicingSidebar } from "./VoicingSidebar";
 import { Voicing, VOICINGS } from "../constants/voicings";
+import { FallingNotes, FallingNote } from "./FallingNotes";
+import { ColorMode } from "./types";
+import { getColors } from "../utils/colors";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -11,44 +14,6 @@ const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
 const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
-
-// Modified colors type definition
-const getColors = (
-  tonic: number,
-  colorMode: ColorMode
-): { [key: number]: string } => {
-  if (colorMode === "traditional") {
-    // Return traditional piano colors
-    const traditionalColors: { [key: number]: string } = {};
-    for (let i = 0; i < 12; i++) {
-      traditionalColors[i] = [1, 3, 6, 8, 10].includes(i) ? "#222222" : "white";
-    }
-    return traditionalColors;
-  }
-
-  // Original chromatic colors
-  const colors: { [key: number]: string } = {
-    0: "white",
-    1: "rgb(130, 0, 0)",
-    2: "red",
-    3: "#007000",
-    4: "#00fb47",
-    5: "#9500b3",
-    6: "#ea7eff",
-    7: "rgb(120, 120, 120)",
-    8: "rgb(0, 0, 255)",
-    9: "#03b9d5",
-    10: "#ff7328",
-    11: "#ff0",
-  };
-
-  // Rotate colors based on tonic
-  const rotatedColors: { [key: number]: string } = {};
-  for (let i = 0; i < 12; i++) {
-    rotatedColors[i] = colors[(i - tonic + 12) % 12];
-  }
-  return rotatedColors;
-};
 
 // Create a Sampler instead of Piano
 const sampler = new Tone.Sampler({
@@ -72,15 +37,6 @@ const sampler = new Tone.Sampler({
   baseUrl: "https://tonejs.github.io/audio/salamander/",
   release: 0.5,
 }).toDestination();
-
-interface FallingNote {
-  id: string;
-  note: number;
-  octave: number;
-  startTime: number;
-  endTime: number | null;
-  left: number;
-}
 
 const PIXELS_PER_SECOND = 100;
 
@@ -347,68 +303,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   );
 };
 
-const FallingNotes: React.FC<{
-  notes: FallingNote[];
-  tonic: number;
-  colorMode: ColorMode;
-}> = ({ notes, tonic, colorMode }) => {
-  const [time, setTime] = useState(Date.now());
-  const colors = getColors(tonic, colorMode);
-
-  useEffect(() => {
-    let animationFrameId: number;
-    const animate = () => {
-      setTime(Date.now());
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animationFrameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: KEY_HEIGHT + ROW_DISTANCE,
-        left: 0,
-        right: 0,
-        bottom: -2000,
-      }}
-    >
-      {notes.map((note) => {
-        const isActive = !note.endTime;
-        const timeSinceEnd = note.endTime ? (time - note.endTime) / 1000 : 0;
-        const top = isActive ? 0 : timeSinceEnd * PIXELS_PER_SECOND;
-
-        const duration = isActive
-          ? time - note.startTime
-          : note.endTime! - note.startTime;
-        const height = duration * (PIXELS_PER_SECOND / 1000);
-
-        // In traditional mode, all falling notes are white
-        const noteColor =
-          colorMode === "traditional" ? "white" : colors[note.note];
-
-        return (
-          <div
-            key={note.id}
-            style={{
-              position: "absolute",
-              left: note.left,
-              top: top,
-              width: FALLING_NOTE_WIDTH,
-              height: height,
-              backgroundColor: noteColor,
-              borderRadius: "3px",
-              willChange: "transform, height",
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
-
 // Simplify getShiftedOctave by removing unused parameter
 const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
@@ -573,10 +467,6 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
-// Add this near the top with other constants
-type ColorMode = "chromatic" | "traditional";
-
-// Add ColorModePicker component
 const ColorModePicker: React.FC<{
   currentMode: ColorMode;
   onModeChange: (mode: ColorMode) => void;
@@ -956,6 +846,7 @@ export const PianoUI: React.FC = () => {
           notes={fallingNotes}
           tonic={tonic}
           colorMode={colorMode}
+          fallingNoteWidth={FALLING_NOTE_WIDTH}
         />
       </div>
     </div>

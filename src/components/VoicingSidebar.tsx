@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Voicing, VOICINGS } from "../constants/voicings";
+import { Voicing, VOICINGS, VoicingConfig } from "../constants/voicings";
 
 interface VoicingSidebarProps {
   currentVoicing: Voicing;
