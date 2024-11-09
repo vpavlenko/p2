@@ -7,6 +7,7 @@ import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
+import { sampler } from "../audio/sampler";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -15,29 +16,6 @@ const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
 const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
-
-// Create a Sampler instead of Piano
-const sampler = new Tone.Sampler({
-  urls: {
-    A1: "A1.mp3",
-    A2: "A2.mp3",
-    A3: "A3.mp3",
-    A4: "A4.mp3",
-    A5: "A5.mp3",
-    C2: "C2.mp3",
-    C3: "C3.mp3",
-    C4: "C4.mp3",
-    C5: "C5.mp3",
-    "D#2": "Ds2.mp3",
-    "D#3": "Ds3.mp3",
-    "D#4": "Ds4.mp3",
-    "F#2": "Fs2.mp3",
-    "F#3": "Fs3.mp3",
-    "F#4": "Fs4.mp3",
-  },
-  baseUrl: "https://tonejs.github.io/audio/salamander/",
-  release: 0.5,
-}).toDestination();
 
 const PIXELS_PER_SECOND = 100;
 
