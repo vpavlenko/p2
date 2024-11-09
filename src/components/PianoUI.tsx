@@ -1,13 +1,12 @@
 import * as React from "react";
-import * as Tone from "tone";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { VoicingSidebar } from "./VoicingSidebar";
-import { Voicing, VOICINGS } from "../constants/voicings";
+import { Voicing } from "../constants/voicings";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
-import { sampler } from "../audio/sampler";
+import { ScaleMode } from "../constants/scales";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -19,17 +18,6 @@ const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
 const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
-
-const FALLING_NOTE_OFFSET = -125; // Adjust this value to align falling notes with keys
-
-const getFallingNotePosition = (
-  note: number,
-  octave: number,
-  startOctave: number
-) => {
-  const semitonesFromC0 = (octave - startOctave) * 12 + note;
-  return (semitonesFromC0 * FALLING_NOTE_WIDTH) / 2 + FALLING_NOTE_OFFSET;
-};
 
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
@@ -46,8 +34,14 @@ interface PianoKeyProps {
   isShiftPressed: boolean;
   scaleMode: ScaleMode;
   colorMode: ColorMode;
-  playNotes: (note: number, octave: number) => Promise<void>;
-  releaseNotes: (note: number, octave: number) => void;
+  playNotes: (
+    note: number,
+    octave: number
+  ) => Promise<Array<{ note: number; octave: number }>>;
+  releaseNotes: (
+    note: number,
+    octave: number
+  ) => Array<{ note: number; octave: number }>;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -177,12 +171,10 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   );
 };
 
-// Simplify getShiftedOctave by removing unused parameter
 const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
-// Add this new component for the Ctrl+letter legend
 const TonicLegend: React.FC = () => (
   <div
     style={{
@@ -204,7 +196,6 @@ const TonicLegend: React.FC = () => (
   </div>
 );
 
-// Update the ShiftIndicator component to only cover the right half
 const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   <div
     style={{
@@ -230,8 +221,6 @@ const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
     />
   </div>
 );
-
-type ScaleMode = "major" | "minor";
 
 interface ScaleModeConfig {
   label: string;
@@ -261,9 +250,6 @@ const isNoteInScale = (
 
 // Add this constant near the top of the file with other constants
 const NOTE_SHRINK_AMOUNT = 5; // Amount to shrink on each side
-
-// Update these constants near the top of the file
-const START_OCTAVE = 0; // Changed from 2 to 0 to start at A0
 
 // Replace the EXTRA_LOW_KEYS constant with a more structured octave range system
 interface OctaveRange {
@@ -339,73 +325,41 @@ const ColorModePicker: React.FC<{
   </div>
 );
 
-// Add this constant near the top with other constants
-const NOTE_NAMES = [
-  "C",
-  "C#",
-  "D",
-  "D#",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "G#",
-  "A",
-  "A#",
-  "B",
-] as const;
+interface PianoUIProps {
+  tonic: number;
+  setTonic: (tonic: number) => void;
+  voicing: Voicing;
+  setVoicing: (voicing: Voicing) => void;
+  scaleMode: ScaleMode;
+  setScaleMode: (mode: ScaleMode) => void;
+  colorMode: ColorMode;
+  setColorMode: (mode: ColorMode) => void;
+  playNotes: (
+    note: number,
+    octave: number
+  ) => Promise<Array<{ note: number; octave: number }>>;
+  releaseNotes: (
+    note: number,
+    octave: number
+  ) => Array<{ note: number; octave: number }>;
+  fallingNotes: FallingNote[];
+}
 
-export const PianoUI: React.FC = () => {
-  const startOctave = START_OCTAVE;
-  const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
+export const PianoUI: React.FC<PianoUIProps> = ({
+  tonic,
+  setTonic,
+  voicing,
+  setVoicing,
+  scaleMode,
+  setScaleMode,
+  colorMode,
+  setColorMode,
+  playNotes,
+  releaseNotes,
+  fallingNotes,
+}) => {
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
-  const [tonic, setTonic] = useState<number>(0); // Default tonic is C (0)
-
-  const [voicing, setVoicing] = useState<Voicing>("single");
-  const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
-
-  // Add colorMode state
-  const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
-
-  const handleNoteStart = useCallback(
-    (note: number, octave: number) => {
-      const relativeNote = (note - tonic + 12) % 12;
-      const notesToPlay = VOICINGS[voicing].getNotes(
-        relativeNote,
-        octave,
-        scaleMode
-      );
-
-      notesToPlay.forEach(({ note: n, octave: o }) => {
-        const absoluteNote = (n + tonic) % 12;
-
-        // Create falling note visual
-        const newNote: FallingNote = {
-          id: `${absoluteNote}-${o}-${Date.now()}`,
-          note: absoluteNote,
-          octave: o,
-          startTime: Date.now(),
-          endTime: null,
-          left: getFallingNotePosition(absoluteNote, o, startOctave),
-        };
-        setFallingNotes((prev) => [...prev, newNote]);
-
-        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-        sampler.triggerAttack(noteString);
-      });
-    },
-    [voicing, startOctave, scaleMode, tonic]
-  );
-
-  const handleNoteEnd = useCallback((note: number, octave: number) => {
-    setFallingNotes((prev) =>
-      prev.map((n) =>
-        n.note === note && n.octave === octave && !n.endTime
-          ? { ...n, endTime: Date.now() }
-          : n
-      )
-    );
-  }, []);
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -452,19 +406,8 @@ export const PianoUI: React.FC = () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [
-    activeKeys,
-    handleNoteStart,
-    handleNoteEnd,
-    startOctave,
-    voicing,
-    scaleMode,
-  ]);
+  }, [activeKeys, playNotes, releaseNotes, setTonic]);
 
-  // Add state to track shift key
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
-
-  // Add shift key tracking to useEffect
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Shift") {
@@ -494,40 +437,12 @@ export const PianoUI: React.FC = () => {
       0
     ) * KEY_WIDTH;
 
-  const playNotes = useCallback(
-    async (note: number, octave: number) => {
-      await Tone.start();
-      handleNoteStart(note, octave);
-    },
-    [tonic, voicing, scaleMode, handleNoteStart]
-  );
-
-  // Add this new function alongside playNotes in PianoUI
-  const releaseNotes = useCallback(
-    (note: number, octave: number) => {
-      const relativeNote = (note - tonic + 12) % 12;
-      const notesToRelease = VOICINGS[voicing].getNotes(
-        relativeNote,
-        octave,
-        scaleMode
-      );
-
-      notesToRelease.forEach(({ note: n, octave: o }) => {
-        const absoluteNote = (n + tonic) % 12;
-        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-        sampler.triggerRelease(noteString);
-        handleNoteEnd(absoluteNote, o);
-      });
-    },
-    [voicing, scaleMode, tonic, handleNoteEnd]
-  );
-
   const commonKeyProps: Omit<
     PianoKeyProps,
     "note" | "octave" | "style" | "label" | "keyboardKey" | "shiftedKeyboardKey"
   > = {
-    onNoteStart: handleNoteStart,
-    onNoteEnd: handleNoteEnd,
+    onNoteStart: playNotes,
+    onNoteEnd: releaseNotes,
     tonic,
     isShiftPressed,
     scaleMode,
