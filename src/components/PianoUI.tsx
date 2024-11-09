@@ -370,7 +370,7 @@ export const PianoUI: React.FC = () => {
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
 
   const handleNoteStart = useCallback(
-    (note: number, octave: number, playSound: boolean = true) => {
+    (note: number, octave: number) => {
       const relativeNote = (note - tonic + 12) % 12;
       const notesToPlay = VOICINGS[voicing].getNotes(
         relativeNote,
@@ -392,11 +392,8 @@ export const PianoUI: React.FC = () => {
         };
         setFallingNotes((prev) => [...prev, newNote]);
 
-        // Only play sound if playSound is true
-        if (playSound) {
-          const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-          sampler.triggerAttack(noteString);
-        }
+        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+        sampler.triggerAttack(noteString);
       });
     },
     [voicing, startOctave, scaleMode, tonic]
