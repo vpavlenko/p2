@@ -150,7 +150,7 @@ export const PianoController: React.FC = () => {
     for (let midiNote = LOWEST_NOTE; midiNote <= HIGHEST_NOTE; midiNote++) {
       const octave = Math.floor(midiNote / 12) - 1;
       const note = midiNote % 12;
-      sequence.push({ note, octave, duration: 50 });
+      sequence.push({ note, octave, duration: 100 });
     }
     await playNoteSequence(sequence);
   }, [playNoteSequence]);

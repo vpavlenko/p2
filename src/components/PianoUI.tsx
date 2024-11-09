@@ -38,6 +38,7 @@ interface PianoKeyProps {
     note: number,
     octave: number
   ) => Array<{ note: number; octave: number }>;
+  isActive: boolean;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -52,6 +53,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   colorMode,
   playNotes,
   releaseNotes,
+  isActive,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
@@ -111,7 +113,20 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     alignItems: "center",
     paddingBottom: "3px",
     boxSizing: "border-box" as const,
-    transform: isHovered ? "scale(1.1)" : "scale(1)",
+    transform:
+      isActive || isPressed
+        ? "scale(0.95)"
+        : isHovered
+        ? "scale(1.1)"
+        : "scale(1)",
+    boxShadow:
+      isActive || isPressed
+        ? `0 0 10px ${
+            colors[note] === "white"
+              ? "rgba(0, 0, 0, 0.5)"
+              : "rgba(255, 255, 255, 0.5)"
+          }`
+        : "none",
     transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
@@ -275,8 +290,17 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   releaseNotes,
   fallingNotes,
 }) => {
-  const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const [activeNotes, setActiveNotes] = useState<
+    Array<{ note: number; octave: number }>
+  >([]);
+
+  const isNoteActive = (note: number, octave: number) => {
+    return activeNotes.some(
+      (activeNote) => activeNote.note === note && activeNote.octave === octave
+    );
+  };
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -346,6 +370,16 @@ export const PianoUI: React.FC<PianoUIProps> = ({
       window.removeEventListener("keyup", handleGlobalKeyUp);
     };
   }, []);
+
+  useEffect(() => {
+    const currentlyPlaying = fallingNotes
+      .filter((note) => !note.endTime)
+      .map((note) => ({
+        note: note.note,
+        octave: note.octave,
+      }));
+    setActiveNotes(currentlyPlaying);
+  }, [fallingNotes]);
 
   const totalWidth =
     Object.values(OCTAVE_RANGES).reduce(
@@ -438,6 +472,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   {...commonKeyProps}
                   note={noteNum}
                   octave={octaveNum}
+                  isActive={isNoteActive(noteNum, octaveNum)}
                   keyboardKey={
                     keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
                   }
@@ -460,6 +495,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   {...commonKeyProps}
                   note={noteNum}
                   octave={octaveNum}
+                  isActive={isNoteActive(noteNum, octaveNum)}
                   keyboardKey={
                     keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
                   }
