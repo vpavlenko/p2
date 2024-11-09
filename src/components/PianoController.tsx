@@ -116,64 +116,16 @@ export const PianoController: React.FC = () => {
       setIsProgressionPlaying(true);
       const CHORD_DURATION = 1000; // 1 second per chord
 
-      // Store the current state values
-      const currentVoicing = voicing;
-
       try {
         for (const chord of progression.chords) {
-          // Play the chord
-          const notesToPlay = VOICINGS[currentVoicing].getNotes(
-            chord.root,
-            3,
-            chord.type === "major" ? "major" : "minor"
-          );
-
-          // Play each note in the chord
-          for (const { note: n, octave: o } of notesToPlay) {
-            const absoluteNote = n % 12;
-            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-
-            // Trigger the note
-            sampler.triggerAttack(noteString);
-
-            // Add falling note
-            const newNote: FallingNote = {
-              id: `${absoluteNote}-${o}-${Date.now()}`,
-              note: absoluteNote,
-              octave: o,
-              startTime: Date.now(),
-              endTime: null,
-              left: getFallingNotePosition(absoluteNote, o, START_OCTAVE),
-            };
-
-            setFallingNotes((prev) => [...prev, newNote]);
-          }
+          // Simply use playNotes which already handles all voicing logic correctly
+          await playNotes(chord, 3);
 
           // Wait for chord duration
           await new Promise((resolve) => setTimeout(resolve, CHORD_DURATION));
 
-          // Release all notes in the chord
-          for (const { note: n, octave: o } of notesToPlay) {
-            const absoluteNote = n % 12;
-            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-
-            // Release the note
-            sampler.triggerRelease(noteString);
-
-            // Update falling notes
-            setFallingNotes((prev) =>
-              prev.map((note) => {
-                if (
-                  note.note === absoluteNote &&
-                  note.octave === o &&
-                  !note.endTime
-                ) {
-                  return { ...note, endTime: Date.now() };
-                }
-                return note;
-              })
-            );
-          }
+          // Release using existing releaseNotes function
+          releaseNotes(chord, 3);
 
           // Small gap between chords
           await new Promise((resolve) => setTimeout(resolve, 50));
@@ -184,7 +136,7 @@ export const PianoController: React.FC = () => {
         setIsProgressionPlaying(false);
       }
     },
-    [tonic, voicing]
+    [playNotes, releaseNotes, isProgressionPlaying]
   );
 
   const stopProgression = useCallback(() => {
