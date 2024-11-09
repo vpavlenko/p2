@@ -380,6 +380,8 @@ export const PianoUI: React.FC = () => {
 
       notesToPlay.forEach(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
+
+        // Create falling note visual
         const newNote: FallingNote = {
           id: `${absoluteNote}-${o}-${Date.now()}`,
           note: absoluteNote,
@@ -520,20 +522,7 @@ export const PianoUI: React.FC = () => {
   const playNotes = useCallback(
     async (note: number, octave: number) => {
       await Tone.start();
-      const relativeNote = (note - tonic + 12) % 12;
-      const notesToPlay = VOICINGS[voicing].getNotes(
-        relativeNote,
-        octave,
-        scaleMode
-      );
-
-      notesToPlay.forEach(({ note: n, octave: o }) => {
-        const absoluteNote = (n + tonic) % 12;
-        const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-        sampler.triggerAttack(noteString);
-      });
-
-      handleNoteStart(note, octave, false);
+      handleNoteStart(note, octave);
     },
     [tonic, voicing, scaleMode, handleNoteStart]
   );
