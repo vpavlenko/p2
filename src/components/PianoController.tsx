@@ -7,6 +7,7 @@ import { sampler } from "../audio/sampler";
 import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
 import { ControlPanel } from "./ControlPanel";
+import { ChordProgression } from "../constants/progressions";
 
 const NOTE_NAMES = [
   "C",
@@ -40,6 +41,7 @@ export const PianoController: React.FC = () => {
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
+  const [isProgressionPlaying, setIsProgressionPlaying] = useState(false);
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
@@ -107,6 +109,90 @@ export const PianoController: React.FC = () => {
     [tonic, voicing, scaleMode]
   );
 
+  const playProgression = useCallback(
+    async (progression: ChordProgression) => {
+      if (isProgressionPlaying) return;
+
+      setIsProgressionPlaying(true);
+      const CHORD_DURATION = 1000; // 1 second per chord
+
+      // Store the current state values
+      const currentVoicing = voicing;
+
+      try {
+        for (const chord of progression.chords) {
+          // Play the chord
+          const notesToPlay = VOICINGS[currentVoicing].getNotes(
+            chord.root,
+            3,
+            chord.type === "major" ? "major" : "minor"
+          );
+
+          // Play each note in the chord
+          for (const { note: n, octave: o } of notesToPlay) {
+            const absoluteNote = n % 12;
+            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+
+            // Trigger the note
+            sampler.triggerAttack(noteString);
+
+            // Add falling note
+            const newNote: FallingNote = {
+              id: `${absoluteNote}-${o}-${Date.now()}`,
+              note: absoluteNote,
+              octave: o,
+              startTime: Date.now(),
+              endTime: null,
+              left: getFallingNotePosition(absoluteNote, o, START_OCTAVE),
+            };
+
+            setFallingNotes((prev) => [...prev, newNote]);
+          }
+
+          // Wait for chord duration
+          await new Promise((resolve) => setTimeout(resolve, CHORD_DURATION));
+
+          // Release all notes in the chord
+          for (const { note: n, octave: o } of notesToPlay) {
+            const absoluteNote = n % 12;
+            const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
+
+            // Release the note
+            sampler.triggerRelease(noteString);
+
+            // Update falling notes
+            setFallingNotes((prev) =>
+              prev.map((note) => {
+                if (
+                  note.note === absoluteNote &&
+                  note.octave === o &&
+                  !note.endTime
+                ) {
+                  return { ...note, endTime: Date.now() };
+                }
+                return note;
+              })
+            );
+          }
+
+          // Small gap between chords
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+      } catch (error) {
+        console.error("Error playing progression:", error);
+      } finally {
+        setIsProgressionPlaying(false);
+      }
+    },
+    [tonic, voicing]
+  );
+
+  const stopProgression = useCallback(() => {
+    setIsProgressionPlaying(false);
+    // Release all currently playing notes
+    sampler.releaseAll();
+  }, []);
+
   return (
     <>
       <ControlPanel
@@ -116,6 +202,9 @@ export const PianoController: React.FC = () => {
         onScaleModeChange={setScaleMode}
         currentColorMode={colorMode}
         onColorModeChange={setColorMode}
+        onPlayProgression={playProgression}
+        onStopProgression={stopProgression}
+        isProgressionPlaying={isProgressionPlaying}
       />
       <PianoUI
         tonic={tonic}

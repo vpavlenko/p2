@@ -425,18 +425,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                 value.octave === getShiftedOctave(octaveNum, true)
             )?.[0];
 
-            const commonKeySpecificProps = {
-              key: `${octaveNum}-${noteNum}`,
-              note: noteNum,
-              octave: octaveNum,
-              keyboardKey: keyMapping
-                ? KEY_DISPLAY_LABELS[keyMapping]
-                : undefined,
-              shiftedKeyboardKey: shiftedKeyMapping
-                ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
-                : undefined,
-            };
-
             const commonStyleProps = {
               width: KEY_WIDTH,
               height: KEY_HEIGHT,
@@ -446,8 +434,18 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             if (isWhiteKey) {
               return (
                 <PianoKey
+                  key={`${octaveNum}-${noteNum}`}
                   {...commonKeyProps}
-                  {...commonKeySpecificProps}
+                  note={noteNum}
+                  octave={octaveNum}
+                  keyboardKey={
+                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
+                  }
+                  shiftedKeyboardKey={
+                    shiftedKeyMapping
+                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
+                      : undefined
+                  }
                   style={{
                     ...commonStyleProps,
                     top: ROW_DISTANCE,
@@ -458,8 +456,18 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             } else if (blackKeyIndex !== -1) {
               return (
                 <PianoKey
+                  key={`${octaveNum}-${noteNum}`}
                   {...commonKeyProps}
-                  {...commonKeySpecificProps}
+                  note={noteNum}
+                  octave={octaveNum}
+                  keyboardKey={
+                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
+                  }
+                  shiftedKeyboardKey={
+                    shiftedKeyMapping
+                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
+                      : undefined
+                  }
                   style={{
                     ...commonStyleProps,
                     top: 0,
