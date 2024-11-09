@@ -6,6 +6,7 @@ import { VOICINGS } from "../constants/voicings";
 import { sampler } from "../audio/sampler";
 import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
+import { ControlPanel } from "./ControlPanel";
 
 const NOTE_NAMES = [
   "C",
@@ -107,18 +108,24 @@ export const PianoController: React.FC = () => {
   );
 
   return (
-    <PianoUI
-      tonic={tonic}
-      setTonic={setTonic}
-      voicing={voicing}
-      setVoicing={setVoicing}
-      scaleMode={scaleMode}
-      setScaleMode={setScaleMode}
-      colorMode={colorMode}
-      setColorMode={setColorMode}
-      playNotes={playNotes}
-      releaseNotes={releaseNotes}
-      fallingNotes={fallingNotes}
-    />
+    <>
+      <ControlPanel
+        currentVoicing={voicing}
+        onVoicingChange={setVoicing}
+        currentScaleMode={scaleMode}
+        onScaleModeChange={setScaleMode}
+        currentColorMode={colorMode}
+        onColorModeChange={setColorMode}
+      />
+      <PianoUI
+        tonic={tonic}
+        setTonic={setTonic}
+        scaleMode={scaleMode}
+        colorMode={colorMode}
+        playNotes={playNotes}
+        releaseNotes={releaseNotes}
+        fallingNotes={fallingNotes}
+      />
+    </>
   );
 };

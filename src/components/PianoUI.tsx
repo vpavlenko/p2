@@ -1,12 +1,10 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { VoicingSidebar } from "./VoicingSidebar";
-import { Voicing } from "../constants/voicings";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
-import { ScaleMode } from "../constants/scales";
+import { isNoteInScale, ScaleMode } from "../constants/scales";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -222,32 +220,6 @@ const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   </div>
 );
 
-interface ScaleModeConfig {
-  label: string;
-  intervals: number[];
-}
-
-const SCALE_MODES: Record<ScaleMode, ScaleModeConfig> = {
-  major: {
-    label: "Major",
-    intervals: [0, 2, 4, 5, 7, 9, 11],
-  },
-  minor: {
-    label: "Minor",
-    intervals: [0, 2, 3, 5, 7, 8, 10],
-  },
-};
-
-// Add this helper function near the top of the file, after SCALE_MODES
-const isNoteInScale = (
-  note: number,
-  tonic: number,
-  mode: ScaleMode
-): boolean => {
-  const relativeNote = (note - tonic + 12) % 12;
-  return SCALE_MODES[mode].intervals.includes(relativeNote);
-};
-
 // Add this constant near the top of the file with other constants
 const NOTE_SHRINK_AMOUNT = 5; // Amount to shrink on each side
 
@@ -280,60 +252,11 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
-const ColorModePicker: React.FC<{
-  currentMode: ColorMode;
-  onModeChange: (mode: ColorMode) => void;
-}> = ({ currentMode, onModeChange }) => (
-  <div
-    style={{
-      position: "fixed",
-      left: "20px",
-      top: "20px",
-      color: "white",
-      fontSize: "14px",
-      padding: "15px",
-      background: "rgba(0, 0, 0, 0.7)",
-      borderRadius: "8px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-      zIndex: 1000,
-    }}
-  >
-    <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Color Mode</div>
-    {["chromatic", "traditional"].map((mode) => (
-      <button
-        key={mode}
-        onClick={() => onModeChange(mode as ColorMode)}
-        style={{
-          background:
-            mode === currentMode
-              ? "rgba(255, 255, 255, 0.3)"
-              : "rgba(0, 0, 0, 0.3)",
-          border: "1px solid rgba(255, 255, 255, 0.4)",
-          color: "white",
-          padding: "10px 15px",
-          borderRadius: "4px",
-          cursor: "pointer",
-          width: "150px",
-          textAlign: "left",
-        }}
-      >
-        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-      </button>
-    ))}
-  </div>
-);
-
 interface PianoUIProps {
   tonic: number;
   setTonic: (tonic: number) => void;
-  voicing: Voicing;
-  setVoicing: (voicing: Voicing) => void;
   scaleMode: ScaleMode;
-  setScaleMode: (mode: ScaleMode) => void;
   colorMode: ColorMode;
-  setColorMode: (mode: ColorMode) => void;
   playNotes: (
     note: number,
     octave: number
@@ -348,12 +271,8 @@ interface PianoUIProps {
 export const PianoUI: React.FC<PianoUIProps> = ({
   tonic,
   setTonic,
-  voicing,
-  setVoicing,
   scaleMode,
-  setScaleMode,
   colorMode,
-  setColorMode,
   playNotes,
   releaseNotes,
   fallingNotes,
@@ -467,13 +386,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         overflow: "hidden",
       }}
     >
-      <VoicingSidebar
-        currentVoicing={voicing}
-        onVoicingChange={setVoicing}
-        currentScaleMode={scaleMode}
-        onScaleModeChange={setScaleMode}
-      />
-      <ColorModePicker currentMode={colorMode} onModeChange={setColorMode} />
       <div
         style={{
           position: "relative",

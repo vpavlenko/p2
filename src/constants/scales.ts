@@ -15,3 +15,12 @@ export const SCALE_MODES: Record<ScaleMode, ScaleModeConfig> = {
     intervals: [0, 2, 3, 5, 7, 8, 10],
   },
 };
+
+export const isNoteInScale = (
+  note: number,
+  tonic: number,
+  mode: ScaleMode
+): boolean => {
+  const relativeNote = (note - tonic + 12) % 12;
+  return SCALE_MODES[mode].intervals.includes(relativeNote);
+};
