@@ -17,8 +17,6 @@ const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
-const PIXELS_PER_SECOND = 100;
-
 const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
 const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
 
@@ -462,26 +460,6 @@ export const PianoUI: React.FC = () => {
     voicing,
     scaleMode,
   ]);
-
-  useEffect(() => {
-    const cleanup = setInterval(() => {
-      const now = Date.now();
-      setFallingNotes((prev) =>
-        prev.filter((note) => {
-          if (!note.endTime) return true;
-
-          // Calculate how far the note has fallen
-          const timeSinceEnd = (now - note.endTime) / 1000;
-          const distanceFallen = timeSinceEnd * PIXELS_PER_SECOND;
-
-          // Only remove notes that have fallen far beyond the viewport (e.g., 2000px below)
-          return distanceFallen < 2000;
-        })
-      );
-    }, 1000);
-
-    return () => clearInterval(cleanup);
-  }, []);
 
   // Add state to track shift key
   const [isShiftPressed, setIsShiftPressed] = useState(false);
