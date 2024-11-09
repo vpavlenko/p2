@@ -17,6 +17,7 @@ interface ControlPanelProps {
   onPlayProgression: (progression: ChordProgression) => void;
   onStopProgression: () => void;
   isProgressionPlaying: boolean;
+  onPlayFullRange: () => void;
 }
 
 const buttonStyle = (isActive: boolean) => ({
@@ -41,6 +42,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onPlayProgression,
   onStopProgression,
   isProgressionPlaying,
+  onPlayFullRange,
 }) => (
   <>
     <div
@@ -164,6 +166,31 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           )}
         </button>
       ))}
+
+      <div
+        style={{
+          marginTop: "10px",
+          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+          paddingTop: "10px",
+        }}
+      >
+        <button
+          onClick={onPlayFullRange}
+          disabled={isProgressionPlaying}
+          style={{
+            ...buttonStyle(false),
+            width: "200px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>Test Full Range</span>
+          {isProgressionPlaying && (
+            <span style={{ fontSize: "12px", opacity: 0.7 }}>Playing...</span>
+          )}
+        </button>
+      </div>
     </div>
   </>
 );

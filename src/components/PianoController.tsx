@@ -26,6 +26,9 @@ const NOTE_NAMES = [
 
 const START_OCTAVE = 0;
 
+const LOWEST_NOTE = 21; // A0
+const HIGHEST_NOTE = 108; // C8
+
 const getFallingNotePosition = (
   note: number,
   octave: number,
@@ -109,41 +112,63 @@ export const PianoController: React.FC = () => {
     [tonic, voicing, scaleMode]
   );
 
-  const playProgression = useCallback(
-    async (progression: ChordProgression) => {
-      if (isProgressionPlaying) return;
-
-      setIsProgressionPlaying(true);
-      const CHORD_DURATION = 1000; // 1 second per chord
-
-      try {
-        for (const chord of progression.chords) {
-          // Simply use playNotes which already handles all voicing logic correctly
-          await playNotes(chord, 3);
-
-          // Wait for chord duration
-          await new Promise((resolve) => setTimeout(resolve, CHORD_DURATION));
-
-          // Release using existing releaseNotes function
-          releaseNotes(chord, 3);
-
-          // Small gap between chords
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-      } catch (error) {
-        console.error("Error playing progression:", error);
-      } finally {
-        setIsProgressionPlaying(false);
-      }
-    },
-    [playNotes, releaseNotes, isProgressionPlaying]
-  );
-
   const stopProgression = useCallback(() => {
     setIsProgressionPlaying(false);
     // Release all currently playing notes
     sampler.releaseAll();
   }, []);
+
+  const playNoteSequence = useCallback(
+    async (
+      sequence: Array<{ note: number; octave: number; duration: number }>,
+      stopOngoing = true
+    ) => {
+      if (isProgressionPlaying && stopOngoing) {
+        stopProgression();
+      }
+
+      setIsProgressionPlaying(true);
+
+      try {
+        for (const { note, octave, duration } of sequence) {
+          await playNotes(note, octave);
+          await new Promise((resolve) => setTimeout(resolve, duration));
+          releaseNotes(note, octave);
+          await new Promise((resolve) => setTimeout(resolve, 10)); // Small gap between notes
+        }
+      } catch (error) {
+        console.error("Error playing sequence:", error);
+      } finally {
+        setIsProgressionPlaying(false);
+      }
+    },
+    [playNotes, releaseNotes, isProgressionPlaying, stopProgression]
+  );
+
+  const playFullRange = useCallback(async () => {
+    const sequence = [];
+    for (let midiNote = LOWEST_NOTE; midiNote <= HIGHEST_NOTE; midiNote++) {
+      const octave = Math.floor(midiNote / 12) - 1;
+      const note = midiNote % 12;
+      sequence.push({ note, octave, duration: 50 });
+    }
+    await playNoteSequence(sequence);
+  }, [playNoteSequence]);
+
+  const playProgression = useCallback(
+    async (progression: ChordProgression) => {
+      if (isProgressionPlaying) return;
+
+      const sequence = progression.chords.map((chord) => ({
+        note: chord,
+        octave: 3,
+        duration: 1000,
+      }));
+
+      await playNoteSequence(sequence);
+    },
+    [playNoteSequence]
+  );
 
   return (
     <>
@@ -157,6 +182,7 @@ export const PianoController: React.FC = () => {
         onPlayProgression={playProgression}
         onStopProgression={stopProgression}
         isProgressionPlaying={isProgressionPlaying}
+        onPlayFullRange={playFullRange}
       />
       <PianoUI
         tonic={tonic}
