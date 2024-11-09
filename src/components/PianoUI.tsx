@@ -8,7 +8,6 @@ import { isNoteInScale, ScaleMode } from "../constants/scales";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
-const BLACK_KEY_LABELS = ["♭2", "♭3", "", "♯4", "♭6", "♭7", ""];
 
 const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
@@ -22,7 +21,6 @@ const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 interface PianoKeyProps {
   note: number;
   octave: number;
-  label?: string;
   style: React.CSSProperties;
   keyboardKey?: string;
   shiftedKeyboardKey?: string;
@@ -358,7 +356,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
   const commonKeyProps: Omit<
     PianoKeyProps,
-    "note" | "octave" | "style" | "label" | "keyboardKey" | "shiftedKeyboardKey"
+    "note" | "octave" | "style" | "keyboardKey" | "shiftedKeyboardKey"
   > = {
     onNoteStart: playNotes,
     onNoteEnd: releaseNotes,
@@ -401,7 +399,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           return Array.from({ length: range.length }, (_, i) => {
             const noteNum = (range.start + i) % 12;
             const isWhiteKey = WHITE_KEYS.includes(noteNum);
-            const keyIndex = WHITE_KEYS.indexOf(noteNum);
             const blackKeyIndex = BLACK_KEYS.indexOf(noteNum);
 
             // Calculate position based on cumulative white keys before this note
@@ -428,54 +425,46 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                 value.octave === getShiftedOctave(octaveNum, true)
             )?.[0];
 
+            const commonKeySpecificProps = {
+              key: `${octaveNum}-${noteNum}`,
+              note: noteNum,
+              octave: octaveNum,
+              keyboardKey: keyMapping
+                ? KEY_DISPLAY_LABELS[keyMapping]
+                : undefined,
+              shiftedKeyboardKey: shiftedKeyMapping
+                ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
+                : undefined,
+            };
+
+            const commonStyleProps = {
+              width: KEY_WIDTH,
+              height: KEY_HEIGHT,
+              borderRadius: "3px",
+            };
+
             if (isWhiteKey) {
               return (
                 <PianoKey
-                  key={`${octaveNum}-${noteNum}`}
                   {...commonKeyProps}
-                  note={noteNum}
-                  octave={octaveNum}
-                  label={keyIndex !== -1 ? (keyIndex + 1).toString() : ""}
-                  keyboardKey={
-                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
-                  }
-                  shiftedKeyboardKey={
-                    shiftedKeyMapping
-                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
-                      : undefined
-                  }
+                  {...commonKeySpecificProps}
                   style={{
+                    ...commonStyleProps,
                     top: ROW_DISTANCE,
                     left: KEY_WIDTH * whiteKeyCount,
-                    width: KEY_WIDTH,
-                    height: KEY_HEIGHT,
-                    borderRadius: "3px",
                   }}
                 />
               );
             } else if (blackKeyIndex !== -1) {
               return (
                 <PianoKey
-                  key={`${octaveNum}-${noteNum}`}
                   {...commonKeyProps}
-                  note={noteNum}
-                  octave={octaveNum}
-                  label={BLACK_KEY_LABELS[blackKeyIndex]}
-                  keyboardKey={
-                    keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined
-                  }
-                  shiftedKeyboardKey={
-                    shiftedKeyMapping
-                      ? KEY_DISPLAY_LABELS[shiftedKeyMapping]
-                      : undefined
-                  }
+                  {...commonKeySpecificProps}
                   style={{
+                    ...commonStyleProps,
                     top: 0,
                     left: KEY_WIDTH * (whiteKeyCount - 0.5),
                     zIndex: 2,
-                    width: KEY_WIDTH,
-                    height: KEY_HEIGHT,
-                    borderRadius: "3px",
                   }}
                 />
               );
