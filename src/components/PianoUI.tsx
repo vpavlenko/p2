@@ -186,7 +186,11 @@ const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
-const TonicLegend: React.FC<{ totalWidth: number }> = () => (
+const TonicLegend: React.FC<{
+  totalWidth: number;
+  colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
+}> = ({ totalWidth, colorMode, onColorModeChange }) => (
   <div
     style={{
       position: "absolute",
@@ -202,6 +206,30 @@ const TonicLegend: React.FC<{ totalWidth: number }> = () => (
     }}
   >
     <div>Press Ctrl + key to change tonic</div>
+    <button
+      onClick={() =>
+        onColorModeChange(
+          colorMode === "chromatic" ? "traditional" : "chromatic"
+        )
+      }
+      style={{
+        background: "none",
+        border: "1px solid rgba(255, 255, 255, 0.4)",
+        borderRadius: "4px",
+        color: "white",
+        padding: "2px 8px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        fontSize: "14px",
+      }}
+    >
+      <span>{colorMode === "chromatic" ? "Traditional" : "Chromatic"}</span>
+      <span role="img" aria-label="rainbow">
+        🌈
+      </span>
+    </button>
   </div>
 );
 
@@ -268,6 +296,7 @@ interface PianoUIProps {
   setTonic: (tonic: number) => void;
   scaleMode: ScaleMode;
   colorMode: ColorMode;
+  onColorModeChange: (mode: ColorMode) => void;
   playNotes: (
     note: number,
     octave: number
@@ -284,6 +313,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   setTonic,
   scaleMode,
   colorMode,
+  onColorModeChange,
   playNotes,
   releaseNotes,
   fallingNotes,
@@ -429,7 +459,11 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         }}
       >
         <ShiftIndicator totalWidth={totalWidth} />
-        <TonicLegend totalWidth={totalWidth} />
+        <TonicLegend
+          totalWidth={totalWidth}
+          colorMode={colorMode}
+          onColorModeChange={onColorModeChange}
+        />
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
           const octaveNum = parseInt(octave);

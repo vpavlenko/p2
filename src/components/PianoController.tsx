@@ -177,8 +177,6 @@ export const PianoController: React.FC = () => {
         onVoicingChange={setVoicing}
         currentScaleMode={scaleMode}
         onScaleModeChange={setScaleMode}
-        currentColorMode={colorMode}
-        onColorModeChange={setColorMode}
         onPlayProgression={playProgression}
         onStopProgression={stopProgression}
         isProgressionPlaying={isProgressionPlaying}
@@ -189,6 +187,7 @@ export const PianoController: React.FC = () => {
         setTonic={setTonic}
         scaleMode={scaleMode}
         colorMode={colorMode}
+        onColorModeChange={setColorMode}
         playNotes={playNotes}
         releaseNotes={releaseNotes}
         fallingNotes={fallingNotes}

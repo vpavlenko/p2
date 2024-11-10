@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Voicing, VOICINGS, VoicingConfig } from "../constants/voicings";
 import { ScaleMode, SCALE_MODES } from "../constants/scales";
-import { ColorMode } from "./types";
 import {
   CHORD_PROGRESSIONS,
   ChordProgression,
@@ -12,8 +11,6 @@ interface ControlPanelProps {
   onVoicingChange: (voicing: Voicing) => void;
   currentScaleMode: ScaleMode;
   onScaleModeChange: (mode: ScaleMode) => void;
-  currentColorMode: ColorMode;
-  onColorModeChange: (mode: ColorMode) => void;
   onPlayProgression: (progression: ChordProgression) => void;
   onStopProgression: () => void;
   isProgressionPlaying: boolean;
@@ -37,8 +34,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onVoicingChange,
   currentScaleMode,
   onScaleModeChange,
-  currentColorMode,
-  onColorModeChange,
   onPlayProgression,
   onStopProgression,
   isProgressionPlaying,
@@ -91,34 +86,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </button>
         ))}
       </div>
-    </div>
-
-    <div
-      style={{
-        position: "fixed",
-        left: "20px",
-        top: "20px",
-        color: "white",
-        fontSize: "14px",
-        padding: "15px",
-        background: "rgba(0, 0, 0, 0.7)",
-        borderRadius: "8px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        zIndex: 1000,
-      }}
-    >
-      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Color Mode</div>
-      {["chromatic", "traditional"].map((mode) => (
-        <button
-          key={mode}
-          onClick={() => onColorModeChange(mode as ColorMode)}
-          style={buttonStyle(mode === currentColorMode)}
-        >
-          {mode.charAt(0).toUpperCase() + mode.slice(1)}
-        </button>
-      ))}
     </div>
 
     <div
