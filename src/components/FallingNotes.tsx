@@ -20,6 +20,10 @@ interface FallingNotesProps {
   tonic: number;
   colorMode: ColorMode;
   fallingNoteWidth: number;
+  referencePoints: {
+    c1: { note: number; left: number };
+    c2: { note: number; left: number };
+  };
 }
 
 export const FallingNotes: React.FC<FallingNotesProps> = ({
@@ -27,9 +31,22 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
   tonic,
   colorMode,
   fallingNoteWidth,
+  referencePoints,
 }) => {
   const [time, setTime] = useState(Date.now());
   const colors = getColors(tonic, colorMode);
+
+  // Calculate position using linear interpolation
+  const calculateNotePosition = (midiNote: number): number => {
+    const { c1, c2 } = referencePoints;
+
+    // Linear interpolation formula: y = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
+    const position =
+      c1.left +
+      ((midiNote - c1.note) * (c2.left - c1.left)) / (c2.note - c1.note);
+
+    return position;
+  };
 
   useEffect(() => {
     let animationFrameId: number;
@@ -61,7 +78,11 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
           : note.endTime! - note.startTime;
         const height = duration * (PIXELS_PER_SECOND / 1000);
 
-        // In traditional mode, all falling notes are white
+        // Calculate MIDI note number
+        const midiNote = note.note + note.octave * 12;
+        // Get interpolated position
+        const left = calculateNotePosition(midiNote);
+
         const noteColor =
           colorMode === "traditional" ? "white" : colors[note.note];
 
@@ -70,7 +91,7 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
             key={note.id}
             style={{
               position: "absolute",
-              left: note.left,
+              left: left,
               top: top,
               width: fallingNoteWidth,
               height: height,

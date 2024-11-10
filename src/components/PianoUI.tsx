@@ -456,6 +456,23 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   const octaveWidth = keyWidth * 7;
   const fallingNoteWidth = octaveWidth / 6;
 
+  // Inside PianoUI component, before the return statement
+  // Add these calculations for reference points
+  const getWhiteKeyPosition = (targetOctave: number): number => {
+    let whiteKeyCount = 0;
+    for (let o = 0; o < targetOctave; o++) {
+      whiteKeyCount += countWhiteKeysInRange(
+        OCTAVE_RANGES[o].start,
+        OCTAVE_RANGES[o].length
+      );
+    }
+    return whiteKeyCount * keyWidth;
+  };
+
+  // Calculate reference points for C1 and C2
+  const c1Left = getWhiteKeyPosition(1); // C1 position
+  const c2Left = getWhiteKeyPosition(2); // C2 position
+
   return (
     <div
       style={{
@@ -581,7 +598,11 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           notes={fallingNotes}
           tonic={tonic}
           colorMode={colorMode}
-          fallingNoteWidth={fallingNoteWidth}
+          fallingNoteWidth={(keyWidth / 6) * 7}
+          referencePoints={{
+            c1: { note: 12, left: c1Left },
+            c2: { note: 24, left: c2Left },
+          }}
         />
       </div>
     </div>
