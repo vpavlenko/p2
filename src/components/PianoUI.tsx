@@ -390,7 +390,12 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
   const commonKeyProps: Omit<
     PianoKeyProps,
-    "note" | "octave" | "style" | "keyboardKey" | "shiftedKeyboardKey"
+    | "note"
+    | "octave"
+    | "style"
+    | "keyboardKey"
+    | "shiftedKeyboardKey"
+    | "isActive"
   > = {
     onNoteStart: playNotes,
     onNoteEnd: releaseNotes,
