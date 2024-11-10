@@ -186,24 +186,22 @@ const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
-const TonicLegend: React.FC = () => (
+const TonicLegend: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   <div
     style={{
       position: "absolute",
-      right: "-180px",
-      top: "50%",
-      transform: "translateY(-50%)",
+      top: -30,
+      left: 0,
+      textAlign: "center",
       color: "white",
       fontSize: "14px",
-      textAlign: "left",
-      padding: "10px",
-      background: "rgba(0, 0, 0, 0.5)",
-      borderRadius: "5px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "8px",
     }}
   >
-    Press Ctrl + key
-    <br />
-    to change tonic
+    <div>Press Ctrl + key to change tonic</div>
   </div>
 );
 
@@ -431,7 +429,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         }}
       >
         <ShiftIndicator totalWidth={totalWidth} />
-        <TonicLegend />
+        <TonicLegend totalWidth={totalWidth} />
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
           const octaveNum = parseInt(octave);
