@@ -186,7 +186,7 @@ const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
-const TonicLegend: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
+const TonicLegend: React.FC<{ totalWidth: number }> = () => (
   <div
     style={{
       position: "absolute",
