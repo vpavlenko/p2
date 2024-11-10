@@ -9,12 +9,8 @@ import { isNoteInScale, ScaleMode } from "../constants/scales";
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 
-const KEY_WIDTH = 25;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
-
-const OCTAVE_WIDTH = KEY_WIDTH * 7; // Width of one octave
-const FALLING_NOTE_WIDTH = OCTAVE_WIDTH / 6; // Width of each falling note column
 
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
@@ -408,12 +404,35 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     setActiveNotes(currentlyPlaying);
   }, [fallingNotes]);
 
-  const totalWidth =
-    Object.values(OCTAVE_RANGES).reduce(
-      (total, range) =>
-        total + countWhiteKeysInRange(range.start, range.length),
-      0
-    ) * KEY_WIDTH;
+  const TOTAL_WHITE_KEYS = Object.values(OCTAVE_RANGES).reduce(
+    (total, range) => total + countWhiteKeysInRange(range.start, range.length),
+    0
+  );
+
+  const MARGIN_PX = 40; // Total horizontal margin (20px on each side)
+
+  const calculateKeyWidth = (containerWidth: number): number => {
+    return (containerWidth - MARGIN_PX) / TOTAL_WHITE_KEYS;
+  };
+
+  const [keyWidth, setKeyWidth] = useState(25); // Default fallback width
+
+  useEffect(() => {
+    const handleResize = () => {
+      const availableWidth = window.innerWidth - 600; // Total width minus ControlPanel
+      const newKeyWidth = calculateKeyWidth(availableWidth);
+      setKeyWidth(newKeyWidth);
+    };
+
+    // Initial calculation
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const totalWidth = TOTAL_WHITE_KEYS * keyWidth;
 
   const commonKeyProps: Omit<
     PianoKeyProps,
@@ -434,12 +453,15 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     releaseNotes,
   };
 
+  const octaveWidth = keyWidth * 7;
+  const fallingNoteWidth = octaveWidth / 6;
+
   return (
     <div
       style={{
         position: "fixed",
         top: 0,
-        left: 0,
+        left: "600px",
         right: 0,
         bottom: 0,
         backgroundColor: "black",
@@ -455,6 +477,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           position: "relative",
           width: totalWidth,
           marginTop: "40px",
+          marginLeft: MARGIN_PX / 2,
+          marginRight: MARGIN_PX / 2,
         }}
       >
         <ShiftIndicator totalWidth={totalWidth} />
@@ -495,10 +519,12 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             )?.[0];
 
             const commonStyleProps = {
-              width: KEY_WIDTH,
-              height: KEY_HEIGHT,
+              width: keyWidth,
+              height: keyWidth * 3.2, // Maintain aspect ratio (80/25 ≈ 3.2)
               borderRadius: "3px",
             };
+
+            const rowDistance = keyWidth * 1.6; // Maintain ratio (40/25 ≈ 1.6)
 
             if (isWhiteKey) {
               return (
@@ -518,8 +544,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   }
                   style={{
                     ...commonStyleProps,
-                    top: ROW_DISTANCE,
-                    left: KEY_WIDTH * whiteKeyCount,
+                    top: rowDistance,
+                    left: keyWidth * whiteKeyCount,
                   }}
                 />
               );
@@ -542,7 +568,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   style={{
                     ...commonStyleProps,
                     top: 0,
-                    left: KEY_WIDTH * (whiteKeyCount - 0.5),
+                    left: keyWidth * (whiteKeyCount - 0.5),
                     zIndex: 2,
                   }}
                 />
@@ -555,7 +581,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           notes={fallingNotes}
           tonic={tonic}
           colorMode={colorMode}
-          fallingNoteWidth={FALLING_NOTE_WIDTH}
+          fallingNoteWidth={fallingNoteWidth}
         />
       </div>
     </div>

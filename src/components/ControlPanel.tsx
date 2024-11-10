@@ -39,71 +39,54 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   isProgressionPlaying,
   onPlayFullRange,
 }) => (
-  <>
-    <div
-      style={{
-        position: "fixed",
-        left: "20px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        color: "white",
-        fontSize: "14px",
-        padding: "15px",
-        background: "rgba(0, 0, 0, 0.7)",
-        borderRadius: "8px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        zIndex: 1000,
-      }}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
-        {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
-          ([voicing, config]) => (
-            <button
-              key={voicing}
-              onClick={() => onVoicingChange(voicing)}
-              style={buttonStyle(voicing === currentVoicing)}
-            >
-              {config.label}
-            </button>
-          )
-        )}
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
-          Scale Mode
-        </div>
-        {Object.entries(SCALE_MODES).map(([mode, config]) => (
+  <div
+    style={{
+      position: "fixed",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: "600px",
+      background: "rgba(0, 0, 0, 0.9)",
+      color: "white",
+      fontSize: "14px",
+      padding: "20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "20px",
+      overflowY: "auto",
+      zIndex: 1000,
+      borderRight: "1px solid rgba(255, 255, 255, 0.1)",
+    }}
+  >
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
+      {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
+        ([voicing, config]) => (
           <button
-            key={mode}
-            onClick={() => onScaleModeChange(mode as ScaleMode)}
-            style={buttonStyle(mode === currentScaleMode)}
+            key={voicing}
+            onClick={() => onVoicingChange(voicing)}
+            style={buttonStyle(voicing === currentVoicing)}
           >
             {config.label}
           </button>
-        ))}
-      </div>
+        )
+      )}
     </div>
 
-    <div
-      style={{
-        position: "fixed",
-        left: "20px",
-        bottom: "20px",
-        color: "white",
-        fontSize: "14px",
-        padding: "15px",
-        background: "rgba(0, 0, 0, 0.7)",
-        borderRadius: "8px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        zIndex: 1000,
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
+      {Object.entries(SCALE_MODES).map(([mode, config]) => (
+        <button
+          key={mode}
+          onClick={() => onScaleModeChange(mode as ScaleMode)}
+          style={buttonStyle(mode === currentScaleMode)}
+        >
+          {config.label}
+        </button>
+      ))}
+    </div>
+
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
         Chord Progressions
       </div>
@@ -159,5 +142,5 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
       </div>
     </div>
-  </>
+  </div>
 );
