@@ -187,10 +187,9 @@ const getShiftedOctave = (octave: number, down: boolean = false): number => {
 };
 
 const TonicLegend: React.FC<{
-  totalWidth: number;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
-}> = ({ totalWidth, colorMode, onColorModeChange }) => (
+}> = ({ colorMode, onColorModeChange }) => (
   <div
     style={{
       position: "absolute",
@@ -460,7 +459,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
       >
         <ShiftIndicator totalWidth={totalWidth} />
         <TonicLegend
-          totalWidth={totalWidth}
           colorMode={colorMode}
           onColorModeChange={onColorModeChange}
         />
