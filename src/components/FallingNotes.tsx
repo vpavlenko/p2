@@ -12,7 +12,6 @@ export interface FallingNote {
   octave: number;
   startTime: number;
   endTime: number | null;
-  left: number;
 }
 
 interface FallingNotesProps {

@@ -24,19 +24,8 @@ const NOTE_NAMES = [
   "B",
 ] as const;
 
-const START_OCTAVE = 0;
-
 const LOWEST_NOTE = 21; // A0
 const HIGHEST_NOTE = 108; // C8
-
-const getFallingNotePosition = (
-  note: number,
-  octave: number,
-  startOctave: number
-) => {
-  const semitonesFromC0 = (octave - startOctave) * 12 + note;
-  return (semitonesFromC0 * (25 * 7)) / 6 / 2 + -125;
-};
 
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
@@ -67,7 +56,6 @@ export const PianoController: React.FC = () => {
           octave: o,
           startTime: Date.now(),
           endTime: null,
-          left: getFallingNotePosition(absoluteNote, o, START_OCTAVE),
         };
 
         setFallingNotes((prev) => [...prev, newNote]);
