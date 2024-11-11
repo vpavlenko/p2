@@ -182,52 +182,159 @@ const getShiftedOctave = (octave: number, down: boolean = false): number => {
   return down ? octave - 3 : octave + 3;
 };
 
-const TonicLegend: React.FC<{
+interface TonicPickerProps {
+  tonic: number;
+  onTonicChange: (tonic: number) => void;
+}
+
+interface ColorModeToggleProps {
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
-}> = ({ colorMode, onColorModeChange }) => (
+}
+
+interface ControlsProps extends TonicPickerProps, ColorModeToggleProps {}
+
+const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
+  const [showHint, setShowHint] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const notes = [
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+  ];
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        cursor: "pointer",
+      }}
+      onMouseEnter={() => setShowHint(true)}
+      onMouseLeave={() => {
+        setShowHint(false);
+        setShowPicker(false);
+      }}
+      onClick={() => setShowPicker(!showPicker)}
+    >
+      <div style={{ fontSize: "16px", fontWeight: "bold" }}>{notes[tonic]}</div>
+      {showHint && !showPicker && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            whiteSpace: "nowrap",
+            fontSize: "12px",
+            marginTop: "4px",
+            color: "rgba(255, 255, 255, 0.7)",
+          }}
+        >
+          Press Ctrl + key to change tonic
+        </div>
+      )}
+      {showPicker && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            gap: "4px",
+            padding: "8px",
+            background: "rgba(0, 0, 0, 0.8)",
+            borderRadius: "4px",
+            marginTop: "4px",
+            zIndex: 10,
+          }}
+        >
+          {notes.map((note, index) => (
+            <div
+              key={note}
+              onClick={() => onTonicChange(index)}
+              style={{
+                padding: "4px 8px",
+                cursor: "pointer",
+                background:
+                  tonic === index ? "rgba(255, 255, 255, 0.2)" : "none",
+                borderRadius: "2px",
+                fontSize: "14px",
+              }}
+            >
+              {note}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ColorModeToggle: React.FC<ColorModeToggleProps> = ({
+  colorMode,
+  onColorModeChange,
+}) => (
+  <button
+    onClick={() =>
+      onColorModeChange(colorMode === "chromatic" ? "traditional" : "chromatic")
+    }
+    style={{
+      background: "none",
+      border: "1px solid rgba(255, 255, 255, 0.4)",
+      borderRadius: "4px",
+      color: "white",
+      padding: "2px 8px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "4px",
+      fontSize: "14px",
+    }}
+  >
+    <span>{colorMode === "chromatic" ? "Traditional" : "Chromatic"}</span>
+    <span role="img" aria-label="rainbow">
+      🌈
+    </span>
+  </button>
+);
+
+const Controls: React.FC<ControlsProps> = ({
+  tonic,
+  onTonicChange,
+  colorMode,
+  onColorModeChange,
+}) => (
   <div
     style={{
       position: "absolute",
       top: -30,
       left: 0,
-      textAlign: "center",
-      color: "white",
-      fontSize: "14px",
       display: "flex",
-      justifyContent: "center",
       alignItems: "center",
-      gap: "8px",
+      gap: "16px",
+      color: "white",
     }}
   >
-    <div>Press Ctrl + key to change tonic</div>
-    <button
-      onClick={() =>
-        onColorModeChange(
-          colorMode === "chromatic" ? "traditional" : "chromatic"
-        )
-      }
-      style={{
-        background: "none",
-        border: "1px solid rgba(255, 255, 255, 0.4)",
-        borderRadius: "4px",
-        color: "white",
-        padding: "2px 8px",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-        fontSize: "14px",
-      }}
-    >
-      <span>{colorMode === "chromatic" ? "Traditional" : "Chromatic"}</span>
-      <span role="img" aria-label="rainbow">
-        🌈
-      </span>
-    </button>
+    <TonicPicker tonic={tonic} onTonicChange={onTonicChange} />
+    <ColorModeToggle
+      colorMode={colorMode}
+      onColorModeChange={onColorModeChange}
+    />
   </div>
 );
 
+// Add this component definition before the Controls component
 const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   <div
     style={{
@@ -453,9 +560,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     releaseNotes,
   };
 
-  const octaveWidth = keyWidth * 7;
-  const fallingNoteWidth = octaveWidth / 6;
-
   // Inside PianoUI component, before the return statement
   // Add these calculations for reference points
   const getWhiteKeyPosition = (targetOctave: number): number => {
@@ -499,7 +603,9 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         }}
       >
         <ShiftIndicator totalWidth={totalWidth} />
-        <TonicLegend
+        <Controls
+          tonic={tonic}
+          onTonicChange={setTonic}
           colorMode={colorMode}
           onColorModeChange={onColorModeChange}
         />
