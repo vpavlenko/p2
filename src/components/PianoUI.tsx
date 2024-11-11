@@ -195,8 +195,8 @@ interface ColorModeToggleProps {
 interface ControlsProps extends TonicPickerProps, ColorModeToggleProps {}
 
 const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
-  const [showHint, setShowHint] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = React.useRef<HTMLDivElement>(null);
   const notes = [
     "C",
     "C#",
@@ -212,69 +212,99 @@ const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
     "B",
   ];
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setShowPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div
+      ref={pickerRef}
       style={{
         position: "relative",
         cursor: "pointer",
       }}
-      onMouseEnter={() => setShowHint(true)}
-      onMouseLeave={() => {
-        setShowHint(false);
-        setShowPicker(false);
-      }}
       onClick={() => setShowPicker(!showPicker)}
     >
       <div style={{ fontSize: "16px", fontWeight: "bold" }}>{notes[tonic]}</div>
-      {showHint && !showPicker && (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
-            fontSize: "12px",
-            marginTop: "4px",
-            color: "rgba(255, 255, 255, 0.7)",
-          }}
-        >
-          Press Ctrl + key to change tonic
-        </div>
-      )}
       {showPicker && (
         <div
           style={{
             position: "absolute",
             top: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "grid",
-            gridTemplateColumns: "repeat(6, 1fr)",
-            gap: "4px",
+            left: "0",
+            transform: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
             padding: "8px",
             background: "rgba(0, 0, 0, 0.8)",
             borderRadius: "4px",
             marginTop: "4px",
             zIndex: 10,
+            minWidth: "200px",
           }}
         >
-          {notes.map((note, index) => (
-            <div
-              key={note}
-              onClick={() => onTonicChange(index)}
-              style={{
-                padding: "4px 8px",
-                cursor: "pointer",
-                background:
-                  tonic === index ? "rgba(255, 255, 255, 0.2)" : "none",
-                borderRadius: "2px",
-                fontSize: "14px",
-              }}
-            >
-              {note}
-            </div>
-          ))}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(6, 1fr)",
+              gap: "4px",
+            }}
+          >
+            {notes.map((note, index) => (
+              <div
+                key={note}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTonicChange(index);
+                  setShowPicker(false);
+                }}
+                style={{
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                  background:
+                    tonic === index ? "rgba(255, 255, 255, 0.1)" : "none",
+                  border:
+                    tonic === index
+                      ? "1px solid rgba(255, 255, 255, 0.8)"
+                      : "1px solid transparent",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  textAlign: "center",
+                  fontWeight: tonic === index ? "bold" : "normal",
+                  transition: "all 0.1s ease-in-out",
+                  ":hover": {
+                    background: "rgba(255, 255, 255, 0.15)",
+                  },
+                }}
+              >
+                {note}
+              </div>
+            ))}
+          </div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "rgba(255, 255, 255, 0.7)",
+              textAlign: "center",
+              borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+              paddingTop: "8px",
+            }}
+          >
+            Press Ctrl + key to change tonic
+          </div>
         </div>
       )}
     </div>
