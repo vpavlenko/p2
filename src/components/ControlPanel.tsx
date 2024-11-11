@@ -4,6 +4,7 @@ import {
   CHORD_PROGRESSIONS,
   ChordProgression,
 } from "../constants/progressions";
+import { Voicing } from "../constants/voicings";
 
 interface ControlPanelProps {
   currentScaleMode: ScaleMode;
@@ -12,6 +13,8 @@ interface ControlPanelProps {
   onStopProgression: () => void;
   isProgressionPlaying: boolean;
   onPlayFullRange: () => void;
+  currentVoicing: Voicing;
+  onVoicingChange: (voicing: Voicing) => void;
 }
 
 const buttonStyle = (isActive: boolean) => ({

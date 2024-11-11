@@ -6,6 +6,7 @@ import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
 import { isNoteInScale, ScaleMode } from "../constants/scales";
 import { PianoControls } from "./PianoControls";
+import { Voicing } from "../constants/voicings";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
