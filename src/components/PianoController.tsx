@@ -6,9 +6,9 @@ import { VOICINGS } from "../constants/voicings";
 import { sampler } from "../audio/sampler";
 import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
-import { ControlPanel } from "./ControlPanel";
+import { LessonsPanel } from "./ControlPanel";
 import { ChordProgression } from "../constants/progressions";
-
+import { LESSONS, LessonExample } from "../data/lessons";
 const NOTE_NAMES = [
   "C",
   "C#",
@@ -34,6 +34,7 @@ export const PianoController: React.FC = () => {
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [isProgressionPlaying, setIsProgressionPlaying] = useState(false);
+  const [currentLessonId, setCurrentLessonId] = useState(1);
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
@@ -158,15 +159,51 @@ export const PianoController: React.FC = () => {
     [playNoteSequence]
   );
 
+  const handlePlayExample = useCallback(
+    (example: LessonExample) => {
+      switch (example.type) {
+        case "progression":
+          if (example.data) {
+            playProgression(example.data as ChordProgression);
+          }
+          break;
+        case "fullRange":
+          playFullRange();
+          break;
+        case "custom":
+          if (example.data) {
+            playNoteSequence(
+              example.data as Array<{
+                note: number;
+                octave: number;
+                duration: number;
+              }>
+            );
+          }
+          break;
+      }
+    },
+    [playProgression, playFullRange, playNoteSequence]
+  );
+
+  const handleLessonChange = useCallback((lessonId: number) => {
+    setCurrentLessonId(lessonId);
+    const lesson = LESSONS.find((l) => l.id === lessonId);
+    if (lesson) {
+      setVoicing(lesson.recommendedVoicing);
+    }
+  }, []);
+
   return (
     <>
-      <ControlPanel
-        onPlayProgression={playProgression}
-        onStopProgression={stopProgression}
-        isProgressionPlaying={isProgressionPlaying}
-        onPlayFullRange={playFullRange}
+      <LessonsPanel
+        onPlayExample={handlePlayExample}
+        onStopPlaying={stopProgression}
+        isPlaying={isProgressionPlaying}
         currentVoicing={voicing}
         onVoicingChange={setVoicing}
+        currentLessonId={currentLessonId}
+        onLessonChange={handleLessonChange}
       />
       <PianoUI
         tonic={tonic}
