@@ -176,6 +176,8 @@ export const PianoController: React.FC = () => {
         scaleMode={scaleMode}
         colorMode={colorMode}
         onColorModeChange={setColorMode}
+        currentVoicing={voicing}
+        onVoicingChange={setVoicing}
         playNotes={playNotes}
         releaseNotes={releaseNotes}
         fallingNotes={fallingNotes}

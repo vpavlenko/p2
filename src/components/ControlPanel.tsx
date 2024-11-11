@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Voicing, VOICINGS, VoicingConfig } from "../constants/voicings";
 import { ScaleMode, SCALE_MODES } from "../constants/scales";
 import {
   CHORD_PROGRESSIONS,
@@ -7,8 +6,6 @@ import {
 } from "../constants/progressions";
 
 interface ControlPanelProps {
-  currentVoicing: Voicing;
-  onVoicingChange: (voicing: Voicing) => void;
   currentScaleMode: ScaleMode;
   onScaleModeChange: (mode: ScaleMode) => void;
   onPlayProgression: (progression: ChordProgression) => void;
@@ -30,8 +27,6 @@ const buttonStyle = (isActive: boolean) => ({
 });
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
-  currentVoicing,
-  onVoicingChange,
   currentScaleMode,
   onScaleModeChange,
   onPlayProgression,
@@ -58,21 +53,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       borderRight: "1px solid rgba(255, 255, 255, 0.1)",
     }}
   >
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Voicing</div>
-      {(Object.entries(VOICINGS) as [Voicing, VoicingConfig][]).map(
-        ([voicing, config]) => (
-          <button
-            key={voicing}
-            onClick={() => onVoicingChange(voicing)}
-            style={buttonStyle(voicing === currentVoicing)}
-          >
-            {config.label}
-          </button>
-        )
-      )}
-    </div>
-
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
       {Object.entries(SCALE_MODES).map(([mode, config]) => (

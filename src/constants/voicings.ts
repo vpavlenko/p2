@@ -11,18 +11,18 @@ export interface VoicingConfig {
 
 export const VOICINGS: Record<Voicing, VoicingConfig> = {
   single: {
-    label: "Single Note",
+    label: "1",
     getNotes: (note, octave) => [{ note, octave }],
   },
   fifth: {
-    label: "With Fifth",
+    label: "5",
     getNotes: (note, octave) => [
       { note, octave },
       { note: (note + 7) % 12, octave: note + 7 >= 12 ? octave + 1 : octave },
     ],
   },
   major: {
-    label: "Major Triad",
+    label: "M",
     getNotes: (note, octave) => [
       { note, octave },
       { note: (note + 4) % 12, octave: note + 4 >= 12 ? octave + 1 : octave },
@@ -30,7 +30,7 @@ export const VOICINGS: Record<Voicing, VoicingConfig> = {
     ],
   },
   diatonic: {
-    label: "Diatonic Triad",
+    label: "d",
     getNotes: (note, octave, scale = "major") => {
       // Define scale intervals
       const scaleIntervals =

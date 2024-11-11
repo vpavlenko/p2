@@ -248,6 +248,8 @@ interface PianoUIProps {
   scaleMode: ScaleMode;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  currentVoicing: Voicing;
+  onVoicingChange: (voicing: Voicing) => void;
   playNotes: (
     note: number,
     octave: number
@@ -265,6 +267,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   scaleMode,
   colorMode,
   onColorModeChange,
+  currentVoicing,
+  onVoicingChange,
   playNotes,
   releaseNotes,
   fallingNotes,
@@ -457,6 +461,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           onTonicChange={setTonic}
           colorMode={colorMode}
           onColorModeChange={onColorModeChange}
+          currentVoicing={currentVoicing}
+          onVoicingChange={onVoicingChange}
         />
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
