@@ -197,6 +197,7 @@ interface ControlsProps extends TonicPickerProps, ColorModeToggleProps {}
 const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = React.useRef<HTMLDivElement>(null);
+  const [hoveredNote, setHoveredNote] = useState<number | null>(null);
   const notes = [
     "C",
     "C#",
@@ -271,11 +272,15 @@ const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
                   onTonicChange(index);
                   setShowPicker(false);
                 }}
+                onMouseEnter={() => setHoveredNote(index)}
+                onMouseLeave={() => setHoveredNote(null)}
                 style={{
                   padding: "4px 8px",
                   cursor: "pointer",
                   background:
-                    tonic === index ? "rgba(255, 255, 255, 0.1)" : "none",
+                    tonic === index || hoveredNote === index
+                      ? "rgba(255, 255, 255, 0.15)"
+                      : "none",
                   border:
                     tonic === index
                       ? "1px solid rgba(255, 255, 255, 0.8)"
@@ -285,9 +290,6 @@ const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
                   textAlign: "center",
                   fontWeight: tonic === index ? "bold" : "normal",
                   transition: "all 0.1s ease-in-out",
-                  ":hover": {
-                    background: "rgba(255, 255, 255, 0.15)",
-                  },
                 }}
               >
                 {note}
@@ -315,28 +317,49 @@ const ColorModeToggle: React.FC<ColorModeToggleProps> = ({
   colorMode,
   onColorModeChange,
 }) => (
-  <button
+  <div
     onClick={() =>
       onColorModeChange(colorMode === "chromatic" ? "traditional" : "chromatic")
     }
     style={{
-      background: "none",
-      border: "1px solid rgba(255, 255, 255, 0.4)",
-      borderRadius: "4px",
-      color: "white",
-      padding: "2px 8px",
+      width: "40px",
+      height: "20px",
+      backgroundColor:
+        colorMode === "chromatic" ? "#4CAF50" : "rgba(255, 255, 255, 0.2)",
+      borderRadius: "10px",
+      position: "relative",
       cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px",
-      fontSize: "14px",
+      transition: "background-color 0.2s ease-in-out",
     }}
   >
-    <span>{colorMode === "chromatic" ? "Traditional" : "Chromatic"}</span>
-    <span role="img" aria-label="rainbow">
-      🌈
-    </span>
-  </button>
+    <div
+      style={{
+        width: "18px",
+        height: "18px",
+        backgroundColor: "white",
+        borderRadius: "50%",
+        position: "absolute",
+        top: "1px",
+        left: colorMode === "chromatic" ? "21px" : "1px",
+        transition: "left 0.2s ease-in-out",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {colorMode === "chromatic" && (
+        <span
+          role="img"
+          aria-label="rainbow"
+          style={{
+            fontSize: "12px",
+          }}
+        >
+          🌈
+        </span>
+      )}
+    </div>
+  </div>
 );
 
 const Controls: React.FC<ControlsProps> = ({
