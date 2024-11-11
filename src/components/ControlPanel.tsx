@@ -1,5 +1,4 @@
 import * as React from "react";
-import { ScaleMode, SCALE_MODES } from "../constants/scales";
 import {
   CHORD_PROGRESSIONS,
   ChordProgression,
@@ -7,8 +6,6 @@ import {
 import { Voicing } from "../constants/voicings";
 
 interface ControlPanelProps {
-  currentScaleMode: ScaleMode;
-  onScaleModeChange: (mode: ScaleMode) => void;
   onPlayProgression: (progression: ChordProgression) => void;
   onStopProgression: () => void;
   isProgressionPlaying: boolean;
@@ -30,8 +27,6 @@ const buttonStyle = (isActive: boolean) => ({
 });
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
-  currentScaleMode,
-  onScaleModeChange,
   onPlayProgression,
   onStopProgression,
   isProgressionPlaying,
@@ -56,19 +51,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       borderRight: "1px solid rgba(255, 255, 255, 0.1)",
     }}
   >
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <div style={{ marginBottom: "10px", fontWeight: "bold" }}>Scale Mode</div>
-      {Object.entries(SCALE_MODES).map(([mode, config]) => (
-        <button
-          key={mode}
-          onClick={() => onScaleModeChange(mode as ScaleMode)}
-          style={buttonStyle(mode === currentScaleMode)}
-        >
-          {config.label}
-        </button>
-      ))}
-    </div>
-
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
         Chord Progressions

@@ -161,19 +161,18 @@ export const PianoController: React.FC = () => {
   return (
     <>
       <ControlPanel
-        currentVoicing={voicing}
-        onVoicingChange={setVoicing}
-        currentScaleMode={scaleMode}
-        onScaleModeChange={setScaleMode}
         onPlayProgression={playProgression}
         onStopProgression={stopProgression}
         isProgressionPlaying={isProgressionPlaying}
         onPlayFullRange={playFullRange}
+        currentVoicing={voicing}
+        onVoicingChange={setVoicing}
       />
       <PianoUI
         tonic={tonic}
         setTonic={setTonic}
         scaleMode={scaleMode}
+        onScaleModeChange={setScaleMode}
         colorMode={colorMode}
         onColorModeChange={setColorMode}
         currentVoicing={voicing}

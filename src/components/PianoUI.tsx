@@ -260,6 +260,7 @@ interface PianoUIProps {
     octave: number
   ) => Array<{ note: number; octave: number }>;
   fallingNotes: FallingNote[];
+  onScaleModeChange: (mode: ScaleMode) => void;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -273,6 +274,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   playNotes,
   releaseNotes,
   fallingNotes,
+  onScaleModeChange,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -464,6 +466,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           onColorModeChange={onColorModeChange}
           currentVoicing={currentVoicing}
           onVoicingChange={onVoicingChange}
+          scaleMode={scaleMode}
+          onScaleModeChange={onScaleModeChange}
         />
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
