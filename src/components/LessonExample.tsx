@@ -2,48 +2,78 @@ import React from "react";
 import { LessonExample } from "../data/lessons";
 
 export interface InlineExampleProps extends LessonExample {
+  onPlay?: (example: LessonExample) => void;
+  onStop?: () => void;
   isPlaying?: boolean;
-  onPlay: (example: LessonExample) => void;
-  onStop: () => void;
 }
 
-export const InlineExample: React.FC<InlineExampleProps> = ({
+export const BasicInlineExample: React.FC<InlineExampleProps> = ({
   id,
   name,
   type,
   data,
   description,
-  isPlaying,
   onPlay,
   onStop,
+  isPlaying = false,
 }) => {
-  const example = { id, name, type, data, description };
+  console.log("BasicInlineExample rendered with props:", {
+    id,
+    name,
+    type,
+    data,
+    description,
+    onPlay: !!onPlay,
+    onStop: !!onStop,
+    isPlaying,
+  });
+
+  const handlePlay = () => {
+    console.log("Play button clicked");
+    if (onPlay) {
+      console.log("Calling onPlay with example:", {
+        id,
+        name,
+        type,
+        data,
+        description,
+      });
+      onPlay({ id, name, type, data, description });
+    } else {
+      console.log("onPlay is not defined!");
+    }
+  };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 my-4">
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="text-lg font-semibold text-purple-300">{name}</h4>
-        {isPlaying ? (
+    <div className="my-4 p-4 bg-gray-800 rounded-lg">
+      <div className="flex justify-between items-center mb-2">
+        <h4 className="text-lg font-semibold">{name}</h4>
+        <div className="flex gap-2">
           <button
-            onClick={onStop}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            onClick={handlePlay}
+            disabled={isPlaying}
+            className={`px-4 py-2 rounded ${
+              isPlaying
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
+            }`}
           >
-            Stop
+            Play
           </button>
-        ) : (
-          <button
-            onClick={() => onPlay(example)}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-          >
-            Play Example
-          </button>
-        )}
+          {isPlaying && onStop && (
+            <button
+              onClick={() => {
+                console.log("Stop button clicked");
+                onStop();
+              }}
+              className="px-4 py-2 rounded bg-red-600 hover:bg-red-700"
+            >
+              Stop
+            </button>
+          )}
+        </div>
       </div>
-      <p className="text-gray-300 text-sm">{description}</p>
+      <p className="text-gray-400">{description}</p>
     </div>
   );
-};
-
-export const BasicInlineExample: React.FC<InlineExampleProps> = (props) => {
-  return <InlineExample {...props} onPlay={() => {}} onStop={() => {}} />;
 };

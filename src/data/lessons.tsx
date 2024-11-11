@@ -44,9 +44,6 @@ export const LESSONS: Lesson[] = [
           data={{ chords: [0, 4, 5, 0] }}
           name="I-IV-V-I Progression"
           description="Listen to how these chords naturally flow together"
-          onPlay={() => {}}
-          onStop={() => {}}
-          isPlaying={false}
         />
 
         <h3 className="text-xl font-semibold mt-6 mb-3">Piano Range</h3>
@@ -59,9 +56,6 @@ export const LESSONS: Lesson[] = [
           type="fullRange"
           name="Full Piano Range"
           description="Experience the complete range of the piano"
-          onPlay={() => {}}
-          onStop={() => {}}
-          isPlaying={false}
         />
       </>
     ),
@@ -90,9 +84,6 @@ export const LESSONS: Lesson[] = [
           data={{ chords: [0, 3, 6, 9] }}
           name="Chromatic Progression"
           description="Notice how each chord moves up by equal intervals"
-          onPlay={() => {}}
-          onStop={() => {}}
-          isPlaying={false}
         />
 
         <h3 className="text-xl font-semibold mt-6 mb-3">Arpeggios</h3>
@@ -111,9 +102,6 @@ export const LESSONS: Lesson[] = [
           ]}
           name="Basic Arpeggio"
           description="A simple ascending arpeggio pattern"
-          onPlay={() => {}}
-          onStop={() => {}}
-          isPlaying={false}
         />
       </>
     ),
