@@ -1,6 +1,7 @@
 import React from "react";
 import { LESSONS, LessonExample } from "../data/lessons";
 import { Voicing } from "../constants/voicings";
+import { BasicInlineExample, InlineExampleProps } from "./LessonExample";
 
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
@@ -22,11 +23,12 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   const currentLesson = LESSONS.find((lesson) => lesson.id === currentLessonId);
 
   return (
-    <div className="lessons-panel">
-      <div className="lesson-selector">
+    <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white p-8 overflow-y-auto">
+      <div className="mb-8">
         <select
           value={currentLessonId}
           onChange={(e) => onLessonChange(Number(e.target.value))}
+          className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-white"
         >
           {LESSONS.map((lesson) => (
             <option key={lesson.id} value={lesson.id}>
@@ -37,26 +39,23 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
       </div>
 
       {currentLesson && (
-        <div className="lesson-content">
-          <h2>{currentLesson.title}</h2>
-          <p>{currentLesson.description}</p>
-
-          <div className="examples-list">
-            {currentLesson.examples.map((example) => (
-              <div key={example.id} className="example-item">
-                <h3>{example.name}</h3>
-                <p>{example.description}</p>
-                <button
-                  onClick={() => onPlayExample(example)}
-                  disabled={isPlaying}
-                >
-                  Play Example
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {isPlaying && <button onClick={onStopPlaying}>Stop Playing</button>}
+        <div className="prose prose-invert">
+          {React.Children.map(currentLesson.content, (child) => {
+            if (
+              React.isValidElement(child) &&
+              child.type === BasicInlineExample
+            ) {
+              return React.cloneElement(
+                child as React.ReactElement<InlineExampleProps>,
+                {
+                  isPlaying,
+                  onPlay: onPlayExample,
+                  onStop: onStopPlaying,
+                }
+              );
+            }
+            return child;
+          })}
         </div>
       )}
     </div>
