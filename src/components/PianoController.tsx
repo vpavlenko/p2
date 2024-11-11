@@ -6,7 +6,7 @@ import { VOICINGS } from "../constants/voicings";
 import { sampler } from "../audio/sampler";
 import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
-import { LessonsPanel } from "./ControlPanel";
+import { LessonsPanel } from "./LessonsPanel";
 import { ChordProgression } from "../constants/progressions";
 import { LESSONS, LessonExample } from "../data/lessons";
 const NOTE_NAMES = [
