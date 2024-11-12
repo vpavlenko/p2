@@ -211,7 +211,7 @@ export const LESSONS: Lesson[] = [
           Western music. It has seven notes. What defines a scale is a sequence
           of intervals between the notes.
         </P>
-        <E data="C3 D3 E3 F3 G3 A3 B3" name="C major scale" />
+        <E data="C3 D3 E3 F3 G3 A3 B3 C4" name="C major scale" />
         <P>
           By applying the same sequence of intervals, we can build a major scale
           on any note of the piano. However, for this very process it makes
@@ -220,7 +220,37 @@ export const LESSONS: Lesson[] = [
           that its lowest note can be thought as a local center, or a tonic.
           We'll try to always have a tonic notic colored as white.
         </P>
-        <E data="C#3 D#3 F3 F#3 G#3 A#3 C4" name="C# major scale" tonic="C#" />
+        <E
+          data="C#3 D#3 F3 F#3 G#3 A#3 C4 C#4"
+          name="C# (Db) major scale"
+          tonic="C#"
+        />
+        <E data="D3 E3 F#3 G3 A3 B3 C#4 D4" name="D major scale" tonic="D" />
+        <E
+          data="Eb3 F3 G3 Ab3 Bb3 C4 D4 Eb4"
+          name="D# (Eb) major scale"
+          tonic="Eb"
+        />
+        <E data="E3 F#3 G#3 A3 B3 C#4 D#4 E4" name="E major scale" tonic="E" />
+        <E data="F3 G3 A3 Bb3 C4 D4 E4 F4" name="F major scale" tonic="F" />
+        <E
+          data="F#3 G#3 A#3 B3 C#4 D#4 F4 F#4"
+          name="F# (Gb) major scale"
+          tonic="F#"
+        />
+        <E data="G3 A3 B3 C4 D4 E4 F#4 G4" name="G major scale" tonic="G" />
+        <E
+          data="Ab3 Bb3 C4 Db4 Eb4 F4 G4 Ab4"
+          name="G# (Ab) major scale"
+          tonic="Ab"
+        />
+        <E data="A3 B3 C#4 D4 E4 F#4 G#4 A4" name="A major scale" tonic="A" />
+        <E
+          data="Bb3 C4 D4 Eb4 F4 G4 A4 Bb4"
+          name="A# (Bb) major scale"
+          tonic="Bb"
+        />
+        <E data="B3 C#4 D#4 E4 F#4 G#4 A#4 B4" name="B major scale" tonic="B" />
       </>
     ),
   },
