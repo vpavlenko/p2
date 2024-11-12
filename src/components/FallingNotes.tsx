@@ -47,50 +47,50 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
     return position;
   };
 
-  // Updated function to generate octave lines for both C and G notes
-  const generateOctaveLines = () => {
+  // Updated function to generate tonic and fifth lines
+  const generateTonicLines = () => {
     const lines = [];
     const startOctave = 0;
     const endOctave = 8;
 
     for (let octave = startOctave; octave <= endOctave; octave++) {
-      // Add C lines (original)
-      const cMidiNote = octave * 12 + 12;
-      const cLeft = calculateNotePosition(cMidiNote);
+      // Add tonic lines
+      const tonicMidiNote = octave * 12 + tonic + 12; // +12 to start from octave 1
+      const tonicLeft = calculateNotePosition(tonicMidiNote);
 
-      if (!isNaN(cLeft) && isFinite(cLeft)) {
+      if (!isNaN(tonicLeft) && isFinite(tonicLeft)) {
         lines.push(
           <div
-            key={`octave-line-c${octave}`}
+            key={`tonic-line-${octave}`}
             style={{
               position: "absolute",
-              left: cLeft,
+              left: tonicLeft,
               top: 0,
               width: "1px",
               height: "100%",
-              backgroundColor: "rgba(128, 128, 128, 0.6)",
+              backgroundColor: "rgba(255, 255, 255, 0.6)", // brighter for tonic
               pointerEvents: "none",
             }}
           />
         );
       }
 
-      // Add G lines (if not the last octave)
+      // Add fifth lines (if not the last octave)
       if (octave < endOctave) {
-        const gMidiNote = octave * 12 + 19; // G is 7 semitones above C
-        const gLeft = calculateNotePosition(gMidiNote);
+        const fifthMidiNote = octave * 12 + ((tonic + 7) % 12) + 12; // fifth is 7 semitones above tonic
+        const fifthLeft = calculateNotePosition(fifthMidiNote);
 
-        if (!isNaN(gLeft) && isFinite(gLeft)) {
+        if (!isNaN(fifthLeft) && isFinite(fifthLeft)) {
           lines.push(
             <div
-              key={`octave-line-g${octave}`}
+              key={`fifth-line-${octave}`}
               style={{
                 position: "absolute",
-                left: gLeft,
+                left: fifthLeft,
                 top: 0,
                 width: "1px",
                 height: "100%",
-                backgroundColor: "rgba(128, 128, 128, 0.4)", // lighter gray for G lines
+                backgroundColor: "rgba(255, 255, 255, 0.4)", // lighter for fifth
                 pointerEvents: "none",
               }}
             />
@@ -122,7 +122,7 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
         overflow: "hidden",
       }}
     >
-      {generateOctaveLines()}
+      {generateTonicLines()}
       {notes.map((note) => {
         const isActive = !note.endTime;
         const timeSinceEnd = note.endTime ? (time - note.endTime) / 1000 : 0;
