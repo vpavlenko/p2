@@ -2,7 +2,6 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { ColorMode } from "./types";
 import { Voicing, VOICINGS } from "../constants/voicings";
-import { ScaleMode, SCALE_MODES } from "../constants/scales";
 
 interface TonicPickerProps {
   tonic: number;
@@ -17,8 +16,6 @@ interface ColorModeToggleProps {
 interface ControlsProps extends TonicPickerProps, ColorModeToggleProps {
   currentVoicing: Voicing;
   onVoicingChange: (voicing: Voicing) => void;
-  scaleMode: ScaleMode;
-  onScaleModeChange: (mode: ScaleMode) => void;
 }
 
 const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
@@ -213,30 +210,6 @@ const VoicingPicker: React.FC<{
   </div>
 );
 
-const ScaleModePicker: React.FC<{
-  scaleMode: ScaleMode;
-  onScaleModeChange: (mode: ScaleMode) => void;
-}> = ({ scaleMode, onScaleModeChange }) => (
-  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-    {(Object.entries(SCALE_MODES) as [ScaleMode, { label: string }][]).map(
-      ([mode, config]) => (
-        <span
-          key={mode}
-          onClick={() => onScaleModeChange(mode)}
-          style={{
-            cursor: "pointer",
-            opacity: mode === scaleMode ? 1 : 0.6,
-            fontWeight: mode === scaleMode ? "bold" : "normal",
-            transition: "all 0.2s",
-          }}
-        >
-          {config.label}
-        </span>
-      )
-    )}
-  </div>
-);
-
 export const PianoControls: React.FC<ControlsProps> = ({
   tonic,
   onTonicChange,
@@ -244,8 +217,6 @@ export const PianoControls: React.FC<ControlsProps> = ({
   onColorModeChange,
   currentVoicing,
   onVoicingChange,
-  scaleMode,
-  onScaleModeChange,
 }) => (
   <div
     style={{
@@ -262,10 +233,6 @@ export const PianoControls: React.FC<ControlsProps> = ({
     <VoicingPicker
       currentVoicing={currentVoicing}
       onVoicingChange={onVoicingChange}
-    />
-    <ScaleModePicker
-      scaleMode={scaleMode}
-      onScaleModeChange={onScaleModeChange}
     />
     <ColorModeToggle
       colorMode={colorMode}

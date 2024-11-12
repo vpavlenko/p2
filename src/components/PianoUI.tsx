@@ -4,7 +4,6 @@ import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
-import { isNoteInScale, ScaleMode } from "../constants/scales";
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 
@@ -26,7 +25,6 @@ interface PianoKeyProps {
   onNoteEnd: (note: number, octave: number) => void;
   tonic: number;
   isShiftPressed: boolean;
-  scaleMode: ScaleMode;
   colorMode: ColorMode;
   playNotes: (
     note: number,
@@ -47,7 +45,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   shiftedKeyboardKey,
   tonic,
   isShiftPressed,
-  scaleMode,
   colorMode,
   playNotes,
   releaseNotes,
@@ -57,7 +54,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   const [isPressed, setIsPressed] = React.useState(false);
   const colors = getColors(tonic, colorMode);
   const relativeNote = (note - tonic + 12) % 12;
-  const isInScale = isNoteInScale(note, tonic, scaleMode);
 
   const handleMouseDown = async () => {
     await playNotes(note, octave);
@@ -128,15 +124,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
-    width: !isInScale
-      ? `${parseInt(style.width as string) - NOTE_SHRINK_AMOUNT * 2}px`
-      : style.width,
-    height: !isInScale
-      ? `${parseInt(style.height as string) - NOTE_SHRINK_AMOUNT * 2}px`
-      : style.height,
-    margin: !isInScale
-      ? `0 ${NOTE_SHRINK_AMOUNT}px ${NOTE_SHRINK_AMOUNT}px ${NOTE_SHRINK_AMOUNT}px`
-      : "0",
     ...(colorMode === "traditional" && {
       border:
         colors[note] === "white" ? "1px solid rgba(0, 0, 0, 0.8)" : "none",
@@ -211,9 +198,6 @@ const ShiftIndicator: React.FC<{ totalWidth: number }> = ({ totalWidth }) => (
   </div>
 );
 
-// Add this constant near the top of the file with other constants
-const NOTE_SHRINK_AMOUNT = 5; // Amount to shrink on each side
-
 // Replace the EXTRA_LOW_KEYS constant with a more structured octave range system
 interface OctaveRange {
   start: number; // Starting note number (0-11, where 0 is C)
@@ -246,7 +230,6 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
 interface PianoUIProps {
   tonic: number;
   setTonic: (tonic: number) => void;
-  scaleMode: ScaleMode;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
   currentVoicing: Voicing;
@@ -260,13 +243,11 @@ interface PianoUIProps {
     octave: number
   ) => Array<{ note: number; octave: number }>;
   fallingNotes: FallingNote[];
-  onScaleModeChange: (mode: ScaleMode) => void;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
   tonic,
   setTonic,
-  scaleMode,
   colorMode,
   onColorModeChange,
   currentVoicing,
@@ -274,7 +255,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   playNotes,
   releaseNotes,
   fallingNotes,
-  onScaleModeChange,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -410,7 +390,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     onNoteEnd: releaseNotes,
     tonic,
     isShiftPressed,
-    scaleMode,
     colorMode,
     playNotes,
     releaseNotes,
@@ -466,8 +445,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           onColorModeChange={onColorModeChange}
           currentVoicing={currentVoicing}
           onVoicingChange={onVoicingChange}
-          scaleMode={scaleMode}
-          onScaleModeChange={onScaleModeChange}
         />
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
@@ -550,6 +527,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   }
                   style={{
                     ...commonStyleProps,
+                    width: keyWidth - 3, // Make black keys 1px narrower
                     top: 0,
                     left: keyWidth * (whiteKeyCount - 0.5),
                     zIndex: 2,

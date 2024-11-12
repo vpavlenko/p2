@@ -4,7 +4,6 @@ import { Voicing } from "../constants/voicings";
 import { ColorMode } from "./types";
 import { VOICINGS } from "../constants/voicings";
 import { sampler } from "../audio/sampler";
-import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
 import { LessonsPanel } from "./LessonsPanel";
 import { LessonExample } from "./LessonExample";
@@ -74,7 +73,6 @@ const getTonicFromName = (tonicName: string): number => {
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
-  const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [currentLessonId, setCurrentLessonId] = useState(1);
@@ -86,11 +84,7 @@ export const PianoController: React.FC = () => {
   const playNotes = useCallback(
     async (note: number, octave: number) => {
       const relativeNote = (note - tonic + 12) % 12;
-      const notesToPlay = VOICINGS[voicing].getNotes(
-        relativeNote,
-        octave,
-        scaleMode
-      );
+      const notesToPlay = VOICINGS[voicing].getNotes(relativeNote, octave);
 
       const playedNotes = notesToPlay.map(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
@@ -113,17 +107,13 @@ export const PianoController: React.FC = () => {
 
       return playedNotes;
     },
-    [tonic, voicing, scaleMode]
+    [tonic, voicing]
   );
 
   const releaseNotes = useCallback(
     (note: number, octave: number) => {
       const relativeNote = (note - tonic + 12) % 12;
-      const notesToRelease = VOICINGS[voicing].getNotes(
-        relativeNote,
-        octave,
-        scaleMode
-      );
+      const notesToRelease = VOICINGS[voicing].getNotes(relativeNote, octave);
 
       const releasedNotes = notesToRelease.map(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
@@ -145,7 +135,7 @@ export const PianoController: React.FC = () => {
 
       return releasedNotes;
     },
-    [tonic, voicing, scaleMode]
+    [tonic, voicing]
   );
 
   const stopProgression = useCallback(() => {
@@ -302,8 +292,6 @@ export const PianoController: React.FC = () => {
       <PianoUI
         tonic={tonic}
         setTonic={setTonic}
-        scaleMode={scaleMode}
-        onScaleModeChange={setScaleMode}
         colorMode={colorMode}
         onColorModeChange={setColorMode}
         currentVoicing={voicing}
