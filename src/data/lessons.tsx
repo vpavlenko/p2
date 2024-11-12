@@ -22,11 +22,9 @@ export interface Lesson {
 export const LESSONS: Lesson[] = [
   {
     id: 1,
-    title: "Basic Piano Control",
+    title: "Octaves",
     content: (
       <>
-        <H2>The octave</H2>
-        <H3>Octave</H3>
         <P>
           The most important thing to understand about the piano is the octave.
           Two notes an octave apart sound similar. Not the same, but similar.
@@ -76,29 +74,33 @@ export const LESSONS: Lesson[] = [
   },
   {
     id: 2,
-    title: "Advanced Patterns",
+    title: "Semitones",
     content: (
       <>
-        <H2>Getting Started with Piano</H2>
-        <P>
-          Welcome to your first piano lesson! Let's start by understanding the
-          basics of piano control and simple musical patterns.
-        </P>
-        <H3>Octave</H3>
-        <P>
-          The most important thing to understand about the piano is the octave.
-          Two notes an octave apart sound similar. Not the same, but similar.
-          For any note, the most similarly sounding to it are the ones octave
-          apart from it.
-        </P>
-        <P>
-          For that reason, we color all notes that are one or several octaves
-          apart in the same color. Western music uses 12 colors.
-        </P>
+        <P>There are 12 semitones in each octave.</P>
         <E
-          data="C1 C2 C3 C4 C5 C6 C7 C8 C1-C2 C2-C3 C3-C4 C4-C5 C5-C6 C6-C7 C7-C8 C1-C2-C3 C2-C3-C4 C3-C4-C5 C4-C5-C6 C5-C6-C7 C6-C7-C8 C1-C2-C3-C4 C2-C3-C4-C5 C3-C4-C5-C6 C4-C5-C6-C7 C5-C6-C7-C8 C1-C2-C3-C4-C5 C2-C3-C4-C5-C6 C3-C4-C5-C6-C7 C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6 C2-C3-C4-C5-C6-C7 C3-C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6-C7 C2-C3-C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6-C7-C8"
-          name="All C notes"
+          data="C3 C#3 D3 D#3 E3 F3 F#3 G3 G#3 A3 A#3 B3"
+          name="12 semitones in octave 3"
         />
+        <P>Five of them are lighter shades of their lower neighbor:</P>
+        <E
+          data="C#3-C#4 D3-D4 . D#3-D#4 E3-E4 . F3-F4 F#3-F#4 . G#3-G#4 A3-A4 . A#3-A#4 B3-B4"
+          name="12 semitones in octave 3"
+        />
+      </>
+    ),
+  },
+  {
+    id: 3,
+    title: "Scales",
+    content: (
+      <>
+        <P>
+          A scale is a sequence of notes that shows almost a complete range of
+          notes for some pieces. A major scale is on of the basic scales in
+          Western music. It has seven notes.
+        </P>
+        <E data="C3 D3 E3 F3 G3 A3 B3" name="major scale" />
       </>
     ),
   },

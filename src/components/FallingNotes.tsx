@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
 
-const PIXELS_PER_SECOND = 100;
+const PIXELS_PER_SECOND = 50;
 const KEY_HEIGHT = 80;
 const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 

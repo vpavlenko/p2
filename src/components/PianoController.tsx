@@ -168,6 +168,12 @@ export const PianoController: React.FC = () => {
         let currentDelay = 0;
 
         for (const chord of chords) {
+          // Handle pause notation
+          if (chord === ".") {
+            currentDelay += NOTE_HOLD_DURATION + NOTE_SEQUENCE_GAP;
+            continue;
+          }
+
           const isRapidArpeggio = chord.includes("~");
           const isSlowArpeggio = chord.includes("+");
           const noteStrings = isRapidArpeggio
