@@ -4,11 +4,10 @@ import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
 export interface LessonExample {
   name: string;
   data: string;
+  tonic?: string;
 }
 
-interface BasicInlineExampleProps {
-  name: string;
-  data: string;
+interface BasicInlineExampleProps extends LessonExample {
   onPlayExample: (example: LessonExample) => void;
   onStopPlaying: () => void;
   currentlyPlayingId: string | null;

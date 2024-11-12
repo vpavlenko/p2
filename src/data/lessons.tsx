@@ -91,20 +91,6 @@ export const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 3,
-    title: "Scales",
-    content: (
-      <>
-        <P>
-          A scale is a sequence of notes that shows almost a complete range of
-          notes for some pieces. A major scale is on of the basic scales in
-          Western music. It has seven notes.
-        </P>
-        <E data="C3 D3 E3 F3 G3 A3 B3" name="major scale" />
-      </>
-    ),
-  },
-  {
     id: 4,
     title: "Intervals",
     content: (
@@ -160,6 +146,81 @@ export const LESSONS: Lesson[] = [
           data="C3 D#3 C3-D#3 . C#3 E3 C#3-E3 . D3 F3 D3-F3 . D#3 F#3 D#3-F#3 . E3 G3 E3-G3 . F3 G#3 F3-G#3 . F#3 A3 F#3-A3 . G3 A#3 G3-A#3 . G#3 B3 G#3-B3 . A3 C4 A3-C4 . A#3 C#4 A#3-C#4 . B3 D4 B3-D4"
           name="12 minor thirds built from all notes of octave 3"
         />
+      </>
+    ),
+  },
+  {
+    id: 5,
+    title: "Chords",
+    content: (
+      <>
+        <H3>Major chord</H3>
+        <P>
+          Chords are the real words of Western music. A chord is several notes
+          sounding together. In many styles, chords are mostly built of three
+          notes. A major chord is the stack of two intervals - a major third and
+          a minor third.
+        </P>
+        <P>
+          You can remember this stack as two gaps - note-wide gap plus
+          half-note-wide gap.
+        </P>
+        <E
+          data="C3 E3 G3 C3~E3~G3 . C#3 F3 G#3 C#3~F3~G#3 . D3 F#3 A3 D3~F#3~A3 . D#3 G3 A#3 D#3~G3~A#3 . E3 G#3 B3 E3~G#3~B3 . F3 A3 C4 F3~A3~C4 . F#3 A#3 C#4 F#3~A#3~C#4 . G3 B3 D4 G3~B3~D4 . G#3 C4 D#4 G#3~C4~D#4 . A3 C#4 E4 A3~C#4~E4 . A#3 D4 F4 A#3~D4~F4 . B3 D#4 F#4 B3~D#4~F#4"
+          name="12 major chords built from on notes of octave 3"
+        />
+        <P>
+          Let's take a C major chord. It's built from C, E and G. You can play
+          them in all octaves, although it's kinda muddy in lower octaves,
+          because notes clash together.
+        </P>
+        <E
+          data="C1 E1 G1 C1~E1~G1 . C2 E2 G2 C2~E2~G2 . C3 E3 G3 C3~E3~G3 . C4 E4 G4 C4~E4~G4 . C5 E5 G5 C5~E5~G5 . C6 E6 G6 C6~E6~G6 . C7 E7 G7 C7~E7~G7"
+          name="C major chord in all octaves"
+        />
+        <P>
+          These three colors always make a major chord. So, the colors are
+          defining, not the interval between concrete notes. That is, as long as
+          you preserve the colors, you can play them in any octaves - we'll
+          still consider this a C major chord.
+        </P>
+        <E
+          data="C1 G1 E2 C1~G1~E2 . E1 C2 G2 E1~C2~G2 . G1 E2 C3 G1~E2~C3 . C2 G2 E3 C2~G2~E3 . E2 C3 G3 E2~C3~G3 . G2 E3 C4 G2~E3~C4 . C3 G3 E4 C3~G3~E4 . E3 C4 G4 E3~C4~G4 . G3 E4 C5 G3~E4~C5 . C4 G4 E5 C4~G4~E5 . E4 C5 G5 E4~C5~G5 . G4 E5 C6 G4~E5~C6 . C5 G5 E6 C5~G5~E6 . E5 C6 G6 E5~C6~G6 . G5 E6 C7 G5~E6~C7"
+          name="C major chord, a wider voicing"
+        />
+        <H3>Minor chord</H3>
+        <P>
+          A minor chord is a stack of a minor third and a major third. The
+          reverse order of intervals completely changes the game!
+        </P>
+        <E
+          data="C3 Eb3 G3 C3~Eb3~G3 . C#3 E3 G#3 C#3~E3~G#3 . D3 F3 A3 D3~F3~A3 . D#3 F#3 A#3 D#3~F#3~A#3 . E3 G3 B3 E3~G3~B3 . F3 Ab3 C4 F3~Ab3~C4 . F#3 A3 C#4 F#3~A3~C#4 . G3 Bb3 D4 G3~Bb3~D4 . G#3 B3 D#4 G#3~B3~D#4 . A3 C4 E4 A3~C4~E4 . A#3 C#4 F4 A#3~C#4~F4 . B3 D4 F#4 B3~D4~F#4"
+          name="12 minor chords built from on notes of octave 3"
+        />
+      </>
+    ),
+  },
+  {
+    id: 3,
+    title: "Chords in a major scale",
+    content: (
+      <>
+        <P>
+          A scale is a sequence of notes that shows almost a complete range of
+          notes for some pieces. A major scale is on of the basic scales in
+          Western music. It has seven notes. What defines a scale is a sequence
+          of intervals between the notes.
+        </P>
+        <E data="C3 D3 E3 F3 G3 A3 B3" name="C major scale" />
+        <P>
+          By applying the same sequence of intervals, we can build a major scale
+          on any note of the piano. However, for this very process it makes
+          sense to recolor the piano keyboard. That is because a major scale,
+          played separately, defines so much expectations in Western music so
+          that its lowest note can be thought as a local center, or a tonic.
+          We'll try to always have a tonic notic colored as white.
+        </P>
+        <E data="C#3 D#3 F3 F#3 G#3 A#3 C4" name="C# major scale" tonic="C#" />
       </>
     ),
   },
