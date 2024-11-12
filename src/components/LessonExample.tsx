@@ -21,7 +21,7 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
   isPlaying,
 }) => {
   return (
-    <span className="inline-flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <button
         onClick={() =>
           isPlaying ? onStopPlaying() : onPlayExample({ name, data })
@@ -31,6 +31,6 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
         {isPlaying ? "Stop" : "Play"}
       </button>
       <span className="font-mono">{name}</span>
-    </span>
+    </div>
   );
 };
