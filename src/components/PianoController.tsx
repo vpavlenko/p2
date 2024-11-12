@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { PianoUI } from "./PianoUI";
 import { Voicing } from "../constants/voicings";
 import { ColorMode } from "./types";
@@ -278,6 +278,23 @@ export const PianoController: React.FC = () => {
     setCurrentLessonId(lessonId);
   }, []);
 
+  useEffect(() => {
+    const handleSpaceKey = (e: KeyboardEvent) => {
+      // Only handle space if there's something playing and it's not part of input
+      if (
+        e.code === "Space" &&
+        currentlyPlayingId &&
+        !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)
+      ) {
+        e.preventDefault(); // Prevent page scroll
+        stopProgression();
+      }
+    };
+
+    window.addEventListener("keydown", handleSpaceKey);
+    return () => window.removeEventListener("keydown", handleSpaceKey);
+  }, [currentlyPlayingId, stopProgression]);
+
   return (
     <>
       <LessonsPanel
@@ -299,6 +316,8 @@ export const PianoController: React.FC = () => {
         playNotes={playNotes}
         releaseNotes={releaseNotes}
         fallingNotes={fallingNotes}
+        currentlyPlayingId={currentlyPlayingId}
+        onStopPlaying={stopProgression}
       />
     </>
   );

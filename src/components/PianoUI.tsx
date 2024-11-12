@@ -6,6 +6,7 @@ import { getColors } from "../utils/colors";
 import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
+import { StopIcon } from "@heroicons/react/24/solid";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -238,6 +239,8 @@ interface PianoUIProps {
     octave: number
   ) => Array<{ note: number; octave: number }>;
   fallingNotes: FallingNote[];
+  currentlyPlayingId: string | null;
+  onStopPlaying: () => void;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -250,6 +253,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   playNotes,
   releaseNotes,
   fallingNotes,
+  currentlyPlayingId,
+  onStopPlaying,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -423,6 +428,12 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         overflow: "hidden",
       }}
     >
+      {currentlyPlayingId && (
+        <StopIcon
+          className="w-8 h-8 text-red-500 hover:text-red-400 cursor-pointer absolute bottom-4 left-4 z-50"
+          onClick={onStopPlaying}
+        />
+      )}
       <div
         style={{
           position: "relative",

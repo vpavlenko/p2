@@ -129,7 +129,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
           </div>
         </div>
 
-        <div className="w-full p-4 bg-indigo-900 rounded-lg border border-indigo-700 text-white font-semibold text-center text-lg">
+        <div className="w-full text-white font-semibold text-[28px]">
           {currentLesson.title}
         </div>
       </div>
@@ -145,13 +145,13 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
                     onLessonChange(lesson.id);
                     setIsMenuOpen(false);
                   }}
-                  className={`p-3 rounded text-left cursor-pointer hover:text-white ${
+                  className={`mt-2 text-left cursor-pointer hover:text-white ${
                     lesson.id === currentLessonId
                       ? "text-white"
                       : "text-gray-400"
                   }`}
                 >
-                  <span className="mr-2">{index + 1}.</span>
+                  <span>{index + 1}. </span>
                   {lesson.title}
                 </div>
               ))}
