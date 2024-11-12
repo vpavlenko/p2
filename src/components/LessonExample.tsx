@@ -43,7 +43,11 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
             currentlyPlayingId,
             action: isThisPlaying ? "stop" : "play",
           });
-          isThisPlaying ? onStopPlaying() : onPlayExample({ name, data });
+          if (isThisPlaying) {
+            onStopPlaying();
+          } else {
+            onPlayExample({ name, data });
+          }
         }}
         className="text-gray-700 hover:text-blue-600 transition-colors"
       >
