@@ -47,6 +47,60 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
     return position;
   };
 
+  // Updated function to generate octave lines for both C and G notes
+  const generateOctaveLines = () => {
+    const lines = [];
+    const startOctave = 0;
+    const endOctave = 8;
+
+    for (let octave = startOctave; octave <= endOctave; octave++) {
+      // Add C lines (original)
+      const cMidiNote = octave * 12 + 12;
+      const cLeft = calculateNotePosition(cMidiNote);
+
+      if (!isNaN(cLeft) && isFinite(cLeft)) {
+        lines.push(
+          <div
+            key={`octave-line-c${octave}`}
+            style={{
+              position: "absolute",
+              left: cLeft,
+              top: 0,
+              width: "1px",
+              height: "100%",
+              backgroundColor: "rgba(128, 128, 128, 0.6)",
+              pointerEvents: "none",
+            }}
+          />
+        );
+      }
+
+      // Add G lines (if not the last octave)
+      if (octave < endOctave) {
+        const gMidiNote = octave * 12 + 19; // G is 7 semitones above C
+        const gLeft = calculateNotePosition(gMidiNote);
+
+        if (!isNaN(gLeft) && isFinite(gLeft)) {
+          lines.push(
+            <div
+              key={`octave-line-g${octave}`}
+              style={{
+                position: "absolute",
+                left: gLeft,
+                top: 0,
+                width: "1px",
+                height: "100%",
+                backgroundColor: "rgba(128, 128, 128, 0.4)", // lighter gray for G lines
+                pointerEvents: "none",
+              }}
+            />
+          );
+        }
+      }
+    }
+    return lines;
+  };
+
   useEffect(() => {
     let animationFrameId: number;
     const animate = () => {
@@ -65,8 +119,10 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
         left: 0,
         right: 0,
         bottom: -2000,
+        overflow: "hidden",
       }}
     >
+      {generateOctaveLines()}
       {notes.map((note) => {
         const isActive = !note.endTime;
         const timeSinceEnd = note.endTime ? (time - note.endTime) / 1000 : 0;
