@@ -7,8 +7,8 @@ import { sampler } from "../audio/sampler";
 import { ScaleMode } from "../constants/scales";
 import { FallingNote } from "./FallingNotes";
 import { LessonsPanel } from "./LessonsPanel";
-import { ChordProgression } from "../constants/progressions";
-import { LESSONS, LessonExample } from "../data/lessons";
+import { LessonExample } from "./LessonExample";
+
 const NOTE_NAMES = [
   "C",
   "C#",
@@ -23,9 +23,6 @@ const NOTE_NAMES = [
   "A#",
   "B",
 ] as const;
-
-const LOWEST_NOTE = 21; // A0
-const HIGHEST_NOTE = 108; // C8
 
 const NOTE_NAME_TO_NUMBER: { [key: string]: number } = {
   C: 0,
@@ -61,7 +58,7 @@ const parseNoteString = (noteStr: string): { note: number; octave: number } => {
 
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
-  const [voicing] = useState<Voicing>("single");
+  const [voicing, setVoicing] = useState<Voicing>("single");
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
@@ -179,35 +176,13 @@ export const PianoController: React.FC = () => {
     [playNotes, releaseNotes, isProgressionPlaying, stopProgression]
   );
 
-  const playFullRange = useCallback(async () => {
-    const sequence = [];
-    for (let midiNote = LOWEST_NOTE; midiNote <= HIGHEST_NOTE; midiNote++) {
-      const octave = Math.floor(midiNote / 12) - 1;
-      const note = midiNote % 12;
-      sequence.push({ note, octave, duration: 100 });
-    }
-    await playSequentialNotes(
-      sequence.map((item) => `${NOTE_NAMES[item.note]}${item.octave}`).join(" ")
-    );
-  }, [playSequentialNotes]);
-
   const handlePlayExample = useCallback(
     (example: LessonExample) => {
       if (!example.data) return;
 
-      switch (example.type) {
-        case "progression":
-          playSequentialNotes(example.data);
-          break;
-        case "fullRange":
-          playFullRange();
-          break;
-        case "custom":
-          playSequentialNotes(example.data);
-          break;
-      }
+      playSequentialNotes(example.data);
     },
-    [playSequentialNotes, playFullRange]
+    [playSequentialNotes]
   );
 
   const handleLessonChange = useCallback((lessonId: number) => {
@@ -223,6 +198,7 @@ export const PianoController: React.FC = () => {
         currentVoicing={voicing}
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}
+        onVoicingChange={setVoicing}
       />
       <PianoUI
         tonic={tonic}
@@ -232,6 +208,7 @@ export const PianoController: React.FC = () => {
         colorMode={colorMode}
         onColorModeChange={setColorMode}
         currentVoicing={voicing}
+        onVoicingChange={setVoicing}
         playNotes={playNotes}
         releaseNotes={releaseNotes}
         fallingNotes={fallingNotes}

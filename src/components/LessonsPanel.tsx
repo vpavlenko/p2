@@ -1,5 +1,6 @@
 import React from "react";
-import { LESSONS, LessonExample } from "../data/lessons";
+import { LESSONS } from "../data/lessons";
+import { LessonExample } from "./LessonExample";
 import { Voicing } from "../constants/voicings";
 import { BasicInlineExample } from "./LessonExample";
 
@@ -36,8 +37,9 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     if (content.type === BasicInlineExample) {
       console.log("Found BasicInlineExample, injecting props");
       return React.cloneElement(content, {
-        onPlay: onPlayExample,
-        onStop: onStopPlaying,
+        ...content.props,
+        onPlayExample,
+        onStopPlaying,
         isPlaying,
       });
     }
