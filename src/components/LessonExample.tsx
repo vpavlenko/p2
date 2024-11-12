@@ -1,4 +1,5 @@
 import React from "react";
+import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
 
 export interface LessonExample {
   name: string;
@@ -26,9 +27,13 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
         onClick={() =>
           isPlaying ? onStopPlaying() : onPlayExample({ name, data })
         }
-        className="px-2 py-1 text-sm bg-blue-500 rounded hover:bg-blue-600"
+        className="text-gray-700 hover:text-blue-600 transition-colors"
       >
-        {isPlaying ? "Stop" : "Play"}
+        {isPlaying ? (
+          <StopIcon className="w-5 h-5" />
+        ) : (
+          <PlayIcon className="w-5 h-5" />
+        )}
       </button>
       <span className="font-mono">{name}</span>
     </div>
