@@ -64,6 +64,7 @@ export const PianoController: React.FC = () => {
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
   const [isProgressionPlaying, setIsProgressionPlaying] = useState(false);
   const [currentLessonId, setCurrentLessonId] = useState(1);
+  const [playbackTimeouts, setPlaybackTimeouts] = useState<number[]>([]);
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
@@ -132,45 +133,69 @@ export const PianoController: React.FC = () => {
 
   const stopProgression = useCallback(() => {
     setIsProgressionPlaying(false);
-    // Release all currently playing notes
-    sampler.releaseAll();
-  }, []);
+
+    // Get all currently playing notes from falling notes
+    const playingNotes = fallingNotes
+      .filter((note) => !note.endTime)
+      .map(({ note, octave }) => ({ note, octave }));
+
+    // Release each note properly through the releaseNotes function
+    playingNotes.forEach(({ note, octave }) => {
+      releaseNotes(note, octave);
+    });
+
+    // Clear all scheduled timeouts
+    playbackTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+    setPlaybackTimeouts([]);
+  }, [playbackTimeouts, fallingNotes, releaseNotes]);
 
   const playSequentialNotes = useCallback(
     async (notation: string) => {
       if (isProgressionPlaying) {
         stopProgression();
+        return;
       }
 
       setIsProgressionPlaying(true);
+      const timeouts: number[] = [];
 
       try {
         const chords = notation.trim().split(/\s+/);
+        let currentDelay = 0;
 
         for (const chord of chords) {
-          // Split chord into simultaneous notes
           const simultaneousNotes = chord.split("-").map(parseNoteString);
 
-          // Play all notes in the chord simultaneously
-          await Promise.all(
-            simultaneousNotes.map(({ note, octave }) => playNotes(note, octave))
-          );
+          // Schedule note playing
+          const playTimeout = window.setTimeout(() => {
+            simultaneousNotes.forEach(({ note, octave }) =>
+              playNotes(note, octave)
+            );
+          }, currentDelay);
+          timeouts.push(playTimeout);
 
-          // Wait for 1000ms
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // Schedule note release
+          const releaseTimeout = window.setTimeout(() => {
+            simultaneousNotes.forEach(({ note, octave }) =>
+              releaseNotes(note, octave)
+            );
+          }, currentDelay + 1000);
+          timeouts.push(releaseTimeout);
 
-          // Release all notes in the chord
-          simultaneousNotes.forEach(({ note, octave }) =>
-            releaseNotes(note, octave)
-          );
-
-          // Small gap between chords
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          currentDelay += 1050; // 1000ms for playing + 50ms gap
         }
+
+        // Schedule the end of progression
+        const endTimeout = window.setTimeout(() => {
+          setIsProgressionPlaying(false);
+          setPlaybackTimeouts([]);
+        }, currentDelay);
+        timeouts.push(endTimeout);
+
+        setPlaybackTimeouts(timeouts);
       } catch (error) {
         console.error("Error playing sequence:", error);
-      } finally {
-        setIsProgressionPlaying(false);
+        stopProgression();
       }
     },
     [playNotes, releaseNotes, isProgressionPlaying, stopProgression]
