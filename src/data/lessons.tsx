@@ -1,14 +1,11 @@
 import { BasicInlineExample } from "../components/LessonExample";
 import { ChordProgression } from "../constants/progressions";
-import { Voicing } from "../constants/voicings";
 
 export interface LessonExample {
   id: string;
   name: string;
   type: "progression" | "fullRange" | "custom";
-  data?:
-    | ChordProgression
-    | Array<{ note: number; octave: number; duration: number }>;
+  data?: string;
   description: string;
 }
 
@@ -30,18 +27,23 @@ export const LESSONS: Lesson[] = [
           basics of piano control and simple musical patterns.
         </p>
 
-        <h3 className="text-xl font-semibold mb-3">Basic Chord Progression</h3>
+        <h3 className="text-xl font-semibold mb-3">Octave</h3>
         <p className="mb-4">
-          One of the most fundamental patterns in music is the I-IV-V-I
-          progression. This forms the basis of countless songs across many
-          genres.
+          The most important thing to understand about the piano is the octave.
+          Two notes an octave apart sound similar. Not the same, but similar.
+          For any note, the most similarly sounding to it are the ones octave
+          apart from it.
+        </p>
+        <p className="mb-4">
+          For that reason, we color all notes that are one or several octaves
+          apart in the same color. Western music uses 12 colors.
         </p>
         <BasicInlineExample
           id="prog1"
           type="progression"
-          data={{ chords: [0, 4, 5, 0] }}
-          name="I-IV-V-I Progression"
-          description="Listen to how these chords naturally flow together"
+          data="C1 C2 C3 C4 C5 C6 C7 C8 C1-C2 C2-C3 C3-C4 C4-C5 C5-C6 C6-C7 C7-C8 C1-C2-C3 C2-C3-C4 C3-C4-C5 C4-C5-C6 C5-C6-C7 C6-C7-C8 C1-C2-C3-C4 C2-C3-C4-C5 C3-C4-C5-C6 C4-C5-C6-C7 C5-C6-C7-C8 C1-C2-C3-C4-C5 C2-C3-C4-C5-C6 C3-C4-C5-C6-C7 C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6 C2-C3-C4-C5-C6-C7 C3-C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6-C7 C2-C3-C4-C5-C6-C7-C8 C1-C2-C3-C4-C5-C6-C7-C8"
+          name="All C notes"
+          description="Listen to all C notes from lowest to highest"
         />
 
         <h3 className="text-xl font-semibold mt-6 mb-3">Piano Range</h3>

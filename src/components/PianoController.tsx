@@ -27,6 +27,38 @@ const NOTE_NAMES = [
 const LOWEST_NOTE = 21; // A0
 const HIGHEST_NOTE = 108; // C8
 
+const NOTE_NAME_TO_NUMBER: { [key: string]: number } = {
+  C: 0,
+  "C#": 1,
+  Db: 1,
+  D: 2,
+  "D#": 3,
+  Eb: 3,
+  E: 4,
+  F: 5,
+  "F#": 6,
+  Gb: 6,
+  G: 7,
+  "G#": 8,
+  Ab: 8,
+  A: 9,
+  "A#": 10,
+  Bb: 10,
+  B: 11,
+};
+
+// Add this function to parse note strings
+const parseNoteString = (noteStr: string): { note: number; octave: number } => {
+  const match = noteStr.match(/^([A-G][#b]?)(\d+)$/);
+  if (!match) throw new Error(`Invalid note format: ${noteStr}`);
+
+  const [, noteName, octaveStr] = match;
+  const note = NOTE_NAME_TO_NUMBER[noteName];
+  const octave = parseInt(octaveStr);
+
+  return { note, octave };
+};
+
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing] = useState<Voicing>("single");
@@ -107,23 +139,36 @@ export const PianoController: React.FC = () => {
     sampler.releaseAll();
   }, []);
 
-  const playNoteSequence = useCallback(
-    async (
-      sequence: Array<{ note: number; octave: number; duration: number }>,
-      stopOngoing = true
-    ) => {
-      if (isProgressionPlaying && stopOngoing) {
+  const playSequentialNotes = useCallback(
+    async (notation: string) => {
+      if (isProgressionPlaying) {
         stopProgression();
       }
 
       setIsProgressionPlaying(true);
 
       try {
-        for (const { note, octave, duration } of sequence) {
-          await playNotes(note, octave);
-          await new Promise((resolve) => setTimeout(resolve, duration));
-          releaseNotes(note, octave);
-          await new Promise((resolve) => setTimeout(resolve, 10)); // Small gap between notes
+        const chords = notation.trim().split(/\s+/);
+
+        for (const chord of chords) {
+          // Split chord into simultaneous notes
+          const simultaneousNotes = chord.split("-").map(parseNoteString);
+
+          // Play all notes in the chord simultaneously
+          await Promise.all(
+            simultaneousNotes.map(({ note, octave }) => playNotes(note, octave))
+          );
+
+          // Wait for 1000ms
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Release all notes in the chord
+          simultaneousNotes.forEach(({ note, octave }) =>
+            releaseNotes(note, octave)
+          );
+
+          // Small gap between chords
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
       } catch (error) {
         console.error("Error playing sequence:", error);
@@ -141,49 +186,28 @@ export const PianoController: React.FC = () => {
       const note = midiNote % 12;
       sequence.push({ note, octave, duration: 100 });
     }
-    await playNoteSequence(sequence);
-  }, [playNoteSequence]);
-
-  const playProgression = useCallback(
-    async (progression: ChordProgression) => {
-      if (isProgressionPlaying) return;
-
-      const sequence = progression.chords.map((chord) => ({
-        note: chord,
-        octave: 3,
-        duration: 1000,
-      }));
-
-      await playNoteSequence(sequence);
-    },
-    [playNoteSequence]
-  );
+    await playSequentialNotes(
+      sequence.map((item) => `${NOTE_NAMES[item.note]}${item.octave}`).join(" ")
+    );
+  }, [playSequentialNotes]);
 
   const handlePlayExample = useCallback(
     (example: LessonExample) => {
+      if (!example.data) return;
+
       switch (example.type) {
         case "progression":
-          if (example.data) {
-            playProgression(example.data as ChordProgression);
-          }
+          playSequentialNotes(example.data);
           break;
         case "fullRange":
           playFullRange();
           break;
         case "custom":
-          if (example.data) {
-            playNoteSequence(
-              example.data as Array<{
-                note: number;
-                octave: number;
-                duration: number;
-              }>
-            );
-          }
+          playSequentialNotes(example.data);
           break;
       }
     },
-    [playProgression, playFullRange, playNoteSequence]
+    [playSequentialNotes, playFullRange]
   );
 
   const handleLessonChange = useCallback((lessonId: number) => {
