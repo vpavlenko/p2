@@ -15,7 +15,6 @@ export interface LessonExample {
 export interface Lesson {
   id: number;
   title: string;
-  recommendedVoicing: Voicing;
   content: React.ReactNode;
 }
 
@@ -23,7 +22,6 @@ export const LESSONS: Lesson[] = [
   {
     id: 1,
     title: "Basic Piano Control",
-    recommendedVoicing: "single",
     content: (
       <>
         <h2 className="text-2xl font-bold mb-4">Getting Started with Piano</h2>
@@ -63,7 +61,6 @@ export const LESSONS: Lesson[] = [
   {
     id: 2,
     title: "Advanced Patterns",
-    recommendedVoicing: "single",
     content: (
       <>
         <h2 className="text-2xl font-bold mb-4">Advanced Musical Patterns</h2>

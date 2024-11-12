@@ -29,7 +29,7 @@ const HIGHEST_NOTE = 108; // C8
 
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
-  const [voicing, setVoicing] = useState<Voicing>("single");
+  const [voicing] = useState<Voicing>("single");
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
@@ -188,10 +188,6 @@ export const PianoController: React.FC = () => {
 
   const handleLessonChange = useCallback((lessonId: number) => {
     setCurrentLessonId(lessonId);
-    const lesson = LESSONS.find((l) => l.id === lessonId);
-    if (lesson) {
-      setVoicing(lesson.recommendedVoicing);
-    }
   }, []);
 
   return (
@@ -201,7 +197,6 @@ export const PianoController: React.FC = () => {
         onStopPlaying={stopProgression}
         isPlaying={isProgressionPlaying}
         currentVoicing={voicing}
-        onVoicingChange={setVoicing}
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}
       />
@@ -213,7 +208,6 @@ export const PianoController: React.FC = () => {
         colorMode={colorMode}
         onColorModeChange={setColorMode}
         currentVoicing={voicing}
-        onVoicingChange={setVoicing}
         playNotes={playNotes}
         releaseNotes={releaseNotes}
         fallingNotes={fallingNotes}

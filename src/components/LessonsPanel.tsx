@@ -1,7 +1,7 @@
 import React from "react";
 import { LESSONS, LessonExample } from "../data/lessons";
 import { Voicing } from "../constants/voicings";
-import { BasicInlineExample, InlineExampleProps } from "./LessonExample";
+import { BasicInlineExample } from "./LessonExample";
 
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
