@@ -22,6 +22,8 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   currentLessonId,
   onLessonChange,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const currentLessonIndex = LESSONS.findIndex(
     (lesson) => lesson.id === currentLessonId
   );
@@ -52,6 +54,17 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previousLesson, nextLesson, onLessonChange]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isMenuOpen]);
+
   const renderContent = (content: React.ReactNode): React.ReactNode => {
     if (!React.isValidElement(content)) {
       return content;
@@ -80,15 +93,13 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     return content;
   };
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
     <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white p-8 overflow-y-auto">
       <div className="mb-8 flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700"
+            className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 relative z-20"
           >
             <Bars3Icon className="w-6 h-6" />
           </button>
@@ -124,34 +135,27 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
       </div>
 
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-95 z-10 overflow-y-auto p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">All Lessons</h2>
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="p-2 hover:bg-gray-800 rounded"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
-            {LESSONS.map((lesson, index) => (
-              <button
-                key={lesson.id}
-                onClick={() => {
-                  onLessonChange(lesson.id);
-                  setIsMenuOpen(false);
-                }}
-                className={`p-3 rounded text-left ${
-                  lesson.id === currentLessonId
-                    ? "bg-indigo-900 border border-indigo-700"
-                    : "bg-gray-800 border border-gray-700 hover:bg-gray-700"
-                }`}
-              >
-                <span className="text-gray-400 mr-2">{index + 1}.</span>
-                {lesson.title}
-              </button>
-            ))}
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-95 z-10 overflow-y-auto">
+          <div className="p-8 pt-[72px]">
+            <div className="flex flex-col gap-2">
+              {LESSONS.map((lesson, index) => (
+                <div
+                  key={lesson.id}
+                  onClick={() => {
+                    onLessonChange(lesson.id);
+                    setIsMenuOpen(false);
+                  }}
+                  className={`p-3 rounded text-left cursor-pointer hover:text-white ${
+                    lesson.id === currentLessonId
+                      ? "text-white"
+                      : "text-gray-400"
+                  }`}
+                >
+                  <span className="mr-2">{index + 1}.</span>
+                  {lesson.title}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
