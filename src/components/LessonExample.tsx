@@ -11,25 +11,43 @@ interface BasicInlineExampleProps {
   data: string;
   onPlayExample: (example: LessonExample) => void;
   onStopPlaying: () => void;
-  isPlaying: boolean;
+  currentlyPlayingId: string | null;
 }
+
+// Helper function to generate consistent ID
+const generateExampleId = (name: string, data: string) => `${name}:${data}`;
 
 export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
   name,
   data,
   onPlayExample,
   onStopPlaying,
-  isPlaying,
+  currentlyPlayingId,
 }) => {
+  const exampleId = generateExampleId(name, data);
+  const isThisPlaying = currentlyPlayingId === exampleId;
+
+  console.log(`Example ${name}:`, {
+    exampleId,
+    isThisPlaying,
+    currentlyPlayingId,
+  });
+
   return (
     <div className="flex items-center gap-2">
       <button
-        onClick={() =>
-          isPlaying ? onStopPlaying() : onPlayExample({ name, data })
-        }
+        onClick={() => {
+          console.log(`Clicked example ${name}:`, {
+            exampleId,
+            isThisPlaying,
+            currentlyPlayingId,
+            action: isThisPlaying ? "stop" : "play",
+          });
+          isThisPlaying ? onStopPlaying() : onPlayExample({ name, data });
+        }}
         className="text-gray-700 hover:text-blue-600 transition-colors"
       >
-        {isPlaying ? (
+        {isThisPlaying ? (
           <StopIcon className="w-5 h-5" />
         ) : (
           <PlayIcon className="w-5 h-5" />

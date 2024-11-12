@@ -67,9 +67,11 @@ export const PianoController: React.FC = () => {
   const [scaleMode, setScaleMode] = useState<ScaleMode>("major");
   const [colorMode, setColorMode] = useState<ColorMode>("chromatic");
   const [fallingNotes, setFallingNotes] = useState<FallingNote[]>([]);
-  const [isProgressionPlaying, setIsProgressionPlaying] = useState(false);
   const [currentLessonId, setCurrentLessonId] = useState(1);
   const [playbackTimeouts, setPlaybackTimeouts] = useState<number[]>([]);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
+    null
+  );
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
@@ -137,12 +139,15 @@ export const PianoController: React.FC = () => {
   );
 
   const stopProgression = useCallback(() => {
-    setIsProgressionPlaying(false);
+    console.log("stopProgression called, current ID:", currentlyPlayingId);
+    setCurrentlyPlayingId(null);
 
     // Get all currently playing notes from falling notes
     const playingNotes = fallingNotes
       .filter((note) => !note.endTime)
       .map(({ note, octave }) => ({ note, octave }));
+
+    console.log("Releasing notes:", playingNotes);
 
     // Release each note properly through the releaseNotes function
     playingNotes.forEach(({ note, octave }) => {
@@ -156,12 +161,6 @@ export const PianoController: React.FC = () => {
 
   const playSequentialNotes = useCallback(
     async (notation: string) => {
-      if (isProgressionPlaying) {
-        stopProgression();
-        return;
-      }
-
-      setIsProgressionPlaying(true);
       const timeouts: number[] = [];
 
       try {
@@ -222,7 +221,7 @@ export const PianoController: React.FC = () => {
 
         // Schedule the end of progression
         const endTimeout = window.setTimeout(() => {
-          setIsProgressionPlaying(false);
+          setCurrentlyPlayingId(null);
           setPlaybackTimeouts([]);
         }, currentDelay);
         timeouts.push(endTimeout);
@@ -233,16 +232,33 @@ export const PianoController: React.FC = () => {
         stopProgression();
       }
     },
-    [playNotes, releaseNotes, isProgressionPlaying, stopProgression]
+    [playNotes, releaseNotes, stopProgression]
   );
 
   const handlePlayExample = useCallback(
     (example: LessonExample) => {
+      const exampleId = `${example.name}:${example.data}`;
+
+      console.log("handlePlayExample called with:", {
+        example,
+        exampleId,
+        currentlyPlayingId,
+      });
+
       if (!example.data) return;
 
-      playSequentialNotes(example.data);
+      if (currentlyPlayingId) {
+        console.log("Stopping current progression:", currentlyPlayingId);
+        stopProgression();
+      }
+
+      if (currentlyPlayingId !== exampleId) {
+        console.log("Starting new example:", exampleId);
+        setCurrentlyPlayingId(exampleId);
+        playSequentialNotes(example.data);
+      }
     },
-    [playSequentialNotes]
+    [currentlyPlayingId, playSequentialNotes, stopProgression]
   );
 
   const handleLessonChange = useCallback((lessonId: number) => {
@@ -254,7 +270,7 @@ export const PianoController: React.FC = () => {
       <LessonsPanel
         onPlayExample={handlePlayExample}
         onStopPlaying={stopProgression}
-        isPlaying={isProgressionPlaying}
+        currentlyPlayingId={currentlyPlayingId}
         currentVoicing={voicing}
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}

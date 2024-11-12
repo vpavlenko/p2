@@ -7,7 +7,7 @@ import { BasicInlineExample } from "./LessonExample";
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
   onStopPlaying: () => void;
-  isPlaying: boolean;
+  currentlyPlayingId: string | null;
   currentVoicing: Voicing;
   onVoicingChange: (voicing: Voicing) => void;
   currentLessonId: number;
@@ -17,7 +17,7 @@ interface LessonsPanelProps {
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   onPlayExample,
   onStopPlaying,
-  isPlaying,
+  currentlyPlayingId,
   currentLessonId,
   onLessonChange,
 }) => {
@@ -26,7 +26,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   console.log("LessonsPanel props:", {
     onPlayExample,
     onStopPlaying,
-    isPlaying,
+    currentlyPlayingId,
   });
 
   const renderContent = (content: React.ReactNode): React.ReactNode => {
@@ -40,7 +40,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
         ...content.props,
         onPlayExample,
         onStopPlaying,
-        isPlaying,
+        currentlyPlayingId,
       });
     }
 
