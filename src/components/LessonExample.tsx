@@ -7,7 +7,10 @@ export interface LessonExample {
   tonic?: string;
 }
 
-interface BasicInlineExampleProps extends LessonExample {
+interface BasicInlineExampleProps {
+  name: string;
+  data: string;
+  tonic?: string;
   onPlayExample: (example: LessonExample) => void;
   onStopPlaying: () => void;
   currentlyPlayingId: string | null;
@@ -19,6 +22,7 @@ const generateExampleId = (name: string, data: string) => `${name}:${data}`;
 export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
   name,
   data,
+  tonic,
   onPlayExample,
   onStopPlaying,
   currentlyPlayingId,
@@ -32,11 +36,12 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
       isThisPlaying,
       currentlyPlayingId,
       action: isThisPlaying ? "stop" : "play",
+      tonic,
     });
     if (isThisPlaying) {
       onStopPlaying();
     } else {
-      onPlayExample({ name, data });
+      onPlayExample({ name, data, tonic });
     }
   };
 

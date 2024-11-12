@@ -61,6 +61,16 @@ const parseNoteString = (noteStr: string): { note: number; octave: number } => {
   return { note, octave };
 };
 
+// Add helper function to convert note name to number
+const getTonicFromName = (tonicName: string): number => {
+  const note = NOTE_NAME_TO_NUMBER[tonicName];
+  if (note === undefined) {
+    console.error(`Invalid tonic name: ${tonicName}`);
+    return 0; // Default to C
+  }
+  return note;
+};
+
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
@@ -256,6 +266,13 @@ export const PianoController: React.FC = () => {
       if (currentlyPlayingId) {
         console.log("Stopping current progression:", currentlyPlayingId);
         stopProgression();
+      }
+
+      if (example.tonic) {
+        const newTonic = getTonicFromName(example.tonic);
+        setTonic(newTonic);
+      } else {
+        setTonic(0);
       }
 
       if (currentlyPlayingId !== exampleId) {
