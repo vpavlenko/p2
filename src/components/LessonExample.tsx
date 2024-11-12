@@ -30,7 +30,7 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
       >
         {isPlaying ? "Stop" : "Play"}
       </button>
-      <span className="font-mono">{data}</span>
+      <span className="font-mono">{name}</span>
     </span>
   );
 };
