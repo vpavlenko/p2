@@ -44,6 +44,11 @@ const NOTE_NAME_TO_NUMBER: { [key: string]: number } = {
   B: 11,
 };
 
+const NOTE_HOLD_DURATION = 1000; // Duration to hold each note/chord in ms
+const NOTE_SEQUENCE_GAP = 0; // Gap between sequential notes/chords in ms
+const RAPID_ARPEGGIO_DELAY = 50; // Delay between notes in rapid arpeggio in ms
+const SLOW_ARPEGGIO_DELAY = 500; // Delay between notes in slow arpeggio in ms
+
 // Add this function to parse note strings
 const parseNoteString = (noteStr: string): { note: number; octave: number } => {
   const match = noteStr.match(/^([A-G][#b]?)(\d+)$/);
@@ -164,25 +169,55 @@ export const PianoController: React.FC = () => {
         let currentDelay = 0;
 
         for (const chord of chords) {
-          const simultaneousNotes = chord.split("-").map(parseNoteString);
+          const isRapidArpeggio = chord.includes("~");
+          const isSlowArpeggio = chord.includes("+");
+          const noteStrings = isRapidArpeggio
+            ? chord.split("~")
+            : isSlowArpeggio
+            ? chord.split("+")
+            : chord.split("-");
+          const simultaneousNotes = noteStrings.map(parseNoteString);
 
-          // Schedule note playing
-          const playTimeout = window.setTimeout(() => {
-            simultaneousNotes.forEach(({ note, octave }) =>
-              playNotes(note, octave)
-            );
-          }, currentDelay);
-          timeouts.push(playTimeout);
+          if (isRapidArpeggio || isSlowArpeggio) {
+            const arpeggioDelay = isRapidArpeggio
+              ? RAPID_ARPEGGIO_DELAY
+              : SLOW_ARPEGGIO_DELAY;
 
-          // Schedule note release
-          const releaseTimeout = window.setTimeout(() => {
-            simultaneousNotes.forEach(({ note, octave }) =>
-              releaseNotes(note, octave)
-            );
-          }, currentDelay + 1000);
-          timeouts.push(releaseTimeout);
+            simultaneousNotes.forEach(({ note, octave }, index) => {
+              const noteDelay = currentDelay + index * arpeggioDelay;
 
-          currentDelay += 1050; // 1000ms for playing + 50ms gap
+              const playTimeout = window.setTimeout(() => {
+                playNotes(note, octave);
+              }, noteDelay);
+              timeouts.push(playTimeout);
+
+              const releaseTimeout = window.setTimeout(() => {
+                releaseNotes(note, octave);
+              }, noteDelay + NOTE_HOLD_DURATION);
+              timeouts.push(releaseTimeout);
+            });
+
+            currentDelay +=
+              (simultaneousNotes.length - 1) * arpeggioDelay +
+              NOTE_HOLD_DURATION +
+              NOTE_SEQUENCE_GAP;
+          } else {
+            const playTimeout = window.setTimeout(() => {
+              simultaneousNotes.forEach(({ note, octave }) =>
+                playNotes(note, octave)
+              );
+            }, currentDelay);
+            timeouts.push(playTimeout);
+
+            const releaseTimeout = window.setTimeout(() => {
+              simultaneousNotes.forEach(({ note, octave }) =>
+                releaseNotes(note, octave)
+              );
+            }, currentDelay + NOTE_HOLD_DURATION);
+            timeouts.push(releaseTimeout);
+
+            currentDelay += NOTE_HOLD_DURATION + NOTE_SEQUENCE_GAP;
+          }
         }
 
         // Schedule the end of progression

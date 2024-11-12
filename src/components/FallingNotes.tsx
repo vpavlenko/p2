@@ -95,7 +95,7 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
               width: fallingNoteWidth,
               height: height,
               backgroundColor: noteColor,
-              borderRadius: "3px",
+              borderRadius: "10px",
               willChange: "transform, height",
             }}
           />

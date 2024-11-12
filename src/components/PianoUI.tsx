@@ -504,7 +504,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             const commonStyleProps = {
               width: keyWidth,
               height: keyWidth * 3.2, // Maintain aspect ratio (80/25 ≈ 3.2)
-              borderRadius: "3px",
+              borderRadius: "5px",
             };
 
             const rowDistance = keyWidth * 1.6; // Maintain ratio (40/25 ≈ 1.6)
