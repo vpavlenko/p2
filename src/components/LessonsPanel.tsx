@@ -59,11 +59,13 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
 
     if (content.type === BasicInlineExample) {
       console.log("Found BasicInlineExample, injecting props");
+      const exampleId = `${content.props.name}:${content.props.data}`;
       return React.cloneElement(content, {
         ...content.props,
         onPlayExample,
         onStopPlaying,
         currentlyPlayingId,
+        className: exampleId === currentlyPlayingId ? "text-green-400" : "",
       });
     }
 
