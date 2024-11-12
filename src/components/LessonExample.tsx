@@ -27,37 +27,33 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
   const exampleId = generateExampleId(name, data);
   const isThisPlaying = currentlyPlayingId === exampleId;
 
-  console.log(`Example ${name}:`, {
-    exampleId,
-    isThisPlaying,
-    currentlyPlayingId,
-  });
+  const handleClick = () => {
+    console.log(`Clicked example ${name}:`, {
+      exampleId,
+      isThisPlaying,
+      currentlyPlayingId,
+      action: isThisPlaying ? "stop" : "play",
+    });
+    if (isThisPlaying) {
+      onStopPlaying();
+    } else {
+      onPlayExample({ name, data });
+    }
+  };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <button
-        onClick={() => {
-          console.log(`Clicked example ${name}:`, {
-            exampleId,
-            isThisPlaying,
-            currentlyPlayingId,
-            action: isThisPlaying ? "stop" : "play",
-          });
-          if (isThisPlaying) {
-            onStopPlaying();
-          } else {
-            onPlayExample({ name, data });
-          }
-        }}
-        className="text-gray-700 hover:text-blue-600 transition-colors"
+        onClick={handleClick}
+        className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
       >
         {isThisPlaying ? (
           <StopIcon className="w-5 h-5" />
         ) : (
           <PlayIcon className="w-5 h-5" />
         )}
+        <span className="font-mono">{name}</span>
       </button>
-      <span className="font-mono">{name}</span>
     </div>
   );
 };
