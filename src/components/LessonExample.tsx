@@ -45,14 +45,14 @@ export const BasicInlineExample: React.FC<BasicInlineExampleProps> = ({
     <div className="flex items-center">
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+        className="flex items-center gap-2 text-yellow-200 hover:text-blue-300 transition-colors"
       >
         {isThisPlaying ? (
           <StopIcon className="w-5 h-5" />
         ) : (
           <PlayIcon className="w-5 h-5" />
         )}
-        <span className="font-mono">{name}</span>
+        <span className="font-sans">{name}</span>
       </button>
     </div>
   );

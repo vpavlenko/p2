@@ -6,11 +6,11 @@ const H2 = ({ children }: { children: React.ReactNode }) => (
 );
 
 const H3 = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-xl font-semibold mb-3">{children}</h3>
+  <h3 className="text-xl font-semibold mt-12">{children}</h3>
 );
 
 const P = ({ children }: { children: React.ReactNode }) => (
-  <p className="mt-8 mb-2">{children}</p>
+  <p className="mt-6 mb-2">{children}</p>
 );
 
 export interface Lesson {
@@ -101,6 +101,65 @@ export const LESSONS: Lesson[] = [
           Western music. It has seven notes.
         </P>
         <E data="C3 D3 E3 F3 G3 A3 B3" name="major scale" />
+      </>
+    ),
+  },
+  {
+    id: 4,
+    title: "Intervals",
+    content: (
+      <>
+        <H3>A semitone</H3>
+        <P>
+          An interval is the distance between two notes. The distance is
+          measured in semitones.
+        </P>
+        <E
+          data="C3 C#3 C3-C#3 . C3 D3 C3-D3 . C3 D#3 C3-D#3 . C3 E3 C3-E3 . C3 F3 C3-F3 . C3 F#3 C3-F#3 . C3 G3 C3-G3 . C3 G#3 C3-G#3 . C3 A3 C3-A3 . C3 A#3 C3-A#3 . C3 B3 C3-B3 C3 C4 C3-C4"
+          name="12 simple intervals from C3"
+        />
+        <P>
+          For the last two centuries instruments like piano are tuned so that
+          the difference between two consecutive notes - a semitone - is always
+          the same. So, these semitones are all somewhat equal - they probably
+          mean "the same interval" to your hearing.
+        </P>
+        <P>
+          Visually they look the same: the notes overlap half the width. And
+          that visual metaphor may even correlate with the clash you hear in
+          them.
+        </P>
+        <E
+          data="C3 C#3 C3-C#3 . C#3 D3 C#3-D3 . D3 D#3 D3-D#3 . D#3 E3 D#3-E3 . E3 F3 E3-F3 . F3 F#3 F3-F#3 . F#3 G3 F#3-G3 . G3 G#3 G3-G#3 . G#3 A3 G#3-A3 . A3 A#3 A3-A#3 . A#3 B3 A#3-B3 . B3 C4 B3-C4"
+          name="12 semitones between C3 and C4"
+        />
+        <H3>Whole tone</H3>
+        <P>The next interval is a whole tone. How does it look like?</P>
+        <E
+          data="C3 D3 C3-D3 . C#3 D#3 C#3-D#3 . D3 E3 D3-E3 . D#3 F3 D#3-F3 . E3 F#3 E3-F#3 . F3 G3 F3-G3 . F#3 G#3 F#3-G#3 . G3 A3 G3-A3 . G#3 A#3 G#3-A#3 . A3 B3 A3-B3 . A#3 C4 A#3-C4 . B3 C#4 B3-C#4"
+          name="12 whole tones built from all notes of octave 3"
+        />
+
+        <P>
+          The intervals are syllables of the Western music. They aren't yet
+          words. That's why listening through them is that boring. If you get
+          bored enough, please go to the next section on chords!
+        </P>
+        <H3>Minor third</H3>
+        <P>
+          The next interval is a minor third. What's the width of its visual gap
+          between the two notes?
+        </P>
+
+        <P>Isn't "gap" and "interval" the same thing, semantically?</P>
+        <P>
+          While you listen to, think of whether a minor third "feels" different
+          from a whole tone. Does it convey emotion, however abstract?
+        </P>
+        <E
+          data="C3 D#3 C3-D#3 . C#3 E3 C#3-E3 . D3 F3 D3-F3 . D#3 F#3 D#3-F#3 . E3 G3 E3-G3 . F3 G#3 F3-G#3 . F#3 A3 F#3-A3 . G3 A#3 G3-A#3 . G#3 B3 G#3-B3 . A3 C4 A3-C4 . A#3 C#4 A#3-C#4 . B3 D4 B3-D4"
+          name="12 minor thirds built from all notes of octave 3"
+        />
       </>
     ),
   },
