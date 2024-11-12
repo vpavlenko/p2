@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
+import { PIANO_HEIGHT } from "./PianoUI";
 
 const PIXELS_PER_SECOND = 50;
-const KEY_HEIGHT = 80;
-const ROW_DISTANCE = KEY_HEIGHT * 0.5;
 
 export interface FallingNote {
   id: string;
@@ -115,7 +114,7 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
     <div
       style={{
         position: "absolute",
-        top: KEY_HEIGHT + ROW_DISTANCE,
+        top: PIANO_HEIGHT,
         left: 0,
         right: 0,
         bottom: -2000,

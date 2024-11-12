@@ -12,7 +12,7 @@ const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
 const BLACK_KEY_HEIGHT_MULTIPLIER = 0.6; // Black keys are 60% of total height
-const PIANO_HEIGHT = 80; // Total piano height in pixels
+export const PIANO_HEIGHT = 80; // Total piano height in pixels
 
 interface PianoKeyProps {
   note: number;
@@ -123,7 +123,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
-    border: isWhiteKey ? "1px solid rgba(0, 0, 0, 0.8)" : "none",
+    border: colorMode === "traditional" ? "1px solid #333" : "none",
     height: isWhiteKey
       ? PIANO_HEIGHT
       : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
