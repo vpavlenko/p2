@@ -12,8 +12,9 @@ const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
-const BLACK_KEY_HEIGHT_MULTIPLIER = 0.6; // Black keys are 60% of total height
+const BLACK_KEY_HEIGHT_MULTIPLIER = 0.65; // Black keys are 60% of total height
 export const PIANO_HEIGHT = 80; // Total piano height in pixels
+const WHITE_KEY_TOP_OFFSET = PIANO_HEIGHT * (1 - BLACK_KEY_HEIGHT_MULTIPLIER); // White keys start 20px from top in chromatic mode
 
 interface PianoKeyProps {
   note: number;
@@ -97,12 +98,12 @@ const PianoKey: React.FC<PianoKeyProps> = ({
       colorMode === "traditional"
         ? isWhiteKey
           ? "black"
-          : "white" // Traditional: white keys get black text, black keys get white text
+          : "white"
         : SPECIAL_NOTE_COLORS.includes(
             relativeNote as (typeof SPECIAL_NOTE_COLORS)[number]
           )
         ? "black"
-        : "white", // Chromatic: use existing logic
+        : "white",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -126,9 +127,15 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     zIndex: isHovered ? 3 : style.zIndex || 1,
     border: colorMode === "traditional" ? "1px solid #333" : "none",
     height: isWhiteKey
-      ? PIANO_HEIGHT
+      ? colorMode === "traditional"
+        ? PIANO_HEIGHT
+        : PIANO_HEIGHT - WHITE_KEY_TOP_OFFSET
       : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
-    top: isWhiteKey ? 0 : 0,
+    top: isWhiteKey
+      ? colorMode === "traditional"
+        ? 0
+        : WHITE_KEY_TOP_OFFSET
+      : 0,
   };
 
   return (
