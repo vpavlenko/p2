@@ -9,11 +9,10 @@ import { Voicing } from "../constants/voicings";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
-
-const KEY_HEIGHT = 80;
-const ROW_DISTANCE = KEY_HEIGHT * 0.5;
-
 const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
+
+const BLACK_KEY_HEIGHT_MULTIPLIER = 0.6; // Black keys are 60% of total height
+const PIANO_HEIGHT = 80; // Total piano height in pixels
 
 interface PianoKeyProps {
   note: number;
@@ -84,6 +83,8 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     handleMouseUp();
   };
 
+  const isWhiteKey = WHITE_KEYS.includes(note);
+
   const keyStyle = {
     ...style,
     backgroundColor: colors[note],
@@ -93,7 +94,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     textAlign: "center" as const,
     color:
       colorMode === "traditional"
-        ? colors[note] === "white"
+        ? isWhiteKey
           ? "black"
           : "white" // Traditional: white keys get black text, black keys get white text
         : SPECIAL_NOTE_COLORS.includes(
@@ -109,30 +110,24 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     boxSizing: "border-box" as const,
     transform:
       isActive || isPressed
-        ? "scale(0.95)"
+        ? "scale(0.9)"
         : isHovered
         ? "scale(1.1)"
         : "scale(1)",
     boxShadow:
       isActive || isPressed
         ? `0 0 10px ${
-            colors[note] === "white"
-              ? "rgba(0, 0, 0, 0.5)"
-              : "rgba(255, 255, 255, 0.5)"
+            isWhiteKey ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)"
           }`
         : "none",
     transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
-    ...(colorMode === "traditional" && {
-      border:
-        colors[note] === "white" ? "1px solid rgba(0, 0, 0, 0.8)" : "none",
-      height:
-        colors[note] === "white"
-          ? `${KEY_HEIGHT + ROW_DISTANCE}px`
-          : `${KEY_HEIGHT}px`,
-      top: colors[note] === "white" ? "0" : "0",
-    }),
+    border: isWhiteKey ? "1px solid rgba(0, 0, 0, 0.8)" : "none",
+    height: isWhiteKey
+      ? PIANO_HEIGHT
+      : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
+    top: isWhiteKey ? 0 : 0,
   };
 
   return (
@@ -480,11 +475,9 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
             const commonStyleProps = {
               width: keyWidth,
-              height: keyWidth * 3.2, // Maintain aspect ratio (80/25 ≈ 3.2)
-              borderRadius: "5px",
+              height: PIANO_HEIGHT,
+              borderRadius: "0 0 5px 5px",
             };
-
-            const rowDistance = keyWidth * 1.6; // Maintain ratio (40/25 ≈ 1.6)
 
             if (isWhiteKey) {
               return (
@@ -504,7 +497,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   }
                   style={{
                     ...commonStyleProps,
-                    top: rowDistance,
                     left: keyWidth * whiteKeyCount,
                   }}
                 />
@@ -527,8 +519,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   }
                   style={{
                     ...commonStyleProps,
-                    width: keyWidth - 3, // Make black keys 1px narrower
-                    top: 0,
+                    width: keyWidth - 3,
                     left: keyWidth * (whiteKeyCount - 0.5),
                     zIndex: 2,
                   }}
