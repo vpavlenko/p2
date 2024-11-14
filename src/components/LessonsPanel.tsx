@@ -95,11 +95,15 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
 
   return (
     <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white p-8 overflow-y-auto">
-      <div className="mb-8 flex flex-col gap-4">
+      <div
+        className={`mb-8 flex flex-col gap-4 ${
+          isMenuOpen ? "pointer-events-none" : ""
+        }`}
+      >
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 relative z-20"
+            className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 relative z-20 pointer-events-auto"
           >
             <Bars3Icon className="w-6 h-6" />
           </button>
@@ -109,7 +113,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
               {previousLesson && (
                 <button
                   onClick={() => onLessonChange(previousLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left"
+                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left pointer-events-none"
                 >
                   ← {previousLesson.title}
                 </button>
@@ -120,7 +124,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
               {nextLesson && (
                 <button
                   onClick={() => onLessonChange(nextLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right"
+                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right pointer-events-none"
                 >
                   {nextLesson.title} →
                 </button>
