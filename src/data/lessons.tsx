@@ -464,6 +464,69 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
       </>
     ),
   },
+  {
+    title: "Minor key",
+    content: (
+      <>
+        <H3>Natural minor</H3>
+        <P>
+          There are two main scales in Western music - a major scale and a minor
+          scale. The most useful is the natural minor scale:
+        </P>
+        <E data="C3 D3 Eb3 F3 G3 Ab3 Bb3 C4" name="C minor scale" tonic="C" />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 .  C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . E3^Eb3 . A3^Ab3 . B3^Bb3 . C3^D3^E3^F3^G3^A3^B3^C4 .  C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . E3 Eb3 . C3^D3 E3 . C3^D3 Eb3 . C3^D3^E3^D3^C3 . C3^D3^Eb3^D3^C3 .
+          C3^D3^E3^F3^G3^F3^E3^D3^C3 . C3^D3^Eb3^F3^G3^F3^Eb3^D3^C3 . A3 Ab3 . B3 Bb3 . C3^D3^E3^F3^G3^A3^B3 . C3^D3^Eb3^F3^G3^Ab3^Bb3 . C3^D3^E3^F3^G3^A3^B3^C4^B3^A3^G3^F3^E3^D3^C3 . C3^D3^Eb3^F3^G3^Ab3^Bb3^C4^Bb3^Ab3^G3^F3^Eb3^D3^C3 "
+          name="C major and C minor scales"
+          tonic="C"
+        />
+        <P>
+          When this scale is used in pieces, there are six main chords built on
+          it:
+        </P>
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . C3 Eb3 G3 C3~Eb3~G3 C3-Eb3-G3 C4-Eb4-G4 C5-Eb5-G5 C6-Eb6-G6 C3-Eb3-G3-C4-Eb4-G4 C5-Eb5-G5-C6-Eb6-G6 C3-Eb3-G3-C4-Eb4-G4-C5-Eb5-G5-C6-Eb6-G6"
+          name="C minor chord, Cm, I, 1-b3-5"
+        />
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . Eb3 G3 Bb3 Eb3~G3~Bb3 Eb3-G3-Bb3 Eb4-G4-Bb4 Eb5-G5-Bb5 Eb6-G6-Bb6 Eb3-G3-Bb3-Eb4-G4-Bb4 Eb5-G5-Bb5-Eb6-G6-Bb6 Eb3-G3-Bb3-Eb4-G4-Bb4-Eb5-G5-Bb5-Eb6-G6-Bb6"
+          name="Eb major chord, Eb, bIII, b3-5-b7"
+        />
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . F3 Ab3 C4 F3~Ab3~C4 F3-Ab3-C4 F4-Ab4-C5 F5-Ab5-C6 F6-Ab6-C7 F3-Ab3-C4-F4-Ab4-C5 F5-Ab5-C6-F6-Ab6-C7 F3-Ab3-C4-F4-Ab4-C5-F5-Ab5-C6-F6-Ab6-C7"
+          name="F minor chord, Fm, iv, 4-6-1"
+        />
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . G3 Bb3 D4 G3~Bb3~D4 G3-Bb3-D4 G4-Bb4-D5 G5-Bb5-D6 G6-Bb6-D7 G3-Bb3-D4-G4-Bb4-D5 G5-Bb5-D6-G6-Bb6-D7 G3-Bb3-D4-G4-Bb4-D5-G5-Bb5-D6-G6-Bb6-D7"
+          name="G minor chord, Gm, v, 5-b7-2"
+        />
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . Ab3 C4 Eb4 Ab3~C4~Eb4 Ab3-C4-Eb4 Ab4-C5-Eb5 Ab5-C6-Eb6 Ab6-C7-Eb7 Ab3-C4-Eb4-Ab4-C5-Eb5 Ab5-C6-Eb6-Ab6-C7-Eb7 Ab3-C4-Eb4-Ab4-C5-Eb5-Ab5-C6-Eb6-Ab6-C7-Eb7"
+          name="Ab major chord, Ab, bVI, b6-1-b3"
+        />
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . Bb3 D4 F4 Bb3~D4~F4 Bb3-D4-F4 Bb4-D5-F5 Bb5-D6-F6 Bb6-D7-F7 Bb3-D4-F4-Bb4-D5-F5 Bb5-D6-F6-Bb6-D7-F7 Bb3-D4-F4-Bb4-D5-F5-Bb5-D6-F6-Bb6-D7-F7"
+          name="Bb major chord, Bb, bVII, b7-2-4"
+        />
+        <H3>Major V</H3>
+        <P>In practice, we often use a major V chord instead of a minor one:</P>
+        <E
+          data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . G3 B3 D4 G3~B3~D4 G3-B3-D4 G4-B4-D5 G5-B5-D6 G6-B6-D7 G3-B3-D4-G4-B4-D5 G5-B5-D6-G6-B6-D7 G3-B3-D4-G4-B4-D5-G5-B5-D6-G6-B6-D7"
+          name="V major chord, G, V, 5-7-2"
+        />
+        <P>
+          Sometimes it's explained as if it's built on a different scale - a
+          harmonic minor scale, where 7 is used in place of b7:
+        </P>
+        <E data="C3^D3^Eb3^F3^G3^Ab3^B3^C4" name="harmonic minor scale" />
+        <P>
+          The most important pair of chords which defines a minor key is V to i
+          motion: V-i:
+        </P>
+        <E data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . G3-B3-D4 C4-Eb4-G4" name="V i" />
+      </>
+    ),
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
