@@ -115,7 +115,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
                 <Link
                   to={`/p/${previousLesson.id}`}
                   onClick={() => onLessonChange(previousLesson.id)}
-                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left"
+                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left select-none"
                 >
                   ← {currentLessonIndex}. {previousLesson.title}
                 </Link>
@@ -127,7 +127,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
                 <Link
                   to={`/p/${nextLesson.id}`}
                   onClick={() => onLessonChange(nextLesson.id)}
-                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right"
+                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right select-none"
                 >
                   {currentLessonIndex + 2}. {nextLesson.title} →
                 </Link>

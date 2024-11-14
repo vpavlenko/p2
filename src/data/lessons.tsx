@@ -277,7 +277,7 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
     ),
   },
   {
-    title: "A major scale",
+    title: "Major scale",
     content: (
       <>
         <P>
@@ -379,7 +379,7 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
         </P>
         <P>Let's see how chords are built in all 12 major keys.</P>
         <E
-          data="C#3^D#3^F3^F#3^G#3^A#3^C4^C#4 . C#3-F3-G#3 D#3-F#3-A#3 F3-G#3-C4 F#3-A#3-C#4 G#3-C4-D#4 A#3-C#4-F3 G#3-C4-D#4 C#4-F4-G#4"
+          data="C#3^D#3^F3^F#3^G#3^A#3^C4^C#4 . C#3-F3-G#3 D#3-F#3-A#3 F3-G#3-C4 F#3-A#3-C#4 G#3-C4-D#4 A#3-C#4-F4 G#3-C4-D#4 C#4-F4-G#4"
           name="I ii iii IV V vi V I in C# major"
           tonic="C#"
         />
