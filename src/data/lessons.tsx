@@ -277,7 +277,7 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
     ),
   },
   {
-    title: "Chords in a major key",
+    title: "A major scale",
     content: (
       <>
         <P>
@@ -326,6 +326,141 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
           tonic="Bb"
         />
         <E data="B3 C#4 D#4 E4 F#4 G#4 A#4 B4" name="B major scale" tonic="B" />
+      </>
+    ),
+  },
+  {
+    title: "Chords in a major key",
+    content: (
+      <>
+        <H3>Six most popular chords</H3>
+        <P>
+          If a piece uses a major scale and uses its white note - the tonic - as
+          its main note where melodies start and end, then this piece in Western
+          music tends to use certain chords.
+        </P>
+        <P>
+          Most of the time, it uses chords major and minor chords that can be
+          built from the notes of a major scale. Naturally, we can only do that
+          if we pick a note, a third above and one more third above - therefore
+          we go pick-one skip-one pick-one skip-one up the scale.
+        </P>
+        <P>Here are six most popular chords in a major key:</P>
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . C3 E3 G3 C3~E3~G3 C3-E3-G3 C4-E4-G4 C5-E5-G5 C6-E6-G6 C3-E3-G3-C4-E4-G4 C5-E5-G5-C6-E6-G6 C3-E3-G3-C4-E4-G4-C5-E5-G5-C6-E6-G6"
+          name="C major chord, C, I, 1-3-5"
+        />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . D3 F3 A3 D3~F3~A3 D3-F3-A3 D4-F4-A4 D5-F5-A5 D6-F6-A6 D3-F3-A3-D4-F4-A4 D5-F5-A5-D6-F6-A6 D3-F3-A3-D4-F4-A4-D5-F5-A5-D6-F6-A6"
+          name="D minor chord, Dm, ii, 2-4-6"
+        />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . E3 G3 B3 E3~G3~B3 E3-G3-B3 E4-G4-B4 E5-G5-B5 E6-G6-B6 E3-G3-B3-E4-G4-B4 E5-G5-B5-E6-G6-B6 E3-G3-B3-E4-G4-B4-E5-G5-B5-E6-G6-B6"
+          name="E minor chord, Em, iii, 3-5-7"
+        />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . F3 A3 C4 F3~A3~C4 F3-A3-C4 F4-A4-C5 F5-A5-C6 F6-A6-C7 F3-A3-C4-F4-A4-C5 F5-A5-C6-F6-A6-C7 F3-A3-C4-F4-A4-C5-F5-A5-C6-F6-A6-C7"
+          name="F major chord, F, IV, 4-6-1"
+        />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . G3 B3 D4 G3~B3~D4 G3-B3-D4 G4-B4-D5 G5-B5-D6 G6-B6-D7 G3-B3-D4-G4-B4-D5 G5-B5-D6-G6-B6-D7 G3-B3-D4-G4-B4-D5-G5-B5-D6-G6-B6-D7"
+          name="G major chord, G, V, 5-7-2"
+        />
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . A3 C4 E4 A3~C4~E4 A3-C4-E4 A4-C5-E5 A5-C6-E6 A6-C7-E7 A3-C4-E4-A4-C5-E5 A5-C6-E6-A6-C7-E7 A3-C4-E4-A4-C5-E5-A5-C6-E6-A6-C7-E7"
+          name="A minor chord, Am, vi, 6-1-3"
+        />
+        <H3>Roman numerals</H3>
+        <P>
+          Why do we use roman numerals to denote chords? That's because chords
+          are built and used in the same way for all 12 major keys. Therefore,
+          it's good to have a tonic-independent way to denote chords, to speak
+          of all 12 keys at once.
+        </P>
+        <P>Let's see how chords are built in all 12 major keys.</P>
+        <E
+          data="C#3^D#3^F3^F#3^G#3^A#3^C4^C#4 . C#3-F3-G#3 D#3-F#3-A#3 F3-G#3-C4 F#3-A#3-C#4 G#3-C4-D#4 A#3-C#4-F3 G#3-C4-D#4 C#4-F4-G#4"
+          name="I ii iii IV V vi V I in C# major"
+          tonic="C#"
+        />
+        <E
+          data="D3^E3^F#3^G3^A3^B3^C#4^D4 . D3-F#3-A3 E3-G3-B3 F#3-A3-C#4 G3-B3-D4 A3-C#4-E4 B3-D4-F#4 A3-C#4-E4 D4-F#4-A4"
+          name="I ii iii IV V vi V I in D major"
+          tonic="D"
+        />{" "}
+        <E
+          data="D#3^F3^G3^G#3^A#3^C4^D4^D#4 . D#3-G3-A#3 F3-G#3-C4 G3-A#3-D4 G#3-C4-D#4 A#3-D4-F4 C4-D#4-G4 A#3-D4-F4 D#4-G4-A#4"
+          name="I ii iii IV V vi V I in D# major"
+          tonic="D#"
+        />{" "}
+        <E
+          data="E3^F#3^G#3^A3^B3^C#4^D#4^E4 . E3-G#3-B3 F#3-A3-C#4 G#3-B3-D#4 A3-C#4-E4 B3-D#4-F#4 C#4-E4-G#4 B3-D#4-F#4 E4-G#4-B4"
+          name="I ii iii IV V vi V I in E major"
+          tonic="E"
+        />{" "}
+        <E
+          data="F3^G3^A3^Bb3^C4^D4^E4^F4 . F3-A3-C4 G3-Bb3-D4 A3-C4-E4 Bb3-D4-F4 C4-E4-G4 D4-F4-A4 C4-E4-G4 F4-A4-C5"
+          name="I ii iii IV V vi V I in F major"
+          tonic="F"
+        />{" "}
+        <E
+          data="F#3^G#3^A#3^B3^C#4^D#4^F4^F#4 . F#3-A#3-C#4 G#3-B3-D#4 A#3-C#4-F4 B3-D#4-F#4 C#4-F4-G#4 D#4-F#4-A#4 C#4-F4-G#4 F#4-A#4-C#5"
+          name="I ii iii IV V vi V I in F# major"
+          tonic="F#"
+        />{" "}
+        <E
+          data="G3^A3^B3^C4^D4^E4^F#4^G4 . G3-B3-D4 A3-C4-E4 B3-D4-F#4 C4-E4-G4 D4-F#4-A4 E4-G4-B4 D4-F#4-A4 G4-B4-D5"
+          name="I ii iii IV V vi V I in G major"
+          tonic="G"
+        />{" "}
+        <E
+          data="G#3^A#3^C4^C#4^D#4^F4^G4^G#4 . G#3-C4-D#4 A#3-C#4-F4 C4-D#4-G4 C#4-F4-G#4 D#4-G4-A#4 F4-G#4-C5 D#4-G4-A#4 G#4-C5-D#5"
+          name="I ii iii IV V vi V I in G# major"
+          tonic="G#"
+        />{" "}
+        <E
+          data="A3^B3^C#4^D4^E4^F#4^G#4^A4 . A3-C#4-E4 B3-D4-F#4 C#4-E4-G#4 D4-F#4-A4 E4-G#4-B4 F#4-A4-C#5 E4-G#4-B4 A4-C#5-E5"
+          name="I ii iii IV V vi V I in A major"
+          tonic="A"
+        />{" "}
+        <E
+          data="A#3^C4^D4^D#4^F4^G4^A4^A#4 . A#3-D4-F4 C4-D#4-G4 D4-F4-A4 D#4-G4-A#4 F4-A4-C5 G4-A#4-D5 F4-A4-C5 A#4-D5-F5"
+          name="I ii iii IV V vi V I in A# major"
+          tonic="A#"
+        />{" "}
+        <E
+          data="B3^C#4^D#4^E4^F#4^G#4^A#4^B4 . B3-D#4-F#4 C#4-E4-G#4 D#4-F#4-A#4 E4-G#4-B4 F#4-A#4-C#5 G#4-B4-D#5 F#4-A#4-C#5 B4-D#5-F#5"
+          name="I ii iii IV V vi V I in B major"
+          tonic="B"
+        />
+        <P>
+          In practice, pieces are written in one key, but can be played in any.
+          So, we can focus on writing and playing everything in a C major key to
+          not to repeat everything 12 times when learning.
+        </P>
+        <H3>Phrases with I, IV and V</H3>
+        <P>
+          Chords progress in a piece. One follows another. Their flow isn't
+          uniformly random, though. And some are more frequent than others.
+        </P>
+        <P>Let's show some popular phrases on chords I, IV and V.</P>
+        <E
+          data="C3^D3^E3^F3^G3^A3^B3^C4 . C3-E3-G3 G3-B3-D4 C3-E3-G3 . C3-E3-G3 G3-B3-D4 C4-E4-G4 . C4-E4-G4 G3-B3-D4 C3-E3-G3"
+          name="I V I, classical music is full of those"
+        />
+        <E data="C3-E3-G3 F3-A3-C4 C3-E3-G3" name="I IV I, rock, plagal" />
+        <E
+          data="C3-E3-G3 F3-A3-C4 G3-B3-D4 C3-E3-G3 . C4-E4-G4 F3-A3-C4 G3-B3-D4 C4-E4-G4"
+          name="I IV V I, modern 'classical' turnaround"
+        />
+        <E
+          data="F3-A3-C4 C3-E3-G3 G3-B3-D4 C3-E3-G3 . F3-A3-C4 C3-E3-G3 G2-B2-D3 C3-E3-G3"
+          name="IV I V I"
+        />
+        <E
+          data="C3-E3-G3 G3-B3-D4 F3-A3-C4 C3-E3-G3"
+          name="I V IV I, bluesy, Mozart never did that"
+        />
       </>
     ),
   },

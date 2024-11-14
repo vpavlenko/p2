@@ -50,6 +50,7 @@ const NOTE_HOLD_DURATION = 1000; // Duration to hold each note/chord in ms
 const NOTE_SEQUENCE_GAP = 0; // Gap between sequential notes/chords in ms
 const RAPID_ARPEGGIO_DELAY = 50; // Delay between notes in rapid arpeggio in ms
 const SLOW_ARPEGGIO_DELAY = 500; // Delay between notes in slow arpeggio in ms
+const LEGATO_NOTE_DURATION = 350; // Duration for each legato note in ms
 
 // Add this function to parse note strings
 const parseNoteString = (noteStr: string): { note: number; octave: number } => {
@@ -191,35 +192,40 @@ export const PianoController: React.FC = () => {
 
           const isRapidArpeggio = chord.includes("~");
           const isSlowArpeggio = chord.includes("+");
+          const isLegato = chord.includes("^");
           const noteStrings = isRapidArpeggio
             ? chord.split("~")
             : isSlowArpeggio
             ? chord.split("+")
+            : isLegato
+            ? chord.split("^")
             : chord.split("-");
           const simultaneousNotes = noteStrings.map(parseNoteString);
 
-          if (isRapidArpeggio || isSlowArpeggio) {
-            const arpeggioDelay = isRapidArpeggio
+          if (isRapidArpeggio || isSlowArpeggio || isLegato) {
+            const noteDelay = isRapidArpeggio
               ? RAPID_ARPEGGIO_DELAY
-              : SLOW_ARPEGGIO_DELAY;
+              : isSlowArpeggio
+              ? SLOW_ARPEGGIO_DELAY
+              : LEGATO_NOTE_DURATION;
 
             simultaneousNotes.forEach(({ note, octave }, index) => {
-              const noteDelay = currentDelay + index * arpeggioDelay;
+              const playDelay = currentDelay + index * noteDelay;
 
               const playTimeout = window.setTimeout(() => {
                 playNotes(note, octave);
-              }, noteDelay);
+              }, playDelay);
               timeouts.push(playTimeout);
 
               const releaseTimeout = window.setTimeout(() => {
                 releaseNotes(note, octave);
-              }, noteDelay + NOTE_HOLD_DURATION);
+              }, playDelay + (isLegato ? LEGATO_NOTE_DURATION : NOTE_HOLD_DURATION));
               timeouts.push(releaseTimeout);
             });
 
             currentDelay +=
-              (simultaneousNotes.length - 1) * arpeggioDelay +
-              NOTE_HOLD_DURATION +
+              (simultaneousNotes.length - 1) * noteDelay +
+              (isLegato ? LEGATO_NOTE_DURATION : NOTE_HOLD_DURATION) +
               NOTE_SEQUENCE_GAP;
           } else {
             const playTimeout = window.setTimeout(() => {
