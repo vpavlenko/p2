@@ -19,6 +19,24 @@ export interface Lesson {
   content: React.ReactNode;
 }
 
+const R = ({
+  suffix,
+  children,
+}: {
+  suffix: string;
+  children: React.ReactNode;
+}) => (
+  <a
+    href={`https://rawl.rocks/${suffix}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {children}
+  </a>
+);
+
+const MTop100 = () => <R suffix="book/intro">Musescore Top 100</R>;
+
 const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
   {
     title: "Octaves",
@@ -461,6 +479,15 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
           data="C3-E3-G3 G3-B3-D4 F3-A3-C4 C3-E3-G3"
           name="I V IV I, bluesy, Mozart never did that"
         />
+        <H3>Examples</H3>
+        <P>
+          Out of <MTop100 />, there are{" "}
+          <R suffix="corpus/chapters_c_major">6 pieces</R> in purely in C major
+          key and <R suffix="corpus/chapters_major">6 more pieces</R> in other
+          major keys. This is excluding all pieces exploiting modern
+          4-chord-progression techniques and all pieces where any non-trivial
+          modulations occur.
+        </P>
       </>
     ),
   },
