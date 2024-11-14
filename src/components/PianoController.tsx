@@ -7,6 +7,7 @@ import { sampler } from "../audio/sampler";
 import { FallingNote } from "./FallingNotes";
 import { LessonsPanel } from "./LessonsPanel";
 import { LessonExample } from "./LessonExample";
+import { immediate } from "tone";
 
 const NOTE_NAMES = [
   "C",
@@ -89,7 +90,7 @@ export const PianoController: React.FC = () => {
       const playedNotes = notesToPlay.map(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
         const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
-        sampler.triggerAttack(noteString);
+        sampler.triggerAttack(noteString, immediate());
 
         // Create falling note
         const newNote: FallingNote = {
