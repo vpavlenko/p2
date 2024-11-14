@@ -8,6 +8,8 @@ import { FallingNote } from "./FallingNotes";
 import { LessonsPanel } from "./LessonsPanel";
 import { LessonExample } from "./LessonExample";
 import { immediate } from "tone";
+import { useParams, useNavigate } from "react-router-dom";
+import { LESSONS } from "../data/lessons";
 
 const NOTE_NAMES = [
   "C",
@@ -81,6 +83,18 @@ export const PianoController: React.FC = () => {
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
     null
   );
+  const navigate = useNavigate();
+  const { lessonId } = useParams();
+
+  // Initialize currentLessonId from URL parameter
+  useEffect(() => {
+    const parsedId = parseInt(lessonId || "1");
+    if (!isNaN(parsedId) && LESSONS.some((lesson) => lesson.id === parsedId)) {
+      setCurrentLessonId(parsedId);
+    } else {
+      navigate("/p/1", { replace: true });
+    }
+  }, [lessonId, navigate]);
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
@@ -275,9 +289,13 @@ export const PianoController: React.FC = () => {
     [currentlyPlayingId, playSequentialNotes, stopProgression]
   );
 
-  const handleLessonChange = useCallback((lessonId: number) => {
-    setCurrentLessonId(lessonId);
-  }, []);
+  const handleLessonChange = useCallback(
+    (lessonId: number) => {
+      setCurrentLessonId(lessonId);
+      navigate(`/p/${lessonId}`);
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     const handleSpaceKey = (e: KeyboardEvent) => {

@@ -19,9 +19,8 @@ export interface Lesson {
   content: React.ReactNode;
 }
 
-export const LESSONS: Lesson[] = [
+const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
   {
-    id: 1,
     title: "Octaves",
     content: (
       <>
@@ -73,7 +72,6 @@ export const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 2,
     title: "Semitones",
     content: (
       <>
@@ -91,7 +89,6 @@ export const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 4,
     title: "Intervals",
     content: (
       <>
@@ -150,7 +147,6 @@ export const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 5,
     title: "Chords",
     content: (
       <>
@@ -201,7 +197,6 @@ export const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 3,
     title: "Chords in a major scale",
     content: (
       <>
@@ -255,3 +250,8 @@ export const LESSONS: Lesson[] = [
     ),
   },
 ];
+
+export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
+  ...lesson,
+  id: index + 1,
+}));

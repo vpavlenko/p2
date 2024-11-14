@@ -4,6 +4,7 @@ import { LessonExample } from "./LessonExample";
 import { Voicing } from "../constants/voicings";
 import { BasicInlineExample } from "./LessonExample";
 import { Bars3Icon } from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
 
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
@@ -111,23 +112,25 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
           <div className="flex-1 flex gap-2">
             <div className={`flex-1 ${nextLesson ? "w-1/2" : "w-full"}`}>
               {previousLesson && (
-                <button
+                <Link
+                  to={`/p/${previousLesson.id}`}
                   onClick={() => onLessonChange(previousLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left"
+                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left"
                 >
                   ← {currentLessonIndex}. {previousLesson.title}
-                </button>
+                </Link>
               )}
             </div>
 
             <div className={`flex-1 ${previousLesson ? "w-1/2" : "w-full"}`}>
               {nextLesson && (
-                <button
+                <Link
+                  to={`/p/${nextLesson.id}`}
                   onClick={() => onLessonChange(nextLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right"
+                  className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right"
                 >
                   {currentLessonIndex + 2}. {nextLesson.title} →
-                </button>
+                </Link>
               )}
             </div>
           </div>
@@ -143,8 +146,9 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
           <div className="p-8 pt-[72px]">
             <div className="flex flex-col gap-2">
               {LESSONS.map((lesson, index) => (
-                <div
+                <Link
                   key={lesson.id}
+                  to={`/p/${lesson.id}`}
                   onClick={() => {
                     onLessonChange(lesson.id);
                     setIsMenuOpen(false);
@@ -157,7 +161,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
                 >
                   <span>{index + 1}. </span>
                   {lesson.title}
-                </div>
+                </Link>
               ))}
             </div>
           </div>
