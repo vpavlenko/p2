@@ -113,9 +113,9 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
               {previousLesson && (
                 <button
                   onClick={() => onLessonChange(previousLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left pointer-events-none"
+                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left"
                 >
-                  ← {previousLesson.title}
+                  ← {currentLessonIndex}. {previousLesson.title}
                 </button>
               )}
             </div>
@@ -124,9 +124,9 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
               {nextLesson && (
                 <button
                   onClick={() => onLessonChange(nextLesson.id)}
-                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right pointer-events-none"
+                  className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right"
                 >
-                  {nextLesson.title} →
+                  {currentLessonIndex + 2}. {nextLesson.title} →
                 </button>
               )}
             </div>
@@ -134,7 +134,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
         </div>
 
         <div className="w-full text-white font-semibold text-[28px]">
-          {currentLesson.title}
+          {currentLessonIndex + 1}. {currentLesson.title}
         </div>
       </div>
 
