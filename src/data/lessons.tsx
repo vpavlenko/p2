@@ -143,6 +143,86 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           data="C3 D#3 C3-D#3 . C#3 E3 C#3-E3 . D3 F3 D3-F3 . D#3 F#3 D#3-F#3 . E3 G3 E3-G3 . F3 G#3 F3-G#3 . F#3 A3 F#3-A3 . G3 A#3 G3-A#3 . G#3 B3 G#3-B3 . A3 C4 A3-C4 . A#3 C#4 A#3-C#4 . B3 D4 B3-D4"
           name="12 minor thirds built from all notes of octave 3"
         />
+        <H3>Major third</H3>
+        <P>
+          There are two thirds - a minor third and a major third. I'm gonna
+          build them from several notes. Notice the different gap between them
+          and the different feeling - minor vs. major, emotionally?{" "}
+        </P>
+        <E
+          data="
+    C3 D#3 C3-D#3 . C3 E3 C3-E3 . 
+    D3 F3 D3-F3 . D3 F#3 D3-F#3 . 
+    F3 G#3 F3-G#3 . F3 A3 F3-A3 . 
+    G3 A#3 G3-A#3 . G3 B3 G3-B3 . 
+    A#3 C#4 A#3-C#4 . A#3 D4 A#3-D4
+  "
+          name="a minor and a major third, built from some notes of octave 3"
+        />
+        <P>
+          I was cheating - I picked only those five pair where the upper note
+          gets brighter as we go from a minor third to a major third. That
+          doesn't always happen.
+        </P>
+        <P>
+          Here are seven other cases, where the intervals are only visible in
+          the gap between the notes. The gap is a part of a physical reality, so
+          you can hear it. The actual colors aren't important until we start
+          talking about chords in a key.
+        </P>
+        <E
+          data="
+C#3 E3 C#3-E3 . C#3 F3 C#3-F3 . 
+D#3 F#3 D#3-F#3 . D#3 G3 D#3-G3 . 
+E3 G3 E3-G3 . E3 G#3 E3-G#3 . 
+F#3 A3 F#3-A3 . F#3 A#3 F#3-A#3 . 
+G#3 B3 G#3-B3 . G#3 C4 G#3-C4 . 
+A3 C4 A3-C4 . A3 C#4 A3-C#4 . 
+B3 D4 B3-D4 . B3 D#4 B3-D#4 . 
+  "
+          name="a minor and a major third, built from all other notes of octave 3"
+        />
+        <H3>Perfect fourth</H3>
+        <P>
+          A perfect fourth sounds less "colored" than thirds, it may sound
+          rock-n-rolly, guitary to you - idk.
+        </P>
+        <E
+          data=" C3-F3 
+    C#3-F#3 
+    D3-G3 
+    D#3-G#3 
+    E3-A3 
+    F3-A#3 
+    F#3-B3 
+    G3-C4 
+    G#3-C#4 
+    A3-D4 
+    A#3-D#4 
+    B3-E4"
+          name="12 perfect fourths built from all notes of octave 3"
+        />
+        <H3>Tritone</H3>
+        <P>
+          A tritone may sound like dissonant. This term is rather misleading and
+          esoteric, so I'm not gonna explain it. Maybe you find and sharp, or
+          devil, but probably not boring, at least.
+        </P>
+        <E
+          data=" C3-F#3 
+    C#3-G3 
+    D3-G#3 
+    D#3-A3 
+    E3-A#3 
+    F3-B3 
+    F#3-C4 
+    G3-C#4 
+    G#3-D4 
+    A3-D#4 
+    A#3-E4 
+    B3-F4"
+          name="12 tritones built from all notes of octave 3"
+        />
       </>
     ),
   },
@@ -197,7 +277,7 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
     ),
   },
   {
-    title: "Chords in a major scale",
+    title: "Chords in a major key",
     content: (
       <>
         <P>
