@@ -1,4 +1,7 @@
-export const KEYBOARD_MAP = {
+import { ColorMode } from "../components/types";
+
+// Traditional keyboard mapping (used for traditional and chromatic modes)
+const TRADITIONAL_KEYBOARD_MAP = {
   KeyZ: { note: 0, octave: 2 },
   KeyS: { note: 1, octave: 2 },
   KeyX: { note: 2, octave: 2 },
@@ -38,42 +41,116 @@ export const KEYBOARD_MAP = {
   BracketRight: { note: 0, octave: 5 },
 } as const;
 
+// Flat-chromatic keyboard mapping (linear progression)
+const FLAT_CHROMATIC_KEYBOARD_MAP = {
+  // Bottom row (Z to /) - Octave 2
+  KeyZ: { note: 0, octave: 2 },
+  KeyX: { note: 1, octave: 2 },
+  KeyC: { note: 2, octave: 2 },
+  KeyV: { note: 3, octave: 2 },
+  KeyB: { note: 4, octave: 2 },
+  KeyN: { note: 5, octave: 2 },
+  KeyM: { note: 6, octave: 2 },
+  Comma: { note: 7, octave: 2 },
+  Period: { note: 8, octave: 2 },
+  Slash: { note: 9, octave: 2 },
+
+  // Middle row (A to ') - Octave 3 start
+  KeyA: { note: 10, octave: 2 },
+  KeyS: { note: 11, octave: 2 },
+  KeyD: { note: 0, octave: 3 },
+  KeyF: { note: 1, octave: 3 },
+  KeyG: { note: 2, octave: 3 },
+  KeyH: { note: 3, octave: 3 },
+  KeyJ: { note: 4, octave: 3 },
+  KeyK: { note: 5, octave: 3 },
+  KeyL: { note: 6, octave: 3 },
+  Semicolon: { note: 7, octave: 3 },
+  Quote: { note: 8, octave: 3 },
+
+  // Top row (Q to ]) - Octave 3/4
+  KeyQ: { note: 9, octave: 3 },
+  KeyW: { note: 10, octave: 3 },
+  KeyE: { note: 11, octave: 3 },
+  KeyR: { note: 0, octave: 4 },
+  KeyT: { note: 1, octave: 4 },
+  KeyY: { note: 2, octave: 4 },
+  KeyU: { note: 3, octave: 4 },
+  KeyI: { note: 4, octave: 4 },
+  KeyO: { note: 5, octave: 4 },
+  KeyP: { note: 6, octave: 4 },
+  BracketLeft: { note: 7, octave: 4 },
+  BracketRight: { note: 8, octave: 4 },
+
+  // Number row (1 to =) - Octave 4/5
+  Digit1: { note: 9, octave: 4 },
+  Digit2: { note: 10, octave: 4 },
+  Digit3: { note: 11, octave: 4 },
+  Digit4: { note: 0, octave: 5 },
+  Digit5: { note: 1, octave: 5 },
+  Digit6: { note: 2, octave: 5 },
+  Digit7: { note: 3, octave: 5 },
+  Digit8: { note: 4, octave: 5 },
+  Digit9: { note: 5, octave: 5 },
+  Digit0: { note: 6, octave: 5 },
+  Minus: { note: 7, octave: 5 },
+  Equal: { note: 8, octave: 5 },
+} as const;
+
+// Export the keyboard map based on color mode
+export const getKeyboardMap = (colorMode: ColorMode) => {
+  return colorMode === "flat-chromatic"
+    ? FLAT_CHROMATIC_KEYBOARD_MAP
+    : TRADITIONAL_KEYBOARD_MAP;
+};
+
+export const KEYBOARD_MAP = TRADITIONAL_KEYBOARD_MAP;
+
+// Key display labels remain the same
 export const KEY_DISPLAY_LABELS: { [key: string]: string } = {
   KeyZ: "z",
-  KeyS: "s",
   KeyX: "x",
-  KeyD: "d",
   KeyC: "c",
   KeyV: "v",
-  KeyG: "g",
   KeyB: "b",
-  KeyH: "h",
   KeyN: "n",
-  KeyJ: "j",
   KeyM: "m",
   Comma: ",",
-  KeyL: "l",
   Period: ".",
-  Semicolon: ";",
   Slash: "/",
+  KeyA: "a",
+  KeyS: "s",
+  KeyD: "d",
+  KeyF: "f",
+  KeyG: "g",
+  KeyH: "h",
+  KeyJ: "j",
+  KeyK: "k",
+  KeyL: "l",
+  Semicolon: ";",
+  Quote: "'",
   KeyQ: "q",
-  Digit2: "2",
   KeyW: "w",
-  Digit3: "3",
   KeyE: "e",
-  Digit4: "4",
   KeyR: "r",
   KeyT: "t",
-  Digit6: "6",
   KeyY: "y",
-  Digit7: "7",
   KeyU: "u",
   KeyI: "i",
-  Digit9: "9",
   KeyO: "o",
-  Digit0: "0",
   KeyP: "p",
-  Minus: "-",
   BracketLeft: "[",
   BracketRight: "]",
+  Digit1: "1",
+  Digit2: "2",
+  Digit3: "3",
+  Digit4: "4",
+  Digit5: "5",
+  Digit6: "6",
+  Digit7: "7",
+  Digit8: "8",
+  Digit9: "9",
+  Digit0: "0",
+  Minus: "-",
+  Equal: "=",
 } as const;

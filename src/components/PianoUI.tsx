@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
-import { KEYBOARD_MAP, KEY_DISPLAY_LABELS } from "../constants/keyboard";
+import { getKeyboardMap, KEY_DISPLAY_LABELS } from "../constants/keyboard";
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
@@ -283,15 +283,18 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.code in KEYBOARD_MAP) {
-        const { note } = KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
+      const currentKeyboardMap = getKeyboardMap(colorMode);
+
+      if (event.ctrlKey && event.code in currentKeyboardMap) {
+        const { note } =
+          currentKeyboardMap[event.code as keyof typeof currentKeyboardMap];
         setTonic(note % 12);
         return;
       }
 
-      if (event.code in KEYBOARD_MAP && !activeKeys.has(event.code)) {
+      if (event.code in currentKeyboardMap && !activeKeys.has(event.code)) {
         const { note, octave } =
-          KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
+          currentKeyboardMap[event.code as keyof typeof currentKeyboardMap];
         const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
         await playNotes(note, actualOctave);
         setActiveKeys((prev) => new Set([...prev, event.code]));
@@ -299,9 +302,11 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.code in KEYBOARD_MAP) {
+      const currentKeyboardMap = getKeyboardMap(colorMode);
+
+      if (event.code in currentKeyboardMap) {
         const { note, octave } =
-          KEYBOARD_MAP[event.code as keyof typeof KEYBOARD_MAP];
+          currentKeyboardMap[event.code as keyof typeof currentKeyboardMap];
 
         // Release both normal and shifted octave notes
         const normalOctave = octave;
@@ -326,7 +331,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [activeKeys, playNotes, releaseNotes, setTonic]);
+  }, [activeKeys, playNotes, releaseNotes, setTonic, colorMode]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -491,12 +496,14 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             whiteKeyCount += countWhiteKeysInRange(range.start, i);
 
             // Find keyboard mappings
-            const keyMapping = Object.entries(KEYBOARD_MAP).find(
+            const keyMapping = Object.entries(getKeyboardMap(colorMode)).find(
               ([, value]) =>
                 value.note === noteNum && value.octave === octaveNum
             )?.[0];
 
-            const shiftedKeyMapping = Object.entries(KEYBOARD_MAP).find(
+            const shiftedKeyMapping = Object.entries(
+              getKeyboardMap(colorMode)
+            ).find(
               ([, value]) =>
                 value.note === noteNum &&
                 value.octave === getShiftedOctave(octaveNum, true)
