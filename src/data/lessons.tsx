@@ -39,6 +39,22 @@ const MTop100 = () => <R suffix="book/intro">Musescore Top 100</R>;
 
 const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
   {
+    title: "Intro",
+    content: (
+      <>
+        <P>
+          Welcome to Rawl Piano, the companion book to{" "}
+          <R suffix="">rawl.rocks</R>. I'm gonna cover Western music theory
+          using my colorful music notation.
+        </P>
+        <P>
+          Our goal is to learn enough structures to be able to analyze and
+          compare pieces in <MTop100 />
+        </P>
+      </>
+    ),
+  },
+  {
     title: "Octaves",
     content: (
       <>
@@ -116,7 +132,7 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           measured in semitones.
         </P>
         <E
-          data="C3 C#3 C3-C#3 . C3 D3 C3-D3 . C3 D#3 C3-D#3 . C3 E3 C3-E3 . C3 F3 C3-F3 . C3 F#3 C3-F#3 . C3 G3 C3-G3 . C3 G#3 C3-G#3 . C3 A3 C3-A3 . C3 A#3 C3-A#3 . C3 B3 C3-B3 C3 C4 C3-C4"
+          data="C3 C#3 C3-C#3 . C3 D3 C3-D3 . C3 D#3 C3-D#3 . C3 E3 C3-E3 . C3 F3 C3-F3 . C3 F#3 C3-F#3 . C3 G3 C3-G3 . C3 G#3 C3-G#3 . C3 A3 C3-A3 . C3 A#3 C3-A#3 . C3 B3 C3-B3 . C3 C4 C3-C4"
           name="12 simple intervals from C3"
         />
         <P>
@@ -513,7 +529,7 @@ B3 D4 B3-D4 . B3 D#4 B3-D#4 .
         </P>
         <E
           data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . C3 Eb3 G3 C3~Eb3~G3 C3-Eb3-G3 C4-Eb4-G4 C5-Eb5-G5 C6-Eb6-G6 C3-Eb3-G3-C4-Eb4-G4 C5-Eb5-G5-C6-Eb6-G6 C3-Eb3-G3-C4-Eb4-G4-C5-Eb5-G5-C6-Eb6-G6"
-          name="C minor chord, Cm, I, 1-b3-5"
+          name="C minor chord, Cm, i, 1-b3-5"
         />
         <E
           data="C3^D3^Eb3^F3^G3^Ab3^Bb3^C4 . Eb3 G3 Bb3 Eb3~G3~Bb3 Eb3-G3-Bb3 Eb4-G4-Bb4 Eb5-G5-Bb5 Eb6-G6-Bb6 Eb3-G3-Bb3-Eb4-G4-Bb4 Eb5-G5-Bb5-Eb6-G6-Bb6 Eb3-G3-Bb3-Eb4-G4-Bb4-Eb5-G5-Bb5-Eb6-G6-Bb6"
