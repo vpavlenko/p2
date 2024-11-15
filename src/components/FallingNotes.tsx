@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ColorMode } from "./types";
-import { getColors } from "../utils/colors";
+import { COLORS, getColors } from "../utils/colors";
 import { PIANO_HEIGHT } from "./PianoUI";
 
 const PIXELS_PER_SECOND = 50;
@@ -65,9 +65,9 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
               position: "absolute",
               left: tonicLeft,
               top: 0,
-              width: "1px",
+              width: "0.5px",
               height: "100%",
-              backgroundColor: "rgba(255, 255, 255, 0.6)", // brighter for tonic
+              backgroundColor: COLORS[0],
               pointerEvents: "none",
             }}
           />
@@ -87,9 +87,9 @@ export const FallingNotes: React.FC<FallingNotesProps> = ({
                 position: "absolute",
                 left: fifthLeft,
                 top: 0,
-                width: "1px",
+                width: "0.5px",
                 height: "100%",
-                backgroundColor: "rgba(255, 255, 255, 0.4)", // lighter for fifth
+                backgroundColor: COLORS[7],
                 pointerEvents: "none",
               }}
             />

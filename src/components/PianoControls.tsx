@@ -140,51 +140,63 @@ const TonicPicker: React.FC<TonicPickerProps> = ({ tonic, onTonicChange }) => {
 const ColorModeToggle: React.FC<ColorModeToggleProps> = ({
   colorMode,
   onColorModeChange,
-}) => (
-  <div
-    onClick={() =>
-      onColorModeChange(colorMode === "chromatic" ? "traditional" : "chromatic")
-    }
-    style={{
-      width: "40px",
-      height: "20px",
-      backgroundColor:
-        colorMode === "chromatic" ? "#4CAF50" : "rgba(255, 255, 255, 0.2)",
-      borderRadius: "10px",
-      position: "relative",
-      cursor: "pointer",
-      transition: "background-color 0.2s ease-in-out",
-    }}
-  >
+}) => {
+  const nextMode = {
+    traditional: "chromatic",
+    chromatic: "flat-chromatic",
+    "flat-chromatic": "traditional",
+  } as const;
+
+  return (
     <div
+      onClick={() => onColorModeChange(nextMode[colorMode])}
       style={{
-        width: "18px",
-        height: "18px",
-        backgroundColor: "white",
-        borderRadius: "50%",
-        position: "absolute",
-        top: "1px",
-        left: colorMode === "chromatic" ? "21px" : "1px",
-        transition: "left 0.2s ease-in-out",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        width: "40px",
+        height: "20px",
+        backgroundColor:
+          colorMode === "traditional" ? "rgba(255, 255, 255, 0.2)" : "#4CAF50",
+        borderRadius: "10px",
+        position: "relative",
+        cursor: "pointer",
+        transition: "background-color 0.2s ease-in-out",
       }}
     >
-      {colorMode === "chromatic" && (
-        <span
-          role="img"
-          aria-label="rainbow"
-          style={{
-            fontSize: "12px",
-          }}
-        >
-          🌈
-        </span>
-      )}
+      <div
+        style={{
+          width: "18px",
+          height: "18px",
+          backgroundColor: "white",
+          borderRadius: "50%",
+          position: "absolute",
+          top: "1px",
+          left:
+            colorMode === "traditional"
+              ? "1px"
+              : colorMode === "chromatic"
+              ? "11px"
+              : "21px",
+          transition: "left 0.2s ease-in-out",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {colorMode !== "traditional" && (
+          <span
+            role="img"
+            aria-label="rainbow"
+            style={{
+              fontSize: "12px",
+              userSelect: "none",
+            }}
+          >
+            🌈
+          </span>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const VoicingPicker: React.FC<{
   currentVoicing: Voicing;

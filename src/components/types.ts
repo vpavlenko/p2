@@ -1,1 +1,1 @@
-export type ColorMode = "chromatic" | "traditional";
+export type ColorMode = "traditional" | "chromatic" | "flat-chromatic";
