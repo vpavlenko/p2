@@ -301,17 +301,28 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         return;
       }
 
-      if (event.code in currentKeyboardMap && !activeKeys.has(event.code)) {
-        const { note, octave } =
-          currentKeyboardMap[event.code as keyof typeof currentKeyboardMap];
-        const actualOctave = event.shiftKey ? getShiftedOctave(octave) : octave;
-        await playNotes(note, actualOctave);
+      if (!activeKeys.has(event.code)) {
         setActiveKeys((prev) => new Set([...prev, event.code]));
+
+        if (event.code in currentKeyboardMap) {
+          const { note, octave } =
+            currentKeyboardMap[event.code as keyof typeof currentKeyboardMap];
+          const actualOctave = event.shiftKey
+            ? getShiftedOctave(octave)
+            : octave;
+          await playNotes(note, actualOctave);
+        }
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       const currentKeyboardMap = getKeyboardMap(colorMode, activeTaskId);
+
+      setActiveKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(event.code);
+        return next;
+      });
 
       if (event.code in currentKeyboardMap) {
         const { note, octave } =
@@ -323,12 +334,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
         [normalOctave, shiftedOctave].forEach((currentOctave) => {
           releaseNotes(note, currentOctave);
-        });
-
-        setActiveKeys((prev) => {
-          const next = new Set(prev);
-          next.delete(event.code);
-          return next;
         });
       }
     };

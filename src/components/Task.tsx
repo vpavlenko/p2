@@ -9,23 +9,30 @@ interface TaskProps {
   onComplete?: () => void;
   nextTask?: React.ReactNode;
   isActive?: boolean;
+  activeNotes?: number;
 }
 
 export const Task: React.FC<TaskProps> = ({
+  id,
   total,
   description,
   progress = 0,
   onComplete,
   nextTask,
   isActive = false,
+  activeNotes = 0,
 }) => {
   const [isCompleted, setIsCompleted] = React.useState(false);
+  const [showNextTask, setShowNextTask] = React.useState(false);
+  const [waitingForRelease, setWaitingForRelease] = React.useState(false);
   const percentage = Math.min((progress / total) * 100, 100);
 
   React.useEffect(() => {
     if (!isCompleted && progress >= total) {
+      console.log(`[${id}] Task completed, waiting for note releases...`);
+      console.log(`[${id}] Active notes:`, activeNotes);
       setIsCompleted(true);
-      onComplete?.();
+      setWaitingForRelease(true);
 
       confetti({
         particleCount: 100,
@@ -33,7 +40,31 @@ export const Task: React.FC<TaskProps> = ({
         origin: { y: 0.6 },
       });
     }
-  }, [progress, total, onComplete, isCompleted]);
+  }, [progress, total, isCompleted, id, activeNotes]);
+
+  // Add effect to handle showing next task
+  React.useEffect(() => {
+    if (waitingForRelease) {
+      console.log(`[${id}] Checking release conditions:`);
+      console.log(`[${id}] - isCompleted:`, isCompleted);
+      console.log(`[${id}] - activeNotes:`, activeNotes);
+      console.log(`[${id}] - showNextTask:`, showNextTask);
+
+      if (isCompleted && activeNotes === 0) {
+        console.log(`[${id}] All notes released, showing next task`);
+        setWaitingForRelease(false);
+        setShowNextTask(true);
+        onComplete?.();
+      }
+    }
+  }, [
+    isCompleted,
+    activeNotes,
+    showNextTask,
+    onComplete,
+    waitingForRelease,
+    id,
+  ]);
 
   return (
     <>
@@ -69,8 +100,13 @@ export const Task: React.FC<TaskProps> = ({
             style={{ width: `${percentage}%` }}
           />
         </div>
+        {waitingForRelease && (
+          <div className="text-xs text-gray-500 mt-2">
+            Release all keys to continue...
+          </div>
+        )}
       </div>
-      {isCompleted && nextTask}
+      {showNextTask && nextTask}
     </>
   );
 };
