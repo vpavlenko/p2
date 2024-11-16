@@ -122,7 +122,10 @@ const PianoKey: React.FC<PianoKeyProps> = ({
             isWhiteKey ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)"
           }`
         : "none",
-    transition: "all 1s ease-in-out",
+    transition:
+      isActive || isPressed || isHovered
+        ? "all 0.1s ease-in-out" // Fast transition for interactions
+        : "all 1s ease-in-out", // Slow transition for color mode changes
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
     border: colorMode === "traditional" ? "1px solid #333" : "none",

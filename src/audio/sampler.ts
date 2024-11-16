@@ -21,3 +21,11 @@ export const sampler = new Tone.Sampler({
   baseUrl: "https://tonejs.github.io/audio/salamander/",
   release: 0.5,
 }).toDestination();
+
+// Resume audio context when page becomes visible
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible") {
+    console.log("resuming audio context");
+    await Tone.context.resume();
+  }
+});

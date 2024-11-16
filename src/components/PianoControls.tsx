@@ -151,14 +151,14 @@ const ColorModeToggle: React.FC<ColorModeToggleProps> = ({
     <div
       onClick={() => onColorModeChange(nextMode[colorMode])}
       style={{
-        width: "40px",
+        width: "80px",
         height: "20px",
         backgroundColor:
           colorMode === "traditional" ? "rgba(255, 255, 255, 0.2)" : "#4CAF50",
         borderRadius: "10px",
         position: "relative",
         cursor: "pointer",
-        transition: "background-color 0.2s ease-in-out",
+        transition: "background-color 1s ease-in-out",
       }}
     >
       <div
@@ -173,9 +173,9 @@ const ColorModeToggle: React.FC<ColorModeToggleProps> = ({
             colorMode === "traditional"
               ? "1px"
               : colorMode === "chromatic"
-              ? "11px"
-              : "21px",
-          transition: "left 0.2s ease-in-out",
+              ? "31px"
+              : "61px",
+          transition: "left 1s ease-in-out",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
