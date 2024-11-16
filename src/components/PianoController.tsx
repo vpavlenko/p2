@@ -11,7 +11,6 @@ import { immediate } from "tone";
 import { useParams, useNavigate } from "react-router-dom";
 import { LESSONS } from "../data/lessons";
 import { URL_PREFIX } from "../constants/routes";
-import { Task } from "./Task";
 
 const NOTE_NAMES = [
   "C",

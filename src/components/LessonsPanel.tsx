@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LESSONS } from "../data/lessons";
-import { LessonExample } from "./LessonExample";
 import { Voicing } from "../constants/voicings";
-import { BasicInlineExample } from "./LessonExample";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
@@ -14,7 +12,6 @@ interface TaskProgress {
 }
 
 interface LessonsPanelProps {
-  onPlayExample: (example: LessonExample) => void;
   onStopPlaying: () => void;
   currentlyPlayingId: string | null;
   currentVoicing: Voicing;
@@ -26,7 +23,6 @@ interface LessonsPanelProps {
 }
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
-  onPlayExample,
   onStopPlaying,
   currentlyPlayingId,
   currentLessonId,
@@ -46,12 +42,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     currentLessonIndex < LESSONS.length - 1
       ? LESSONS[currentLessonIndex + 1]
       : null;
-
-  console.log("LessonsPanel props:", {
-    onPlayExample,
-    onStopPlaying,
-    currentlyPlayingId,
-  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -80,18 +70,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   const renderContent = (content: React.ReactNode): React.ReactNode => {
     if (!React.isValidElement(content)) {
       return content;
-    }
-
-    if (content.type === BasicInlineExample) {
-      console.log("Found BasicInlineExample, injecting props");
-      const exampleId = `${content.props.name}:${content.props.data}`;
-      return React.cloneElement(content, {
-        ...content.props,
-        onPlayExample,
-        onStopPlaying,
-        currentlyPlayingId,
-        className: exampleId === currentlyPlayingId ? "text-green-400" : "",
-      });
     }
 
     if (content.type === Task) {
