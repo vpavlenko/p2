@@ -10,6 +10,7 @@ import { LessonExample } from "./LessonExample";
 import { immediate } from "tone";
 import { useParams, useNavigate } from "react-router-dom";
 import { LESSONS } from "../data/lessons";
+import { URL_PREFIX } from "../constants/routes";
 
 const NOTE_NAMES = [
   "C",
@@ -93,7 +94,7 @@ export const PianoController: React.FC = () => {
     if (!isNaN(parsedId) && LESSONS.some((lesson) => lesson.id === parsedId)) {
       setCurrentLessonId(parsedId);
     } else {
-      navigate("/p/1", { replace: true });
+      navigate(`${URL_PREFIX}/1`, { replace: true });
     }
   }, [lessonId, navigate]);
 
@@ -298,7 +299,7 @@ export const PianoController: React.FC = () => {
   const handleLessonChange = useCallback(
     (lessonId: number) => {
       setCurrentLessonId(lessonId);
-      navigate(`/p/${lessonId}`);
+      navigate(`${URL_PREFIX}/${lessonId}`);
     },
     [navigate]
   );

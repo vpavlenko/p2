@@ -5,6 +5,7 @@ import { Voicing } from "../constants/voicings";
 import { BasicInlineExample } from "./LessonExample";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
+import { URL_PREFIX } from "../constants/routes";
 
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
@@ -113,7 +114,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
             <div className={`flex-1 ${nextLesson ? "w-1/2" : "w-full"}`}>
               {previousLesson && (
                 <Link
-                  to={`/p/${previousLesson.id}`}
+                  to={`${URL_PREFIX}/${previousLesson.id}`}
                   onClick={() => onLessonChange(previousLesson.id)}
                   className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-left select-none"
                 >
@@ -125,7 +126,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
             <div className={`flex-1 ${previousLesson ? "w-1/2" : "w-full"}`}>
               {nextLesson && (
                 <Link
-                  to={`/p/${nextLesson.id}`}
+                  to={`${URL_PREFIX}/${nextLesson.id}`}
                   onClick={() => onLessonChange(nextLesson.id)}
                   className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right select-none"
                 >
@@ -148,7 +149,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
               {LESSONS.map((lesson, index) => (
                 <Link
                   key={lesson.id}
-                  to={`/p/${lesson.id}`}
+                  to={`${URL_PREFIX}/${lesson.id}`}
                   onClick={() => {
                     onLessonChange(lesson.id);
                     setIsMenuOpen(false);
