@@ -97,8 +97,26 @@ const FLAT_CHROMATIC_KEYBOARD_MAP = {
   Equal: { note: 8, octave: 5 },
 } as const;
 
-// Export the keyboard map based on color mode
-export const getKeyboardMap = (colorMode: ColorMode) => {
+// Add this new mapping for the C notes task
+export const C_NOTES_KEYBOARD_MAP = {
+  KeyZ: { note: 0, octave: 1 }, // C1
+  KeyX: { note: 0, octave: 2 }, // C2
+  KeyC: { note: 0, octave: 3 }, // C3
+  KeyV: { note: 0, octave: 4 }, // C4
+  KeyB: { note: 0, octave: 5 }, // C5
+  KeyN: { note: 0, octave: 6 }, // C6
+  KeyM: { note: 0, octave: 7 }, // C7
+  Comma: { note: 0, octave: 8 }, // C8
+} as const;
+
+// Update the getKeyboardMap function signature to accept null
+export const getKeyboardMap = (
+  colorMode: ColorMode,
+  taskId?: string | null
+) => {
+  if (taskId === "play-all-c-notes") {
+    return C_NOTES_KEYBOARD_MAP;
+  }
   return colorMode === "flat-chromatic"
     ? FLAT_CHROMATIC_KEYBOARD_MAP
     : TRADITIONAL_KEYBOARD_MAP;

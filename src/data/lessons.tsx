@@ -1,14 +1,6 @@
 import React from "react";
 import { Task } from "../components/Task";
 
-const H2 = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="text-2xl font-bold mb-4">{children}</h2>
-);
-
-const H3 = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-xl font-semibold mt-12">{children}</h3>
-);
-
 const P = ({ children }: { children: React.ReactNode }) => (
   <p className="mt-6 mb-2">{children}</p>
 );
@@ -59,6 +51,13 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           id="press-any-notes"
           total={20}
           description="Press any 20 notes on the piano"
+          nextTask={
+            <Task
+              id="play-all-c-notes"
+              total={8}
+              description="Play all C notes using Z, X, C, V, B, N, M, comma keys"
+            />
+          }
         />
       </>
     ),

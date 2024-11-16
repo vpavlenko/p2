@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { LESSONS } from "../data/lessons";
-import { Voicing } from "../constants/voicings";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
+import { TASK_CONFIGS } from "../types/tasks";
 
 interface TaskProgress {
   taskId: string;
@@ -12,23 +12,15 @@ interface TaskProgress {
 }
 
 interface LessonsPanelProps {
-  onStopPlaying: () => void;
-  currentlyPlayingId: string | null;
-  currentVoicing: Voicing;
-  onVoicingChange: (voicing: Voicing) => void;
   currentLessonId: number;
   onLessonChange: (lessonId: number) => void;
   taskProgress: TaskProgress[];
-  onTaskProgress: (taskId: string) => void;
 }
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
-  onStopPlaying,
-  currentlyPlayingId,
   currentLessonId,
   onLessonChange,
   taskProgress,
-  onTaskProgress,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -73,12 +65,21 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     }
 
     if (content.type === Task) {
+      const taskId = content.props.id;
+      const taskConfig = TASK_CONFIGS[taskId];
       const progress =
-        taskProgress.find((t) => t.taskId === content.props.id)?.progress || 0;
-      return React.cloneElement(content, {
-        ...content.props,
+        taskProgress.find((t) => t.taskId === taskId)?.progress || 0;
+
+      const taskProps: React.ComponentProps<typeof Task> = {
+        id: taskId,
+        total: taskConfig.total,
+        description: taskConfig.description,
         progress,
-      });
+        nextTask:
+          content.props.nextTask && renderContent(content.props.nextTask),
+      };
+
+      return React.cloneElement(content, taskProps);
     }
 
     if (content.props.children) {
