@@ -445,9 +445,10 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     octaveNum: number,
     keyMapping: string | undefined
   ) => {
+    const currentKeyboardMap = getKeyboardMap(colorMode, activeTaskId);
+
     if (activeTaskId === "play-all-c-notes") {
-      // Now C_NOTES_KEYBOARD_MAP will be defined
-      const matchingKey = Object.entries(C_NOTES_KEYBOARD_MAP).find(
+      const matchingKey = Object.entries(currentKeyboardMap).find(
         ([, value]) => value.note === noteNum && value.octave === octaveNum
       )?.[0];
 

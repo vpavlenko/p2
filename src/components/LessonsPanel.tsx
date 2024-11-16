@@ -15,12 +15,14 @@ interface LessonsPanelProps {
   currentLessonId: number;
   onLessonChange: (lessonId: number) => void;
   taskProgress: TaskProgress[];
+  activeTaskId: string | null;
 }
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   currentLessonId,
   onLessonChange,
   taskProgress,
+  activeTaskId,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -75,6 +77,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
         total: taskConfig.total,
         description: taskConfig.description,
         progress,
+        isActive: taskId === activeTaskId,
         nextTask:
           content.props.nextTask && renderContent(content.props.nextTask),
       };

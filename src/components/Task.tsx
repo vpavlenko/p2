@@ -8,6 +8,7 @@ interface TaskProps {
   progress?: number;
   onComplete?: () => void;
   nextTask?: React.ReactNode;
+  isActive?: boolean;
 }
 
 export const Task: React.FC<TaskProps> = ({
@@ -16,6 +17,7 @@ export const Task: React.FC<TaskProps> = ({
   progress = 0,
   onComplete,
   nextTask,
+  isActive = false,
 }) => {
   const [isCompleted, setIsCompleted] = React.useState(false);
   const percentage = Math.min((progress / total) * 100, 100);
@@ -25,7 +27,6 @@ export const Task: React.FC<TaskProps> = ({
       setIsCompleted(true);
       onComplete?.();
 
-      // Trigger confetti
       confetti({
         particleCount: 100,
         spread: 70,
@@ -36,7 +37,13 @@ export const Task: React.FC<TaskProps> = ({
 
   return (
     <>
-      <div className="my-4 p-4 bg-gray-800 rounded-lg">
+      <div
+        className={`my-4 p-4 bg-gray-800 rounded-lg transition-all duration-300 ${
+          isActive
+            ? "ring-2 ring-blue-500 ring-opacity-50 shadow-lg shadow-blue-500/50"
+            : ""
+        }`}
+      >
         <div className="flex justify-between items-center mb-2">
           <div className="text-white">
             {isCompleted ? (

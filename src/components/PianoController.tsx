@@ -32,20 +32,50 @@ interface TaskProgress {
   progress: number;
 }
 
-// Add this helper function
-const getActiveTaskId = (taskProgress: TaskProgress[]): string | null => {
+// Add debug logging to getActiveTaskId
+const getActiveTaskId = (
+  taskProgress: TaskProgress[],
+  pendingTaskCompletion: string | null,
+  activeKeys: Set<string>
+): string | null => {
+  console.log("getActiveTaskId called with:", {
+    taskProgress,
+    pendingTaskCompletion,
+    activeKeysSize: activeKeys.size,
+  });
+
+  // If there's a pending completion and keys are still pressed, stay on current task
+  if (pendingTaskCompletion && activeKeys.size > 0) {
+    console.log("Staying on pending task:", pendingTaskCompletion);
+    return pendingTaskCompletion;
+  }
+
   // First task is active if it's not completed
   const firstTask = taskProgress.find((t) => t.taskId === "press-any-notes");
-  if (!firstTask || firstTask.progress < 20) {
+  const firstTaskCompleted = firstTask && firstTask.progress >= 20;
+
+  console.log("First task status:", {
+    exists: !!firstTask,
+    progress: firstTask?.progress,
+    completed: firstTaskCompleted,
+  });
+
+  if (!firstTaskCompleted) {
+    console.log("Activating first task");
     return "press-any-notes";
   }
 
-  // Second task is active if first is completed but second isn't
+  // Second task is active if first is completed and second isn't completed
   const secondTask = taskProgress.find((t) => t.taskId === "play-all-c-notes");
-  if (!secondTask || secondTask.progress < 7) {
+  const secondTaskCompleted = secondTask && secondTask.progress >= 7;
+
+  // Only activate second task if first is fully completed (including key release)
+  if (firstTaskCompleted && !secondTaskCompleted && !pendingTaskCompletion) {
+    console.log("Activating second task");
     return "play-all-c-notes";
   }
 
+  console.log("No active task - all completed");
   return null; // All tasks completed
 };
 
@@ -62,7 +92,15 @@ export const PianoController: React.FC = () => {
   const navigate = useNavigate();
   const { lessonId } = useParams();
   const [taskProgress, setTaskProgress] = useState<TaskProgress[]>([]);
+  const [taskPlayedNotes] = useState<Record<string, Set<string>>>({
+    "press-any-notes": new Set<string>(),
+    "play-all-c-notes": new Set<string>(),
+  });
   const [playedNotes] = useState(new Set<string>());
+  const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const [pendingTaskCompletion, setPendingTaskCompletion] = useState<
+    string | null
+  >(null);
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -80,15 +118,12 @@ export const PianoController: React.FC = () => {
       if (!taskConfig) return;
 
       const noteKey = `${note}-${octave}`;
-      const shouldIncrement = taskConfig.checkProgress(
-        note,
-        octave,
-        playedNotes
-      );
+      const taskNotes = taskPlayedNotes[taskId];
+      const shouldIncrement = taskConfig.checkProgress(note, octave, taskNotes);
 
       if (shouldIncrement) {
         if (taskConfig.id === "play-all-c-notes") {
-          playedNotes.add(noteKey);
+          taskNotes.add(noteKey);
         }
 
         setTaskProgress((prev) => {
@@ -102,17 +137,26 @@ export const PianoController: React.FC = () => {
         });
       }
     },
-    [playedNotes]
+    [taskPlayedNotes]
   );
 
   const playNotes = useCallback(
     async (note: number, octave: number) => {
+      console.log("playNotes called with:", { note, octave, tonic });
       const relativeNote = (note - tonic + 12) % 12;
+      console.log("Calculated relative note:", relativeNote);
+
       const notesToPlay = VOICINGS[voicing].getNotes(relativeNote, octave);
+      console.log("Notes to play:", notesToPlay);
 
       // Check progress for active task
-      const activeTaskId = getActiveTaskId(taskProgress);
+      const activeTaskId = getActiveTaskId(
+        taskProgress,
+        pendingTaskCompletion,
+        activeKeys
+      );
       if (activeTaskId) {
+        console.log("Incrementing progress for task:", activeTaskId);
         incrementTaskProgress(activeTaskId, note, octave);
       }
 
@@ -135,9 +179,19 @@ export const PianoController: React.FC = () => {
         return { note: absoluteNote, octave: o };
       });
 
+      // Add to active keys
+      setActiveKeys((prev) => new Set([...prev, `${note}-${octave}`]));
+
       return playedNotes;
     },
-    [tonic, voicing, incrementTaskProgress, taskProgress]
+    [
+      tonic,
+      voicing,
+      incrementTaskProgress,
+      taskProgress,
+      pendingTaskCompletion,
+      activeKeys,
+    ]
   );
 
   const releaseNotes = useCallback(
@@ -161,6 +215,13 @@ export const PianoController: React.FC = () => {
         );
 
         return { note: absoluteNote, octave: o };
+      });
+
+      // Remove from active keys
+      setActiveKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(`${note}-${octave}`);
+        return next;
       });
 
       return releasedNotes;
@@ -214,8 +275,54 @@ export const PianoController: React.FC = () => {
     return () => window.removeEventListener("keydown", handleSpaceKey);
   }, [currentlyPlayingId, stopProgression]);
 
-  // Get active task ID
-  const activeTaskId = getActiveTaskId(taskProgress);
+  // Update the task progress effect
+  useEffect(() => {
+    console.log("Task progress effect triggered:", {
+      taskProgress,
+      pendingTaskCompletion,
+      activeKeysSize: activeKeys.size,
+    });
+
+    taskProgress.forEach((task) => {
+      const config = TASK_CONFIGS[task.taskId];
+      // Only set pending completion if:
+      // 1. Task has just reached completion (progress === total)
+      // 2. No other task is pending
+      // 3. There are active keys
+      // 4. Task is the current active task
+      if (
+        config &&
+        task.progress === config.total && // Changed from >= to === to only trigger once
+        !pendingTaskCompletion &&
+        activeKeys.size > 0 &&
+        task.taskId === getActiveTaskId(taskProgress, null, new Set()) // Check if this is the currently active task
+      ) {
+        console.log("Setting pending completion for task:", task.taskId);
+        setPendingTaskCompletion(task.taskId);
+      }
+    });
+  }, [taskProgress, pendingTaskCompletion, activeKeys]);
+
+  // Add debug logging to pending completion effect
+  useEffect(() => {
+    if (pendingTaskCompletion && activeKeys.size === 0) {
+      console.log(
+        "Clearing pending completion for task:",
+        pendingTaskCompletion
+      );
+      setTimeout(() => {
+        setPendingTaskCompletion(null);
+      }, 50);
+    }
+  }, [activeKeys, pendingTaskCompletion]);
+
+  // Add debug logging to active task ID calculation
+  const activeTaskId = getActiveTaskId(
+    taskProgress,
+    pendingTaskCompletion,
+    activeKeys
+  );
+  console.log("Current active task:", activeTaskId);
 
   return (
     <>
@@ -223,6 +330,7 @@ export const PianoController: React.FC = () => {
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}
         taskProgress={taskProgress}
+        activeTaskId={activeTaskId}
       />
       <PianoUI
         tonic={tonic}
