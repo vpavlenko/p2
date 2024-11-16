@@ -11,6 +11,7 @@ import { immediate } from "tone";
 import { useParams, useNavigate } from "react-router-dom";
 import { LESSONS } from "../data/lessons";
 import { URL_PREFIX } from "../constants/routes";
+import { Task } from "./Task";
 
 const NOTE_NAMES = [
   "C",
@@ -75,6 +76,11 @@ const getTonicFromName = (tonicName: string): number => {
   return note;
 };
 
+interface TaskProgress {
+  taskId: string;
+  progress: number;
+}
+
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
@@ -87,6 +93,7 @@ export const PianoController: React.FC = () => {
   );
   const navigate = useNavigate();
   const { lessonId } = useParams();
+  const [taskProgress, setTaskProgress] = useState<TaskProgress[]>([]);
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -98,10 +105,25 @@ export const PianoController: React.FC = () => {
     }
   }, [lessonId, navigate]);
 
+  const incrementTaskProgress = useCallback((taskId: string) => {
+    setTaskProgress((prev) => {
+      const existingTask = prev.find((t) => t.taskId === taskId);
+      if (existingTask) {
+        return prev.map((t) =>
+          t.taskId === taskId ? { ...t, progress: t.progress + 1 } : t
+        );
+      }
+      return [...prev, { taskId, progress: 1 }];
+    });
+  }, []);
+
   const playNotes = useCallback(
     async (note: number, octave: number) => {
       const relativeNote = (note - tonic + 12) % 12;
       const notesToPlay = VOICINGS[voicing].getNotes(relativeNote, octave);
+
+      // Increment progress for any active "press any note" tasks
+      incrementTaskProgress("press-any-notes");
 
       const playedNotes = notesToPlay.map(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
@@ -124,7 +146,7 @@ export const PianoController: React.FC = () => {
 
       return playedNotes;
     },
-    [tonic, voicing]
+    [tonic, voicing, incrementTaskProgress]
   );
 
   const releaseNotes = useCallback(
@@ -331,6 +353,8 @@ export const PianoController: React.FC = () => {
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}
         onVoicingChange={setVoicing}
+        taskProgress={taskProgress}
+        onTaskProgress={incrementTaskProgress}
       />
       <PianoUI
         tonic={tonic}

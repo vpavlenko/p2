@@ -6,6 +6,12 @@ import { BasicInlineExample } from "./LessonExample";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
+import { Task } from "./Task";
+
+interface TaskProgress {
+  taskId: string;
+  progress: number;
+}
 
 interface LessonsPanelProps {
   onPlayExample: (example: LessonExample) => void;
@@ -15,6 +21,8 @@ interface LessonsPanelProps {
   onVoicingChange: (voicing: Voicing) => void;
   currentLessonId: number;
   onLessonChange: (lessonId: number) => void;
+  taskProgress: TaskProgress[];
+  onTaskProgress: (taskId: string) => void;
 }
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
@@ -23,6 +31,8 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   currentlyPlayingId,
   currentLessonId,
   onLessonChange,
+  taskProgress,
+  onTaskProgress,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -81,6 +91,15 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
         onStopPlaying,
         currentlyPlayingId,
         className: exampleId === currentlyPlayingId ? "text-green-400" : "",
+      });
+    }
+
+    if (content.type === Task) {
+      const progress =
+        taskProgress.find((t) => t.taskId === content.props.id)?.progress || 0;
+      return React.cloneElement(content, {
+        ...content.props,
+        progress,
       });
     }
 

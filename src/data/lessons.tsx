@@ -1,5 +1,6 @@
 import React from "react";
 import { BasicInlineExample as E } from "../components/LessonExample";
+import { Task } from "../components/Task";
 
 const H2 = ({ children }: { children: React.ReactNode }) => (
   <h2 className="text-2xl font-bold mb-4">{children}</h2>
@@ -51,6 +52,15 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           Our goal is to learn enough structures to be able to analyze and
           compare pieces in <MTop100 />
         </P>
+        <P>
+          Let's start by getting familiar with the piano. Try pressing some
+          keys!
+        </P>
+        <Task
+          id="press-any-notes"
+          total={20}
+          description="Press any 20 notes on the piano"
+        />
       </>
     ),
   },
