@@ -71,9 +71,13 @@ export const Task: React.FC<TaskProps> = ({
             description
           )}
         </div>
-        <div className={`${isCompleted ? "text-green-400" : "text-gray-400"}`}>
-          {isCompleted ? "Completed!" : `${progress}/${total}`}
-        </div>
+        {!isCompleted && (
+          <div
+            className={`${isCompleted ? "text-green-400" : "text-gray-400"}`}
+          >
+            {`${progress}/${total}`}
+          </div>
+        )}
       </div>
       <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
         <div

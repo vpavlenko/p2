@@ -49,7 +49,16 @@ export interface PianoControllerState {
   pendingNextTask: string | null;
 }
 
-const getActiveTaskId = (state: PianoControllerState): string | null => {
+const getLastTaskInLesson = (lessonId: number): string | null => {
+  const lesson = LESSONS.find((l) => l.id === lessonId);
+  if (!lesson || !lesson.taskIds.length) return null;
+  return lesson.taskIds[lesson.taskIds.length - 1];
+};
+
+const getActiveTaskId = (
+  state: PianoControllerState,
+  currentLessonId: number
+): string | null => {
   console.log("getActiveTaskId called with:", state);
 
   // First check for any completing tasks - they take priority
@@ -59,6 +68,21 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
   if (completingTask) {
     console.log("Found completing task:", completingTask.taskId);
     return completingTask.taskId;
+  }
+
+  // Check if current lesson is completed
+  const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
+  if (currentLesson) {
+    const allTasksCompleted = currentLesson.taskIds.every((taskId) =>
+      state.taskProgress.some(
+        (t) => t.taskId === taskId && t.status === "completed"
+      )
+    );
+
+    if (allTasksCompleted) {
+      // Return the last task of the lesson to maintain its mapping and coloring
+      return getLastTaskInLesson(currentLessonId);
+    }
   }
 
   // Then handle pending task transitions
@@ -86,7 +110,7 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
 
     // If task doesn't exist in progress or is not completed
     if (!taskState || taskState.status === "active") {
-      if (canTaskBeActivated(taskId, state.taskProgress)) {
+      if (canTaskBeActivated(taskId, state.taskProgress, currentLessonId)) {
         console.log(`Activating task: ${taskId}`);
         return taskId;
       }
@@ -216,7 +240,7 @@ export const PianoController: React.FC = () => {
       console.log("Notes to play:", notesToPlay);
 
       // Check progress for active task
-      const activeTaskId = getActiveTaskId(state);
+      const activeTaskId = getActiveTaskId(state, currentLessonId);
       if (activeTaskId) {
         console.log("Incrementing progress for task:", activeTaskId);
         incrementTaskProgress(activeTaskId, note, octave);
@@ -409,7 +433,7 @@ export const PianoController: React.FC = () => {
   }, [state.pendingNextTask]);
 
   // Get the current active task ID
-  const currentActiveTaskId = getActiveTaskId(state);
+  const currentActiveTaskId = getActiveTaskId(state, currentLessonId);
 
   return (
     <>

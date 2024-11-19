@@ -61,7 +61,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   currentLessonId,
   onLessonChange,
   taskProgress,
-  setState,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

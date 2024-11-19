@@ -28,8 +28,6 @@ const R = ({
   </a>
 );
 
-const MTop100 = () => <R suffix="book/intro">Musescore Top 100</R>;
-
 const LESSONS_WITHOUT_IDS: {
   title: string;
   content: React.ReactNode;
@@ -46,12 +44,8 @@ const LESSONS_WITHOUT_IDS: {
           using my colorful music notation.
         </P>
         <P>
-          Our goal is to learn enough structures to be able to analyze and
-          compare pieces in <MTop100 />
-        </P>
-        <P>
-          Let's start by getting familiar with the piano. Try playing some C
-          notes!
+          We have seven different types of white keys. Why seven? There are
+          seven vibes, in a way.
         </P>
       </>
     ),

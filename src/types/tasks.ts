@@ -1,5 +1,6 @@
 import { ColorMode } from "../components/types";
 import { KeyboardMapping } from "../constants/keyboard";
+import { LESSONS } from "../data/lessons";
 
 export interface TaskConfig {
   id: string;
@@ -119,44 +120,44 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-c-across-octaves": createTaskConfig(
     0,
     0,
-    "Play C notes across different octaves using Z, A, Q, 1 keys",
-    [0] // Only C is chromatic
+    "Play C notes across different octaves",
+    [0]
   ),
   "play-d-across-octaves": createTaskConfig(
     1,
     2,
-    "Play D notes across different octaves using X, S, W, 2 keys",
-    [0, 2] // C and D are chromatic
+    "Play D notes across different octaves",
+    [0, 2]
   ),
   "play-e-across-octaves": createTaskConfig(
     2,
     4,
-    "Play E notes across different octaves using C, D, E, 3 keys",
-    [0, 2, 4] // C, D, and E are chromatic
+    "Play E notes across different octaves",
+    [0, 2, 4]
   ),
   "play-f-across-octaves": createTaskConfig(
     3,
     5,
-    "Play F notes across different octaves using V, F, R, 4 keys",
-    [0, 2, 4, 5] // C, D, E, and F are chromatic
+    "Play F notes across different octaves",
+    [0, 2, 4, 5]
   ),
   "play-g-across-octaves": createTaskConfig(
     4,
     7,
-    "Play G notes across different octaves using B, G, T, 5 keys",
-    [0, 2, 4, 5, 7] // C, D, E, F, and G are chromatic
+    "Play G notes across different octaves",
+    [0, 2, 4, 5, 7]
   ),
   "play-a-across-octaves": createTaskConfig(
     5,
     9,
-    "Play A notes across different octaves using N, H, Y, 6 keys",
-    [0, 2, 4, 5, 7, 9] // C, D, E, F, G, and A are chromatic
+    "Play A notes across different octaves",
+    [0, 2, 4, 5, 7, 9]
   ),
   "play-b-across-octaves": createTaskConfig(
     6,
     11,
-    "Play B notes across different octaves using M, J, U, 7 keys",
-    [0, 2, 4, 5, 7, 9, 11] // C, D, E, F, G, A, and B are chromatic
+    "Play B notes across different octaves",
+    [0, 2, 4, 5, 7, 9, 11]
   ),
   "play-d-again": createTaskConfig(
     0,
@@ -179,10 +180,17 @@ export const isTaskCompleted = (taskId: string, progress: number): boolean => {
 
 export const canTaskBeActivated = (
   taskId: string,
-  taskProgress: TaskProgress[]
+  taskProgress: TaskProgress[],
+  currentLessonId: number
 ): boolean => {
   const config = TASK_CONFIGS[taskId];
   if (!config) return false;
+
+  // Find which lesson this task belongs to
+  const taskLesson = LESSONS.find((lesson) => lesson.taskIds.includes(taskId));
+  if (!taskLesson || taskLesson.id !== currentLessonId) {
+    return false; // Don't activate if task is not in current lesson
+  }
 
   if (!config.previousTaskId) return true;
 
