@@ -59,8 +59,29 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       Digit1: { note: 0, octave: 5 }, // C5
     },
     checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      console.log(`[play-c-across-octaves] Checking progress:`, {
+        note,
+        octave,
+        currentPlayedNotes: Array.from(playedNotes),
+        validOctaves: [2, 3, 4, 5],
+        isValidNote: note === 0,
+        isValidOctave: [2, 3, 4, 5].includes(octave),
+      });
+
+      if (note !== 0 || ![2, 3, 4, 5].includes(octave)) {
+        console.log(`[play-c-across-octaves] Rejected: invalid note or octave`);
+        return false;
+      }
+
       const noteKey = `${note}-${octave}`;
-      return note === 0 && !playedNotes.has(noteKey);
+      const isNewNote = !playedNotes.has(noteKey);
+
+      console.log(`[play-c-across-octaves] Note key "${noteKey}":`, {
+        alreadyPlayed: playedNotes.has(noteKey),
+        willIncrement: isNewNote,
+      });
+
+      return isNewNote;
     },
     nextTaskId: null,
   },

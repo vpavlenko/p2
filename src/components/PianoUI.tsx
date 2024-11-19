@@ -167,7 +167,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
             fontSize: "16px",
             fontWeight: "bold",
             marginBottom: "2px",
-            fontFamily: "monospace",
+            // fontFamily: "monospace",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

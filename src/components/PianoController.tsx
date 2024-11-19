@@ -139,7 +139,9 @@ export const PianoController: React.FC = () => {
   const navigate = useNavigate();
   const { lessonId } = useParams();
   const [taskProgress, setTaskProgress] = useState<TaskProgress[]>([]);
-  const [taskPlayedNotes] = useState<Record<string, Set<string>>>({
+  const [taskPlayedNotes, setTaskPlayedNotes] = useState<
+    Record<string, Set<string>>
+  >({
     "press-any-notes": new Set<string>(),
     "play-all-c-notes": new Set<string>(),
     "play-c-across-octaves": new Set<string>(),
@@ -182,9 +184,11 @@ export const PianoController: React.FC = () => {
       const shouldIncrement = taskConfig.checkProgress(note, octave, taskNotes);
 
       if (shouldIncrement) {
-        if (taskConfig.id === "play-all-c-notes") {
-          taskNotes.add(noteKey);
-        }
+        // Update the played notes Set
+        setTaskPlayedNotes((prev) => ({
+          ...prev,
+          [taskId]: new Set([...prev[taskId], noteKey]),
+        }));
 
         setTaskProgress((prev) => {
           const existingTask = prev.find((t) => t.taskId === taskId);
