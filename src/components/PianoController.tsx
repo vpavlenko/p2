@@ -16,6 +16,7 @@ import {
   canTaskBeActivated,
   getNextTaskId,
 } from "../types/tasks";
+import { ensureSamplerLoaded } from "../audio/sampler";
 
 const NOTE_NAMES = [
   "C",
@@ -121,6 +122,13 @@ const getActiveTaskId = (
   return null;
 };
 
+// Add this helper function at the top level
+const initializeTaskProgress = (taskId: string): TaskProgress => ({
+  taskId,
+  progress: 0,
+  status: "active",
+});
+
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
@@ -133,7 +141,12 @@ export const PianoController: React.FC = () => {
   );
   const navigate = useNavigate();
   const { lessonId } = useParams();
-  const [taskProgress, setTaskProgress] = useState<TaskProgress[]>([]);
+  const [state, setState] = useState<PianoControllerState>({
+    taskProgress: [],
+    pendingTaskCompletion: null,
+    activeKeysSize: 0,
+    pendingNextTask: null,
+  });
   const [taskPlayedNotes, setTaskPlayedNotes] = useState<
     Record<string, Set<string>>
   >({
@@ -146,13 +159,8 @@ export const PianoController: React.FC = () => {
     "play-b-across-octaves": new Set<string>(),
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
-  const [pendingTaskCompletion] = useState<string | null>(null);
-  const [state, setState] = useState<PianoControllerState>({
-    taskProgress: [],
-    pendingTaskCompletion: null,
-    activeKeysSize: 0,
-    pendingNextTask: null,
-  });
+  const [samplerReady, setSamplerReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -164,19 +172,21 @@ export const PianoController: React.FC = () => {
     }
   }, [lessonId, navigate]);
 
-  // Add an effect to sync taskProgress with state
+  // Add effect to sync activeKeysSize
   useEffect(() => {
     setState((prev) => ({
       ...prev,
-      taskProgress,
       activeKeysSize: activeKeys.size,
     }));
-  }, [taskProgress, activeKeys.size]);
+  }, [activeKeys.size]);
 
   const incrementTaskProgress = useCallback(
     (taskId: string, note: number, octave: number) => {
       const taskConfig = TASK_CONFIGS[taskId];
-      if (!taskConfig) return;
+      if (!taskConfig) {
+        console.log("No task config found for:", taskId);
+        return;
+      }
 
       const noteKey = `${note}-${octave}`;
       const taskNotes = taskPlayedNotes[taskId];
@@ -186,7 +196,7 @@ export const PianoController: React.FC = () => {
         noteKey,
         shouldIncrement,
         currentProgress:
-          taskProgress.find((t) => t.taskId === taskId)?.progress || 0,
+          state.taskProgress.find((t) => t.taskId === taskId)?.progress || 0,
         total: taskConfig.total,
       });
 
@@ -196,43 +206,90 @@ export const PianoController: React.FC = () => {
           [taskId]: new Set([...prev[taskId], noteKey]),
         }));
 
-        setTaskProgress((prev) => {
-          const existingTask = prev.find((t) => t.taskId === taskId);
+        setState((prev) => {
+          const existingTask = prev.taskProgress.find(
+            (t) => t.taskId === taskId
+          );
           const currentProgress = existingTask?.progress ?? 0;
           const newProgress = currentProgress + 1;
 
-          console.log(`[setTaskProgress] Updating task ${taskId}:`, {
-            currentProgress,
-            newProgress,
-            willComplete: newProgress >= taskConfig.total,
-            currentStatus: existingTask?.status,
-            newStatus:
-              newProgress >= taskConfig.total ? "completing" : "active",
-          });
-
-          return existingTask
-            ? prev.map((t) =>
-                t.taskId === taskId
-                  ? {
-                      ...t,
-                      progress: newProgress,
-                      status:
-                        newProgress >= taskConfig.total
-                          ? "completing"
-                          : "active",
-                    }
-                  : t
-              )
-            : [...prev, { taskId, progress: 1, status: "active" }];
+          return {
+            ...prev,
+            taskProgress: existingTask
+              ? prev.taskProgress.map((t) =>
+                  t.taskId === taskId
+                    ? {
+                        ...t,
+                        progress: newProgress,
+                        status:
+                          newProgress >= taskConfig.total
+                            ? "completing"
+                            : "active",
+                      }
+                    : t
+                )
+              : [
+                  ...prev.taskProgress,
+                  { taskId, progress: 1, status: "active" },
+                ],
+          };
         });
       }
     },
-    [taskPlayedNotes, taskProgress]
+    [taskPlayedNotes]
   );
 
+  // Add effect to initialize first task of a lesson when lesson changes
+  useEffect(() => {
+    const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
+    if (currentLesson && currentLesson.taskIds.length > 0) {
+      const firstTaskId = currentLesson.taskIds[0];
+
+      setState((prev) => {
+        // Check if task already exists
+        const exists = prev.taskProgress.some((t) => t.taskId === firstTaskId);
+        if (!exists) {
+          return {
+            ...prev,
+            taskProgress: [
+              ...prev.taskProgress,
+              initializeTaskProgress(firstTaskId),
+            ],
+          };
+        }
+        return prev;
+      });
+    }
+  }, [currentLessonId]);
+
+  // Move sampler loading to an earlier useEffect
+  useEffect(() => {
+    const loadSampler = async () => {
+      setIsLoading(true);
+      await ensureSamplerLoaded();
+      setSamplerReady(true);
+      setIsLoading(false);
+    };
+
+    loadSampler();
+  }, []);
+
+  // Update playNotes to handle loading state
   const playNotes = useCallback(
     async (note: number, octave: number) => {
+      if (!samplerReady) {
+        console.log("Sampler not ready yet, ignoring note");
+        return [];
+      }
+
       console.log("playNotes called with:", { note, octave, tonic });
+      console.log("Current state:", {
+        taskProgress: state.taskProgress,
+        activeKeys: Array.from(activeKeys),
+        currentLessonId,
+        state,
+      });
+
       const relativeNote = (note - tonic + 12) % 12;
       console.log("Calculated relative note:", relativeNote);
 
@@ -241,8 +298,33 @@ export const PianoController: React.FC = () => {
 
       // Check progress for active task
       const activeTaskId = getActiveTaskId(state, currentLessonId);
+      console.log("Active task check:", {
+        activeTaskId,
+        currentLessonId,
+        taskProgressLength: state.taskProgress.length,
+        stateTaskProgressLength: state.taskProgress.length,
+      });
+
       if (activeTaskId) {
         console.log("Incrementing progress for task:", activeTaskId);
+        // Initialize task if it doesn't exist
+        setState((prev) => {
+          console.log(
+            "Current task progress before update:",
+            prev.taskProgress
+          );
+          if (!prev.taskProgress.some((t) => t.taskId === activeTaskId)) {
+            console.log("Initializing new task:", activeTaskId);
+            return {
+              ...prev,
+              taskProgress: [
+                ...prev.taskProgress,
+                initializeTaskProgress(activeTaskId),
+              ],
+            };
+          }
+          return prev;
+        });
         incrementTaskProgress(activeTaskId, note, octave);
       }
 
@@ -271,12 +353,12 @@ export const PianoController: React.FC = () => {
       return playedNotes;
     },
     [
+      samplerReady,
       tonic,
       voicing,
       incrementTaskProgress,
-      taskProgress,
-      pendingTaskCompletion,
-      activeKeys,
+      state,
+      currentLessonId,
     ]
   );
 
@@ -309,13 +391,14 @@ export const PianoController: React.FC = () => {
           `[releaseNotes] All keys released, completing task ${completingTask.taskId}`
         );
 
-        setTaskProgress((prev) =>
-          prev.map((t) =>
+        setState((prev) => ({
+          ...prev,
+          taskProgress: prev.taskProgress.map((t) =>
             t.taskId === completingTask.taskId
               ? { ...t, status: "completed" }
               : t
-          )
-        );
+          ),
+        }));
 
         const nextTaskId = getNextTaskId(completingTask.taskId);
         if (nextTaskId) {
@@ -413,19 +496,24 @@ export const PianoController: React.FC = () => {
   // Add this effect to initialize new tasks
   useEffect(() => {
     if (state.pendingNextTask) {
-      setTaskProgress((prev) => {
+      setState((prev) => {
         // Check if task already exists
-        const exists = prev.some((t) => t.taskId === state.pendingNextTask);
+        const exists = prev.taskProgress.some(
+          (t) => t.taskId === state.pendingNextTask
+        );
         if (!exists && state.pendingNextTask) {
           // Initialize the new task
-          return [
+          return {
             ...prev,
-            {
-              taskId: state.pendingNextTask,
-              progress: 0,
-              status: "active",
-            } as TaskProgress, // Explicitly type as TaskProgress
-          ];
+            taskProgress: [
+              ...prev.taskProgress,
+              {
+                taskId: state.pendingNextTask,
+                progress: 0,
+                status: "active",
+              } as TaskProgress, // Explicitly type as TaskProgress
+            ],
+          };
         }
         return prev;
       });
@@ -435,39 +523,66 @@ export const PianoController: React.FC = () => {
   // Get the current active task ID
   const currentActiveTaskId = getActiveTaskId(state, currentLessonId);
 
+  // Add debug logging for keyboard events
+  const handleKeyDown = useCallback(
+    async (event: KeyboardEvent) => {
+      console.log("Key down event:", {
+        code: event.code,
+        key: event.key,
+        activeTaskId: currentActiveTaskId,
+        taskMapping: currentActiveTaskId
+          ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
+          : undefined,
+      });
+
+      // ... rest of key handling
+    },
+    [currentActiveTaskId]
+  );
+
+  // Add effect to attach keyboard listeners
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   return (
     <>
       <LessonsPanel
         currentLessonId={currentLessonId}
         onLessonChange={handleLessonChange}
-        taskProgress={taskProgress}
-        activeTaskId={currentActiveTaskId}
-        activeKeysCount={activeKeys.size}
-        setState={setState}
-      />
-      <PianoUI
-        tonic={tonic}
-        setTonic={setTonic}
-        colorMode={
-          currentActiveTaskId
-            ? TASK_CONFIGS[currentActiveTaskId]?.colorMode || colorMode
-            : colorMode
-        }
-        onColorModeChange={setColorMode}
-        currentVoicing={voicing}
-        onVoicingChange={setVoicing}
-        playNotes={playNotes}
-        releaseNotes={releaseNotes}
-        fallingNotes={fallingNotes}
-        currentlyPlayingId={currentlyPlayingId}
-        onStopPlaying={stopProgression}
-        taskKeyboardMapping={
-          currentActiveTaskId
-            ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
-            : undefined
-        }
+        taskProgress={state.taskProgress}
         activeTaskId={currentActiveTaskId}
       />
+      {isLoading ? (
+        <div className="fixed top-0 left-[600px] right-0 bottom-0 bg-black flex items-center justify-center text-white">
+          Loading piano sounds...
+        </div>
+      ) : (
+        <PianoUI
+          tonic={tonic}
+          setTonic={setTonic}
+          colorMode={
+            currentActiveTaskId
+              ? TASK_CONFIGS[currentActiveTaskId]?.colorMode || colorMode
+              : colorMode
+          }
+          onColorModeChange={setColorMode}
+          currentVoicing={voicing}
+          onVoicingChange={setVoicing}
+          playNotes={playNotes}
+          releaseNotes={releaseNotes}
+          fallingNotes={fallingNotes}
+          currentlyPlayingId={currentlyPlayingId}
+          onStopPlaying={stopProgression}
+          taskKeyboardMapping={
+            currentActiveTaskId
+              ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
+              : undefined
+          }
+          activeTaskId={currentActiveTaskId}
+        />
+      )}
     </>
   );
 };

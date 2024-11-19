@@ -37,62 +37,53 @@ export const TASK_SEQUENCE = [
   "play-c-sharp",
 ] as const;
 
-// Helper function to get accumulated keyboard mappings up to a given task
-const getAccumulatedKeyMapping = (taskIndex: number): KeyboardMapping => {
-  const allMappings: Record<number, KeyboardMapping> = {
-    0: {
-      KeyZ: { note: 0, octave: 2 }, // C2
-      KeyA: { note: 0, octave: 3 }, // C3
-      KeyQ: { note: 0, octave: 4 }, // C4
-      Digit1: { note: 0, octave: 5 }, // C5
-    },
-    1: {
-      KeyX: { note: 2, octave: 2 }, // D2
-      KeyS: { note: 2, octave: 3 }, // D3
-      KeyW: { note: 2, octave: 4 }, // D4
-      Digit2: { note: 2, octave: 5 }, // D5
-    },
-    2: {
-      KeyC: { note: 4, octave: 2 }, // E2
-      KeyD: { note: 4, octave: 3 }, // E3
-      KeyE: { note: 4, octave: 4 }, // E4
-      Digit3: { note: 4, octave: 5 }, // E5
-    },
-    3: {
-      KeyV: { note: 5, octave: 2 }, // F2
-      KeyF: { note: 5, octave: 3 }, // F3
-      KeyR: { note: 5, octave: 4 }, // F4
-      Digit4: { note: 5, octave: 5 }, // F5
-    },
-    4: {
-      KeyB: { note: 7, octave: 2 }, // G2
-      KeyG: { note: 7, octave: 3 }, // G3
-      KeyT: { note: 7, octave: 4 }, // G4
-      Digit5: { note: 7, octave: 5 }, // G5
-    },
-    5: {
-      KeyN: { note: 9, octave: 2 }, // A2
-      KeyH: { note: 9, octave: 3 }, // A3
-      KeyY: { note: 9, octave: 4 }, // A4
-      Digit6: { note: 9, octave: 5 }, // A5
-    },
-    6: {
-      KeyM: { note: 11, octave: 2 }, // B2
-      KeyJ: { note: 11, octave: 3 }, // B3
-      KeyU: { note: 11, octave: 4 }, // B4
-      Digit7: { note: 11, octave: 5 }, // B5
-    },
-  };
-
-  return Object.entries(allMappings)
-    .filter(([index]) => parseInt(index) <= taskIndex)
-    .reduce((acc, [, mapping]) => ({ ...acc, ...mapping }), {});
+// First, let's create a type for our key mappings
+export type NoteMapping = {
+  note: number;
+  octave: number;
+  keys: string[]; // Array of keys that can trigger this note
 };
 
-// Helper function to create task config
+// Create a function to generate both keyboard mapping and key display
+export const createNoteMapping = (
+  note: number,
+  keys: [string, string, string, string] // Four keys for four octaves
+): NoteMapping => ({
+  note,
+  octave: 0, // Base octave, will be adjusted in usage
+  keys,
+});
+
+// Define our note mappings centrally
+export const NOTE_MAPPINGS = {
+  C: createNoteMapping(0, ["KeyZ", "KeyA", "KeyQ", "Digit1"]),
+  D: createNoteMapping(2, ["KeyX", "KeyS", "KeyW", "Digit2"]),
+  E: createNoteMapping(4, ["KeyC", "KeyD", "KeyE", "Digit3"]),
+  F: createNoteMapping(5, ["KeyV", "KeyF", "KeyR", "Digit4"]),
+  G: createNoteMapping(7, ["KeyB", "KeyG", "KeyT", "Digit5"]),
+  A: createNoteMapping(9, ["KeyN", "KeyH", "KeyY", "Digit6"]),
+  B: createNoteMapping(11, ["KeyM", "KeyJ", "KeyU", "Digit7"]),
+  "C#": createNoteMapping(1, ["KeyZ", "KeyA", "KeyQ", "Digit1"]), // Same keys as C for black keys
+} as const;
+
+// Helper function to convert NoteMapping to KeyboardMapping
+export const createKeyboardMapping = (
+  noteMapping: NoteMapping
+): KeyboardMapping => {
+  const mapping: KeyboardMapping = {};
+  noteMapping.keys.forEach((key, index) => {
+    mapping[key] = {
+      note: noteMapping.note,
+      octave: index + 2, // Start from octave 2
+    };
+  });
+  return mapping;
+};
+
+// Update createTaskConfig to use NOTE_MAPPINGS
 const createTaskConfig = (
   index: number,
-  targetNote: number,
+  targetNote: NoteMapping,
   description: string,
   chromaticNotes: number[]
 ): TaskConfig => {
@@ -105,9 +96,9 @@ const createTaskConfig = (
     nextTaskId:
       index < TASK_SEQUENCE.length - 1 ? TASK_SEQUENCE[index + 1] : null,
     chromaticNotes,
-    keyboardMapping: getAccumulatedKeyMapping(index),
+    keyboardMapping: createKeyboardMapping(targetNote),
     checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
-      if (note !== targetNote || ![2, 3, 4, 5].includes(octave)) {
+      if (note !== targetNote.note || ![2, 3, 4, 5].includes(octave)) {
         return false;
       }
       const noteKey = `${note}-${octave}`;
@@ -119,56 +110,56 @@ const createTaskConfig = (
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-c-across-octaves": createTaskConfig(
     0,
-    0,
+    NOTE_MAPPINGS.C,
     "Play C notes across different octaves",
     [0]
   ),
   "play-d-across-octaves": createTaskConfig(
     1,
-    2,
+    NOTE_MAPPINGS.D,
     "Play D notes across different octaves",
     [0, 2]
   ),
   "play-e-across-octaves": createTaskConfig(
     2,
-    4,
+    NOTE_MAPPINGS.E,
     "Play E notes across different octaves",
     [0, 2, 4]
   ),
   "play-f-across-octaves": createTaskConfig(
     3,
-    5,
+    NOTE_MAPPINGS.F,
     "Play F notes across different octaves",
     [0, 2, 4, 5]
   ),
   "play-g-across-octaves": createTaskConfig(
     4,
-    7,
+    NOTE_MAPPINGS.G,
     "Play G notes across different octaves",
     [0, 2, 4, 5, 7]
   ),
   "play-a-across-octaves": createTaskConfig(
     5,
-    9,
+    NOTE_MAPPINGS.A,
     "Play A notes across different octaves",
     [0, 2, 4, 5, 7, 9]
   ),
   "play-b-across-octaves": createTaskConfig(
     6,
-    11,
+    NOTE_MAPPINGS.B,
     "Play B notes across different octaves",
     [0, 2, 4, 5, 7, 9, 11]
   ),
   "play-d-again": createTaskConfig(
-    0,
-    2,
-    "Play D notes again using X, S, W, 2 keys",
+    7,
+    NOTE_MAPPINGS.D,
+    "Play D notes across different octaves",
     [0, 2, 4, 5, 7, 9, 11]
   ),
   "play-c-sharp": createTaskConfig(
-    1,
-    1,
-    "Play C# notes using Z, A, Q, 1 keys",
+    8,
+    NOTE_MAPPINGS["C#"],
+    "Play C# notes across different octaves",
     [0, 1, 2, 4, 5, 7, 9, 11]
   ),
 };
