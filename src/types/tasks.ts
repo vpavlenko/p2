@@ -10,6 +10,7 @@ export interface TaskConfig {
   total: number;
   keyboardMapping?: KeyboardMapping;
   colorMode?: ColorMode;
+  chromaticNotes?: number[];
   checkProgress: (
     note: number,
     octave: number,
@@ -43,6 +44,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: null,
+    chromaticNotes: [0],
     keyboardMapping: {
       KeyZ: { note: 0, octave: 2 }, // C2
       KeyA: { note: 0, octave: 3 }, // C3
@@ -82,6 +84,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-c-across-octaves",
+    chromaticNotes: [0, 2],
     keyboardMapping: {
       KeyX: { note: 2, octave: 2 }, // D2
       KeyS: { note: 2, octave: 3 }, // D3
@@ -121,6 +124,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-d-across-octaves",
+    chromaticNotes: [0, 2, 4],
     keyboardMapping: {
       KeyC: { note: 4, octave: 2 }, // E2
       KeyD: { note: 4, octave: 3 }, // E3
@@ -160,6 +164,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-e-across-octaves",
+    chromaticNotes: [0, 2, 4, 5],
     keyboardMapping: {
       KeyV: { note: 5, octave: 2 }, // F2
       KeyF: { note: 5, octave: 3 }, // F3
@@ -181,6 +186,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-f-across-octaves",
+    chromaticNotes: [0, 2, 4, 5, 7],
     keyboardMapping: {
       KeyB: { note: 7, octave: 2 }, // G2
       KeyG: { note: 7, octave: 3 }, // G3
@@ -202,6 +208,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-g-across-octaves",
+    chromaticNotes: [0, 2, 4, 5, 7, 9],
     keyboardMapping: {
       KeyN: { note: 9, octave: 2 }, // A2
       KeyH: { note: 9, octave: 3 }, // A3
@@ -223,6 +230,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     total: 4,
     requiredProgress: 4,
     previousTaskId: "play-a-across-octaves",
+    chromaticNotes: [0, 2, 4, 5, 7, 9, 11],
     keyboardMapping: {
       KeyM: { note: 11, octave: 2 }, // B2
       KeyJ: { note: 11, octave: 3 }, // B3

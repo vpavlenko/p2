@@ -11,6 +11,7 @@ import {
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
+import { TASK_CONFIGS } from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -40,6 +41,7 @@ interface PianoKeyProps {
     octave: number
   ) => Array<{ note: number; octave: number }>;
   isActive: boolean;
+  activeTaskId: string | null;
 }
 
 const PianoKey: React.FC<PianoKeyProps> = ({
@@ -54,11 +56,24 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   playNotes,
   releaseNotes,
   isActive,
+  activeTaskId,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
-  const colors = getColors(tonic, colorMode);
+
+  // Get the current task's chromatic notes
+  const chromaticNotes = activeTaskId
+    ? TASK_CONFIGS[activeTaskId]?.chromaticNotes
+    : undefined;
+
+  // Determine which color mode to use for this note
+  const effectiveColorMode = chromaticNotes?.includes(note)
+    ? "chromatic"
+    : "traditional";
+
+  const colors = getColors(tonic, effectiveColorMode);
   const relativeNote = (note - tonic + 12) % 12;
+  const isWhiteKey = WHITE_KEYS.includes(note);
 
   const handleMouseDown = async () => {
     await playNotes(note, octave);
@@ -89,8 +104,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     handleMouseUp();
   };
 
-  const isWhiteKey = WHITE_KEYS.includes(note);
-
   const keyStyle = {
     ...style,
     backgroundColor: colors[note],
@@ -99,7 +112,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     fontSize: "10px",
     textAlign: "center" as const,
     color:
-      colorMode === "traditional"
+      effectiveColorMode === "traditional"
         ? isWhiteKey
           ? "black"
           : "white"
@@ -128,24 +141,24 @@ const PianoKey: React.FC<PianoKeyProps> = ({
         : "none",
     transition:
       isActive || isPressed || isHovered
-        ? "all 0.1s ease-in-out" // Fast transition for interactions
-        : "all 1s ease-in-out", // Slow transition for color mode changes
+        ? "all 0.1s ease-in-out"
+        : "all 1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
-    border: colorMode === "traditional" ? "1px solid #333" : "none",
+    border: effectiveColorMode === "traditional" ? "1px solid #333" : "none",
     height:
-      colorMode === "flat-chromatic"
+      effectiveColorMode === "flat-chromatic"
         ? PIANO_HEIGHT
         : isWhiteKey
-        ? colorMode === "traditional"
+        ? effectiveColorMode === "traditional"
           ? PIANO_HEIGHT
           : PIANO_HEIGHT - WHITE_KEY_TOP_OFFSET
         : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
     top:
-      colorMode === "flat-chromatic"
+      effectiveColorMode === "flat-chromatic"
         ? 0
         : isWhiteKey
-        ? colorMode === "traditional"
+        ? effectiveColorMode === "traditional"
           ? 0
           : WHITE_KEY_TOP_OFFSET
         : 0,
@@ -261,8 +274,8 @@ interface PianoUIProps {
   fallingNotes: FallingNote[];
   currentlyPlayingId: string | null;
   onStopPlaying: () => void;
-  activeTaskId: string | null;
   taskKeyboardMapping?: KeyboardMapping;
+  activeTaskId: string | null;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -278,6 +291,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   currentlyPlayingId,
   onStopPlaying,
   taskKeyboardMapping,
+  activeTaskId,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -433,6 +447,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     colorMode,
     playNotes,
     releaseNotes,
+    activeTaskId,
   };
 
   // Inside PianoUI component, before the return statement
@@ -572,6 +587,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                     zIndex:
                       colorMode === "flat-chromatic" ? 1 : isWhiteKey ? 1 : 2,
                   }}
+                  activeTaskId={activeTaskId}
                 />
               );
             }
