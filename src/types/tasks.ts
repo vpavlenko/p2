@@ -83,6 +83,80 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
 
       return isNewNote;
     },
-    nextTaskId: null,
+    nextTaskId: "play-d-across-octaves",
+  },
+  "play-d-across-octaves": {
+    id: "play-d-across-octaves",
+    description: "Play D notes across different octaves using X, S, W, 2 keys",
+    total: 4,
+    keyboardMapping: {
+      KeyX: { note: 2, octave: 3 }, // D3
+      KeyS: { note: 2, octave: 4 }, // D4
+      KeyW: { note: 2, octave: 5 }, // D5
+      Digit2: { note: 2, octave: 6 }, // D6
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      console.log(`[play-d-across-octaves] Checking progress:`, {
+        note,
+        octave,
+        currentPlayedNotes: Array.from(playedNotes),
+        validOctaves: [3, 4, 5, 6],
+        isValidNote: note === 2,
+        isValidOctave: [3, 4, 5, 6].includes(octave),
+      });
+
+      if (note !== 2 || ![3, 4, 5, 6].includes(octave)) {
+        console.log(`[play-d-across-octaves] Rejected: invalid note or octave`);
+        return false;
+      }
+
+      const noteKey = `${note}-${octave}`;
+      const isNewNote = !playedNotes.has(noteKey);
+
+      console.log(`[play-d-across-octaves] Note key "${noteKey}":`, {
+        alreadyPlayed: playedNotes.has(noteKey),
+        willIncrement: isNewNote,
+      });
+
+      return isNewNote;
+    },
+    nextTaskId: "play-e-across-octaves",
+  },
+  "play-e-across-octaves": {
+    id: "play-e-across-octaves",
+    description: "Play E notes across different octaves using C, D, E, 3 keys",
+    total: 4,
+    keyboardMapping: {
+      KeyC: { note: 4, octave: 3 }, // E3
+      KeyD: { note: 4, octave: 4 }, // E4
+      KeyE: { note: 4, octave: 5 }, // E5
+      Digit3: { note: 4, octave: 6 }, // E6
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      console.log(`[play-e-across-octaves] Checking progress:`, {
+        note,
+        octave,
+        currentPlayedNotes: Array.from(playedNotes),
+        validOctaves: [3, 4, 5, 6],
+        isValidNote: note === 4,
+        isValidOctave: [3, 4, 5, 6].includes(octave),
+      });
+
+      if (note !== 4 || ![3, 4, 5, 6].includes(octave)) {
+        console.log(`[play-e-across-octaves] Rejected: invalid note or octave`);
+        return false;
+      }
+
+      const noteKey = `${note}-${octave}`;
+      const isNewNote = !playedNotes.has(noteKey);
+
+      console.log(`[play-e-across-octaves] Note key "${noteKey}":`, {
+        alreadyPlayed: playedNotes.has(noteKey),
+        willIncrement: isNewNote,
+      });
+
+      return isNewNote;
+    },
+    nextTaskId: "press-any-notes",
   },
 };

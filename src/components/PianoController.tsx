@@ -80,9 +80,9 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
 
   // Second task is active if first is completed and second isn't completed
   const secondTask = state.taskProgress.find(
-    (t) => t.taskId === "press-any-notes"
+    (t) => t.taskId === "play-d-across-octaves"
   );
-  const secondTaskCompleted = secondTask && secondTask.progress >= 20;
+  const secondTaskCompleted = secondTask && secondTask.progress >= 4;
 
   if (
     firstTaskCompleted &&
@@ -90,14 +90,14 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
     !state.pendingTaskCompletion
   ) {
     console.log("Activating second task");
-    return "press-any-notes";
+    return "play-d-across-octaves";
   }
 
   // Third task is active if second is completed and third isn't completed
   const thirdTask = state.taskProgress.find(
-    (t) => t.taskId === "play-all-c-notes"
+    (t) => t.taskId === "play-e-across-octaves"
   );
-  const thirdTaskCompleted = thirdTask && thirdTask.progress >= 8;
+  const thirdTaskCompleted = thirdTask && thirdTask.progress >= 4;
 
   if (
     secondTaskCompleted &&
@@ -105,6 +105,36 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
     !state.pendingTaskCompletion
   ) {
     console.log("Activating third task");
+    return "play-e-across-octaves";
+  }
+
+  // Fourth task is active if third is completed and fourth isn't completed
+  const fourthTask = state.taskProgress.find(
+    (t) => t.taskId === "press-any-notes"
+  );
+  const fourthTaskCompleted = fourthTask && fourthTask.progress >= 20;
+
+  if (
+    thirdTaskCompleted &&
+    !fourthTaskCompleted &&
+    !state.pendingTaskCompletion
+  ) {
+    console.log("Activating fourth task");
+    return "press-any-notes";
+  }
+
+  // Fifth task is active if fourth is completed and fifth isn't completed
+  const fifthTask = state.taskProgress.find(
+    (t) => t.taskId === "play-all-c-notes"
+  );
+  const fifthTaskCompleted = fifthTask && fifthTask.progress >= 8;
+
+  if (
+    fourthTaskCompleted &&
+    !fifthTaskCompleted &&
+    !state.pendingTaskCompletion
+  ) {
+    console.log("Activating fifth task");
     return "play-all-c-notes";
   }
 
@@ -114,14 +144,18 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
 
 // Add this helper function near getNextTaskId
 const getPreviousTaskId = (currentTaskId: string): string | null => {
-  if (currentTaskId === "press-any-notes") return "play-c-across-octaves";
+  if (currentTaskId === "play-d-across-octaves") return "play-c-across-octaves";
+  if (currentTaskId === "play-e-across-octaves") return "play-d-across-octaves";
+  if (currentTaskId === "press-any-notes") return "play-e-across-octaves";
   if (currentTaskId === "play-all-c-notes") return "press-any-notes";
   return null;
 };
 
 // Update getNextTaskId
 const getNextTaskId = (currentTaskId: string): string | null => {
-  if (currentTaskId === "play-c-across-octaves") return "press-any-notes";
+  if (currentTaskId === "play-c-across-octaves") return "play-d-across-octaves";
+  if (currentTaskId === "play-d-across-octaves") return "play-e-across-octaves";
+  if (currentTaskId === "play-e-across-octaves") return "press-any-notes";
   if (currentTaskId === "press-any-notes") return "play-all-c-notes";
   return null;
 };
@@ -142,9 +176,11 @@ export const PianoController: React.FC = () => {
   const [taskPlayedNotes, setTaskPlayedNotes] = useState<
     Record<string, Set<string>>
   >({
+    "play-c-across-octaves": new Set<string>(),
+    "play-d-across-octaves": new Set<string>(),
+    "play-e-across-octaves": new Set<string>(),
     "press-any-notes": new Set<string>(),
     "play-all-c-notes": new Set<string>(),
-    "play-c-across-octaves": new Set<string>(),
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [pendingTaskCompletion] = useState<string | null>(null);

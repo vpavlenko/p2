@@ -52,8 +52,20 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           taskConfig={TASK_CONFIGS["play-c-across-octaves"]}
           nextTask={
             <Task
-              taskConfig={TASK_CONFIGS["press-any-notes"]}
-              nextTask={<Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />}
+              taskConfig={TASK_CONFIGS["play-d-across-octaves"]}
+              nextTask={
+                <Task
+                  taskConfig={TASK_CONFIGS["play-e-across-octaves"]}
+                  nextTask={
+                    <Task
+                      taskConfig={TASK_CONFIGS["press-any-notes"]}
+                      nextTask={
+                        <Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />
+                      }
+                    />
+                  }
+                />
+              }
             />
           }
         />
