@@ -12,7 +12,6 @@ import { LESSONS } from "../data/lessons";
 import { URL_PREFIX } from "../constants/routes";
 import {
   TASK_CONFIGS,
-  TASK_SEQUENCE,
   canTaskBeActivated,
   getNextTaskId,
 } from "../types/tasks";
@@ -60,7 +59,11 @@ const getActiveTaskId = (
   state: PianoControllerState,
   currentLessonId: number
 ): string | null => {
-  console.log("getActiveTaskId called with:", state);
+  console.log("[getActiveTaskId] Called with:", {
+    taskProgress: state.taskProgress,
+    currentLessonId,
+    pendingNextTask: state.pendingNextTask,
+  });
 
   // First check for any completing tasks - they take priority
   const completingTask = state.taskProgress.find(
@@ -71,27 +74,30 @@ const getActiveTaskId = (
     return completingTask.taskId;
   }
 
-  // Check if current lesson is completed
+  // Get current lesson
   const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
-  if (currentLesson) {
-    const allTasksCompleted = currentLesson.taskIds.every((taskId) =>
-      state.taskProgress.some(
-        (t) => t.taskId === taskId && t.status === "completed"
-      )
-    );
+  if (!currentLesson) {
+    console.log("No lesson found for id:", currentLessonId);
+    return null;
+  }
 
-    if (allTasksCompleted) {
-      // Return the last task of the lesson to maintain its mapping and coloring
-      return getLastTaskInLesson(currentLessonId);
-    }
+  // Check if current lesson is completed
+  const allTasksCompleted = currentLesson.taskIds.every((taskId) =>
+    state.taskProgress.some(
+      (t) => t.taskId === taskId && t.status === "completed"
+    )
+  );
+
+  if (allTasksCompleted) {
+    console.log("All tasks completed in lesson:", currentLessonId);
+    return getLastTaskInLesson(currentLessonId);
   }
 
   // Then handle pending task transitions
   if (state.pendingNextTask) {
-    // If we have active keys, stay with current task
-    const currentTaskId =
-      state.taskProgress.find((t) => t.status === "active")?.taskId ?? null;
     if (state.activeKeysSize > 0) {
+      const currentTaskId =
+        state.taskProgress.find((t) => t.status === "active")?.taskId ?? null;
       console.log(
         "Waiting for key releases before activating:",
         state.pendingNextTask
@@ -100,17 +106,25 @@ const getActiveTaskId = (
       return currentTaskId;
     }
 
-    // No active keys, can transition
     console.log("Activating pending task:", state.pendingNextTask);
     return state.pendingNextTask;
   }
 
-  // Finally, find first incomplete task in sequence
-  for (const taskId of TASK_SEQUENCE) {
-    const taskState = state.taskProgress.find((t) => t.taskId === taskId);
+  // First check if there's already an active task
+  const activeTask = state.taskProgress.find((t) => t.status === "active");
+  if (activeTask && currentLesson.taskIds.includes(activeTask.taskId)) {
+    console.log("Found existing active task:", activeTask.taskId);
+    return activeTask.taskId;
+  }
 
-    // If task doesn't exist in progress or is not completed
-    if (!taskState || taskState.status === "active") {
+  // Find first incomplete task in current lesson
+  for (const taskId of currentLesson.taskIds) {
+    console.log("Checking task:", taskId);
+    const taskState = state.taskProgress.find((t) => t.taskId === taskId);
+    console.log("Task state:", taskState);
+
+    // If task doesn't exist or is not completed
+    if (!taskState || taskState.status !== "completed") {
       if (canTaskBeActivated(taskId, state.taskProgress, currentLessonId)) {
         console.log(`Activating task: ${taskId}`);
         return taskId;
@@ -118,7 +132,7 @@ const getActiveTaskId = (
     }
   }
 
-  console.log("No active task - all completed");
+  console.log("No active task found - all completed");
   return null;
 };
 
@@ -128,6 +142,22 @@ const initializeTaskProgress = (taskId: string): TaskProgress => ({
   progress: 0,
   status: "active",
 });
+
+// Add this helper function
+const clearTaskProgressForOtherLessons = (
+  taskProgress: TaskProgress[],
+  currentLessonId: number
+): TaskProgress[] => {
+  const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
+  if (!currentLesson) return taskProgress;
+
+  console.log("[clearTaskProgressForOtherLessons] Before:", taskProgress);
+  const filtered = taskProgress.filter((t) =>
+    currentLesson.taskIds.includes(t.taskId)
+  );
+  console.log("[clearTaskProgressForOtherLessons] After:", filtered);
+  return filtered;
+};
 
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
@@ -149,14 +179,19 @@ export const PianoController: React.FC = () => {
   });
   const [taskPlayedNotes, setTaskPlayedNotes] = useState<
     Record<string, Set<string>>
-  >({
-    "play-c-across-octaves": new Set<string>(),
-    "play-d-across-octaves": new Set<string>(),
-    "play-e-across-octaves": new Set<string>(),
-    "play-f-across-octaves": new Set<string>(),
-    "play-g-across-octaves": new Set<string>(),
-    "play-a-across-octaves": new Set<string>(),
-    "play-b-across-octaves": new Set<string>(),
+  >(() => {
+    // Initialize for all tasks across all lessons
+    const allTasks = LESSONS.reduce((acc, lesson) => {
+      return [...acc, ...lesson.taskIds];
+    }, [] as string[]);
+
+    return allTasks.reduce(
+      (acc, taskId) => ({
+        ...acc,
+        [taskId]: new Set<string>(),
+      }),
+      {}
+    );
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [samplerReady, setSamplerReady] = useState(false);
@@ -165,8 +200,51 @@ export const PianoController: React.FC = () => {
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
     const parsedId = parseInt(lessonId || "1");
+    console.log("[lessonChange] Changing to lesson:", parsedId);
+
     if (!isNaN(parsedId) && LESSONS.some((lesson) => lesson.id === parsedId)) {
       setCurrentLessonId(parsedId);
+
+      // Clear task progress from other lessons and initialize first task
+      setState((prev) => {
+        const clearedProgress = clearTaskProgressForOtherLessons(
+          prev.taskProgress,
+          parsedId
+        );
+        console.log("[lessonChange] Cleared progress:", clearedProgress);
+
+        // Initialize first task of new lesson if needed
+        const currentLesson = LESSONS.find((l) => l.id === parsedId);
+        if (currentLesson && currentLesson.taskIds.length > 0) {
+          const firstTaskId = currentLesson.taskIds[0];
+          console.log("[lessonChange] Initializing first task:", firstTaskId);
+
+          // Check if task already exists in cleared progress
+          const exists = clearedProgress.some((t) => t.taskId === firstTaskId);
+          if (!exists) {
+            console.log(
+              "[lessonChange] Creating new task progress for:",
+              firstTaskId
+            );
+            return {
+              ...prev,
+              taskProgress: [
+                ...clearedProgress,
+                {
+                  taskId: firstTaskId,
+                  progress: 0,
+                  status: "active" as const,
+                },
+              ],
+            };
+          }
+        }
+
+        return {
+          ...prev,
+          taskProgress: clearedProgress,
+        };
+      });
     } else {
       navigate(`${URL_PREFIX}/1`, { replace: true });
     }
@@ -239,29 +317,6 @@ export const PianoController: React.FC = () => {
     [taskPlayedNotes]
   );
 
-  // Add effect to initialize first task of a lesson when lesson changes
-  useEffect(() => {
-    const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
-    if (currentLesson && currentLesson.taskIds.length > 0) {
-      const firstTaskId = currentLesson.taskIds[0];
-
-      setState((prev) => {
-        // Check if task already exists
-        const exists = prev.taskProgress.some((t) => t.taskId === firstTaskId);
-        if (!exists) {
-          return {
-            ...prev,
-            taskProgress: [
-              ...prev.taskProgress,
-              initializeTaskProgress(firstTaskId),
-            ],
-          };
-        }
-        return prev;
-      });
-    }
-  }, [currentLessonId]);
-
   // Move sampler loading to an earlier useEffect
   useEffect(() => {
     const loadSampler = async () => {
@@ -282,12 +337,13 @@ export const PianoController: React.FC = () => {
         return [];
       }
 
-      console.log("playNotes called with:", { note, octave, tonic });
-      console.log("Current state:", {
+      console.log("[playNotes] Called with:", { note, octave, tonic });
+      console.log("[playNotes] Current state:", {
         taskProgress: state.taskProgress,
         activeKeys: Array.from(activeKeys),
         currentLessonId,
         state,
+        taskPlayedNotes,
       });
 
       const relativeNote = (note - tonic + 12) % 12;
@@ -545,6 +601,21 @@ export const PianoController: React.FC = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  // Add this effect to reset taskPlayedNotes when lesson changes
+  useEffect(() => {
+    console.log("[taskPlayedNotes] Resetting for lesson:", currentLessonId);
+    const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
+    if (currentLesson) {
+      setTaskPlayedNotes((prev) => {
+        const newState = { ...prev };
+        currentLesson.taskIds.forEach((taskId) => {
+          newState[taskId] = new Set<string>();
+        });
+        return newState;
+      });
+    }
+  }, [currentLessonId]);
 
   return (
     <>
