@@ -115,11 +115,8 @@ export const PianoController: React.FC = () => {
     "press-any-notes": new Set<string>(),
     "play-all-c-notes": new Set<string>(),
   });
-  const [playedNotes] = useState(new Set<string>());
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
-  const [pendingTaskCompletion, setPendingTaskCompletion] = useState<
-    string | null
-  >(null);
+  const [pendingTaskCompletion] = useState<string | null>(null);
   const [state, setState] = useState<PianoControllerState>({
     taskProgress: [],
     pendingTaskCompletion: null,
@@ -352,7 +349,11 @@ export const PianoController: React.FC = () => {
       <PianoUI
         tonic={tonic}
         setTonic={setTonic}
-        colorMode={colorMode}
+        colorMode={
+          currentActiveTaskId
+            ? TASK_CONFIGS[currentActiveTaskId]?.colorMode || colorMode
+            : colorMode
+        }
         onColorModeChange={setColorMode}
         currentVoicing={voicing}
         onVoicingChange={setVoicing}
@@ -362,6 +363,11 @@ export const PianoController: React.FC = () => {
         currentlyPlayingId={currentlyPlayingId}
         onStopPlaying={stopProgression}
         activeTaskId={currentActiveTaskId}
+        taskKeyboardMapping={
+          currentActiveTaskId
+            ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
+            : undefined
+        }
       />
     </>
   );

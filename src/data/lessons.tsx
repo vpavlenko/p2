@@ -1,5 +1,6 @@
 import React from "react";
 import { Task } from "../components/Task";
+import { TASK_CONFIGS } from "../types/tasks";
 
 const P = ({ children }: { children: React.ReactNode }) => (
   <p className="mt-6 mb-2">{children}</p>
@@ -48,16 +49,8 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           keys!
         </P>
         <Task
-          id="press-any-notes"
-          total={20}
-          description="Press any 20 notes on the piano"
-          nextTask={
-            <Task
-              id="play-all-c-notes"
-              total={8}
-              description="Play all C notes using Z, X, C, V, B, N, M, comma keys"
-            />
-          }
+          taskConfig={TASK_CONFIGS["press-any-notes"]}
+          nextTask={<Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />}
         />
       </>
     ),

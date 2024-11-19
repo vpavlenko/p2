@@ -69,15 +69,13 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     }
 
     if (content.type === Task) {
-      const taskId = content.props.id;
+      const taskId = content.props.taskConfig.id;
       const taskConfig = TASK_CONFIGS[taskId];
       const progress =
         taskProgress.find((t) => t.taskId === taskId)?.progress || 0;
 
-      const taskProps: React.ComponentProps<typeof Task> = {
-        id: taskId,
-        total: taskConfig.total,
-        description: taskConfig.description,
+      const taskProps = {
+        taskConfig,
         progress,
         isActive: taskId === activeTaskId,
         activeNotes: activeKeysCount,

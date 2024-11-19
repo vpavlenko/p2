@@ -1,10 +1,9 @@
 import React from "react";
 import confetti from "canvas-confetti";
+import { TaskConfig } from "../types/tasks";
 
 interface TaskProps {
-  id: string;
-  total: number;
-  description: string;
+  taskConfig: TaskConfig;
   progress?: number;
   onComplete?: () => void;
   nextTask?: React.ReactNode;
@@ -13,15 +12,14 @@ interface TaskProps {
 }
 
 export const Task: React.FC<TaskProps> = ({
-  id,
-  total,
-  description,
+  taskConfig,
   progress = 0,
   onComplete,
   nextTask,
   isActive = false,
   activeNotes = 0,
 }) => {
+  const { id, total, description } = taskConfig;
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [showNextTask, setShowNextTask] = React.useState(false);
   const [waitingForRelease, setWaitingForRelease] = React.useState(false);

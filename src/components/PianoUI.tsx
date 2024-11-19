@@ -258,6 +258,7 @@ interface PianoUIProps {
   currentlyPlayingId: string | null;
   onStopPlaying: () => void;
   activeTaskId: string | null;
+  taskKeyboardMapping?: KeyboardMapping;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -273,6 +274,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   currentlyPlayingId,
   onStopPlaying,
   activeTaskId,
+  taskKeyboardMapping,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -288,7 +290,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
-      const currentKeyboardMap = getKeyboardMap(colorMode, activeTaskId);
+      const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
       if (event.ctrlKey && event.code in currentKeyboardMap) {
         const { note } =
@@ -312,7 +314,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      const currentKeyboardMap = getKeyboardMap(colorMode, activeTaskId);
+      const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
       setActiveKeys((prev) => {
         const next = new Set(prev);
@@ -341,7 +343,14 @@ export const PianoUI: React.FC<PianoUIProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [activeKeys, playNotes, releaseNotes, setTonic, colorMode, activeTaskId]);
+  }, [
+    activeKeys,
+    playNotes,
+    releaseNotes,
+    setTonic,
+    colorMode,
+    taskKeyboardMapping,
+  ]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -446,7 +455,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     octaveNum: number,
     keyMapping: string | undefined
   ) => {
-    const currentKeyboardMap = getKeyboardMap(colorMode, activeTaskId);
+    const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
     if (activeTaskId === "play-all-c-notes") {
       const matchingKey = Object.entries(currentKeyboardMap).find(

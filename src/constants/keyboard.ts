@@ -1,7 +1,16 @@
 import { ColorMode } from "../components/types";
 
+export interface NoteMapping {
+  note: number;
+  octave: number;
+}
+
+export type KeyboardMapping = {
+  [key: string]: NoteMapping;
+};
+
 // Traditional keyboard mapping (used for traditional and chromatic modes)
-const TRADITIONAL_KEYBOARD_MAP = {
+export const TRADITIONAL_KEYBOARD_MAP: KeyboardMapping = {
   KeyZ: { note: 0, octave: 2 },
   KeyS: { note: 1, octave: 2 },
   KeyX: { note: 2, octave: 2 },
@@ -41,8 +50,8 @@ const TRADITIONAL_KEYBOARD_MAP = {
   BracketRight: { note: 0, octave: 5 },
 } as const;
 
-// Flat-chromatic keyboard mapping (linear progression)
-const FLAT_CHROMATIC_KEYBOARD_MAP = {
+// Flat-chromatic keyboard mapping
+export const FLAT_CHROMATIC_KEYBOARD_MAP: KeyboardMapping = {
   // Bottom row (Z to /) - Octave 2
   KeyZ: { note: 0, octave: 2 },
   KeyX: { note: 1, octave: 2 },
@@ -97,32 +106,17 @@ const FLAT_CHROMATIC_KEYBOARD_MAP = {
   Equal: { note: 8, octave: 5 },
 } as const;
 
-// Add this new mapping for the C notes task
-export const C_NOTES_KEYBOARD_MAP = {
-  KeyZ: { note: 0, octave: 1 }, // C1
-  KeyX: { note: 0, octave: 2 }, // C2
-  KeyC: { note: 0, octave: 3 }, // C3
-  KeyV: { note: 0, octave: 4 }, // C4
-  KeyB: { note: 0, octave: 5 }, // C5
-  KeyN: { note: 0, octave: 6 }, // C6
-  KeyM: { note: 0, octave: 7 }, // C7
-  Comma: { note: 0, octave: 8 }, // C8
-} as const;
-
-// Update the getKeyboardMap function signature to accept null
 export const getKeyboardMap = (
   colorMode: ColorMode,
-  taskId?: string | null
-) => {
-  if (taskId === "play-all-c-notes") {
-    return C_NOTES_KEYBOARD_MAP;
+  taskMapping?: KeyboardMapping
+): KeyboardMapping => {
+  if (taskMapping) {
+    return taskMapping;
   }
   return colorMode === "flat-chromatic"
     ? FLAT_CHROMATIC_KEYBOARD_MAP
     : TRADITIONAL_KEYBOARD_MAP;
 };
-
-export const KEYBOARD_MAP = TRADITIONAL_KEYBOARD_MAP;
 
 // Key display labels remain the same
 export const KEY_DISPLAY_LABELS: { [key: string]: string } = {
