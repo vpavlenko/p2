@@ -36,10 +36,15 @@ const NOTE_NAMES = [
 interface TaskProgress {
   taskId: string;
   progress: number;
+  status: "active" | "completing" | "completed";
 }
 
 export interface PianoControllerState {
-  taskProgress: Array<{ taskId: string; progress: number }>;
+  taskProgress: Array<{
+    taskId: string;
+    progress: number;
+    status: "active" | "completing" | "completed";
+  }>;
   pendingTaskCompletion: string | null;
   activeKeysSize: number;
   pendingNextTask: string | null;
@@ -48,7 +53,16 @@ export interface PianoControllerState {
 const getActiveTaskId = (state: PianoControllerState): string | null => {
   console.log("getActiveTaskId called with:", state);
 
-  // Handle pending task transitions
+  // First check for any completing tasks - they take priority
+  const completingTask = state.taskProgress.find(
+    (t) => t.status === "completing"
+  );
+  if (completingTask) {
+    console.log("Found completing task:", completingTask.taskId);
+    return completingTask.taskId;
+  }
+
+  // Then handle pending task transitions
   if (state.pendingNextTask && state.activeKeysSize > 0) {
     const currentTaskId = state.taskProgress[0]?.taskId;
     console.log(
@@ -64,7 +78,7 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
     return state.pendingNextTask;
   }
 
-  // Find first incomplete task in sequence
+  // Finally, find first incomplete task in sequence
   for (const taskId of TASK_SEQUENCE) {
     const taskProgress =
       state.taskProgress.find((t) => t.taskId === taskId)?.progress || 0;
@@ -112,6 +126,9 @@ export const PianoController: React.FC = () => {
     activeKeysSize: 0,
     pendingNextTask: null,
   });
+  const [pendingKeyReleases, setPendingKeyReleases] = useState<Set<string>>(
+    new Set()
+  );
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -141,8 +158,24 @@ export const PianoController: React.FC = () => {
       const taskNotes = taskPlayedNotes[taskId];
       const shouldIncrement = taskConfig.checkProgress(note, octave, taskNotes);
 
+      console.log(`[incrementTaskProgress] Task ${taskId}:`, {
+        noteKey,
+        shouldIncrement,
+        currentProgress:
+          taskProgress.find((t) => t.taskId === taskId)?.progress || 0,
+        total: taskConfig.total,
+      });
+
       if (shouldIncrement) {
-        // Update the played notes Set
+        setPendingKeyReleases((prev) => {
+          const next = new Set([...prev, noteKey]);
+          console.log(
+            "[setPendingKeyReleases] New pending releases:",
+            Array.from(next)
+          );
+          return next;
+        });
+
         setTaskPlayedNotes((prev) => ({
           ...prev,
           [taskId]: new Set([...prev[taskId], noteKey]),
@@ -150,27 +183,35 @@ export const PianoController: React.FC = () => {
 
         setTaskProgress((prev) => {
           const existingTask = prev.find((t) => t.taskId === taskId);
-          const newProgress = existingTask
+          const newProgress = existingTask?.progress + 1 || 1;
+
+          console.log(`[setTaskProgress] Updating task ${taskId}:`, {
+            currentProgress: existingTask?.progress || 0,
+            newProgress,
+            willComplete: newProgress >= taskConfig.total,
+            currentStatus: existingTask?.status,
+            newStatus:
+              newProgress >= taskConfig.total ? "completing" : "active",
+          });
+
+          return existingTask
             ? prev.map((t) =>
-                t.taskId === taskId ? { ...t, progress: t.progress + 1 } : t
+                t.taskId === taskId
+                  ? {
+                      ...t,
+                      progress: newProgress,
+                      status:
+                        newProgress >= taskConfig.total
+                          ? "completing"
+                          : "active",
+                    }
+                  : t
               )
-            : [...prev, { taskId, progress: 1 }];
-
-          // Check if task is completed
-          const updatedTask = newProgress.find((t) => t.taskId === taskId);
-          if (updatedTask && updatedTask.progress === taskConfig.total) {
-            const nextTaskId = getNextTaskId(taskId);
-            setState((currentState) => ({
-              ...currentState,
-              pendingNextTask: nextTaskId,
-            }));
-          }
-
-          return newProgress;
+            : [...prev, { taskId, progress: 1, status: "active" }];
         });
       }
     },
-    [taskPlayedNotes, setState]
+    [taskPlayedNotes, taskProgress]
   );
 
   const playNotes = useCallback(
@@ -225,6 +266,65 @@ export const PianoController: React.FC = () => {
 
   const releaseNotes = useCallback(
     (note: number, octave: number) => {
+      const noteKey = `${note}-${octave}`;
+
+      console.log(`[releaseNotes] Releasing ${noteKey}:`, {
+        pendingReleases: Array.from(pendingKeyReleases),
+        pendingReleasesSize: pendingKeyReleases.size,
+        activeKeys: Array.from(activeKeys),
+        activeKeysSize: activeKeys.size,
+        completingTask: state.taskProgress.find(
+          (t) => t.status === "completing"
+        )?.taskId,
+      });
+
+      // Remove from pending releases
+      setPendingKeyReleases((prev) => {
+        const next = new Set(prev);
+        next.delete(noteKey);
+        console.log("[setPendingKeyReleases] After release:", Array.from(next));
+        return next;
+      });
+
+      // Check if this was the last key release for a completing task
+      if (pendingKeyReleases.size === 1) {
+        // Current key hasn't been removed yet
+        const completingTask = state.taskProgress.find(
+          (t) => t.status === "completing"
+        );
+
+        console.log("[releaseNotes] Last key release check:", {
+          completingTaskId: completingTask?.taskId,
+          completingTaskStatus: completingTask?.status,
+          pendingReleasesSize: pendingKeyReleases.size,
+          activeKeysSize: activeKeys.size,
+        });
+
+        if (completingTask) {
+          console.log(
+            `[releaseNotes] Completing task ${completingTask.taskId}`
+          );
+
+          // Only now mark task as completed and set up next task
+          setTaskProgress((prev) =>
+            prev.map((t) =>
+              t.taskId === completingTask.taskId
+                ? { ...t, status: "completed" }
+                : t
+            )
+          );
+
+          const nextTaskId = getNextTaskId(completingTask.taskId);
+          if (nextTaskId) {
+            console.log(`[releaseNotes] Setting up next task: ${nextTaskId}`);
+            setState((prev) => ({
+              ...prev,
+              pendingNextTask: nextTaskId,
+            }));
+          }
+        }
+      }
+
       const relativeNote = (note - tonic + 12) % 12;
       const notesToRelease = VOICINGS[voicing].getNotes(relativeNote, octave);
 
@@ -255,7 +355,7 @@ export const PianoController: React.FC = () => {
 
       return releasedNotes;
     },
-    [tonic, voicing]
+    [state.taskProgress, pendingKeyReleases, activeKeys.size, tonic, voicing]
   );
 
   const stopProgression = useCallback(() => {

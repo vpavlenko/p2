@@ -20,6 +20,12 @@ export interface TaskConfig {
   previousTaskId?: string | null;
 }
 
+export interface TaskProgress {
+  taskId: string;
+  progress: number;
+  status: "active" | "completing" | "completed";
+}
+
 export const TASK_SEQUENCE = [
   "play-c-across-octaves",
   "play-d-across-octaves",
@@ -187,15 +193,17 @@ export const isTaskCompleted = (taskId: string, progress: number): boolean => {
 
 export const canTaskBeActivated = (
   taskId: string,
-  taskProgress: Array<{ taskId: string; progress: number }>
+  taskProgress: TaskProgress[]
 ): boolean => {
   const config = TASK_CONFIGS[taskId];
   if (!config) return false;
 
   if (!config.previousTaskId) return true;
 
-  const previousTaskProgress =
-    taskProgress.find((t) => t.taskId === config.previousTaskId)?.progress || 0;
+  const previousTask = taskProgress.find(
+    (t) => t.taskId === config.previousTaskId
+  );
+  const previousTaskProgress = previousTask?.progress || 0;
 
   return isTaskCompleted(config.previousTaskId, previousTaskProgress);
 };

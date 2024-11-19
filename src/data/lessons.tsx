@@ -1,6 +1,6 @@
 import React from "react";
 import { Task } from "../components/Task";
-import { TASK_CONFIGS } from "../types/tasks";
+import { TASK_CONFIGS, TASK_SEQUENCE } from "../types/tasks";
 
 const P = ({ children }: { children: React.ReactNode }) => (
   <p className="mt-6 mb-2">{children}</p>
@@ -48,27 +48,9 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           Let's start by getting familiar with the piano. Try playing some C
           notes!
         </P>
-        <Task
-          taskConfig={TASK_CONFIGS["play-c-across-octaves"]}
-          nextTask={
-            <Task
-              taskConfig={TASK_CONFIGS["play-d-across-octaves"]}
-              nextTask={
-                <Task
-                  taskConfig={TASK_CONFIGS["play-e-across-octaves"]}
-                  nextTask={
-                    <Task
-                      taskConfig={TASK_CONFIGS["press-any-notes"]}
-                      nextTask={
-                        <Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />
-                      }
-                    />
-                  }
-                />
-              }
-            />
-          }
-        />
+        {TASK_SEQUENCE.map((taskId) => (
+          <Task key={taskId} taskConfig={TASK_CONFIGS[taskId]} />
+        ))}
       </>
     ),
   },
