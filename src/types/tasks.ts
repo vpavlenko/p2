@@ -32,6 +32,8 @@ export const TASK_SEQUENCE = [
   "play-g-across-octaves",
   "play-a-across-octaves",
   "play-b-across-octaves",
+  "play-d-again",
+  "play-c-sharp",
 ] as const;
 
 // Helper function to get accumulated keyboard mappings up to a given task
@@ -155,6 +157,18 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     11,
     "Play B notes across different octaves using M, J, U, 7 keys",
     [0, 2, 4, 5, 7, 9, 11] // C, D, E, F, G, A, and B are chromatic
+  ),
+  "play-d-again": createTaskConfig(
+    0,
+    2,
+    "Play D notes again using X, S, W, 2 keys",
+    [0, 2, 4, 5, 7, 9, 11]
+  ),
+  "play-c-sharp": createTaskConfig(
+    1,
+    1,
+    "Play C# notes using Z, A, Q, 1 keys",
+    [0, 1, 2, 4, 5, 7, 9, 11]
   ),
 };
 

@@ -1,8 +1,6 @@
 import React from "react";
-import { Task } from "../components/Task";
-import { TASK_CONFIGS, TASK_SEQUENCE } from "../types/tasks";
 
-const P = ({ children }: { children: React.ReactNode }) => (
+export const P: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p className="mt-6 mb-2">{children}</p>
 );
 
@@ -10,6 +8,8 @@ export interface Lesson {
   id: number;
   title: string;
   content: React.ReactNode;
+  finalText?: string;
+  taskIds: string[];
 }
 
 const R = ({
@@ -30,9 +30,14 @@ const R = ({
 
 const MTop100 = () => <R suffix="book/intro">Musescore Top 100</R>;
 
-const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
+const LESSONS_WITHOUT_IDS: {
+  title: string;
+  content: React.ReactNode;
+  finalText?: string;
+  taskIds: string[];
+}[] = [
   {
-    title: "Intro",
+    title: "White Keys",
     content: (
       <>
         <P>
@@ -48,11 +53,28 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           Let's start by getting familiar with the piano. Try playing some C
           notes!
         </P>
-        {TASK_SEQUENCE.map((taskId) => (
-          <Task key={taskId} taskConfig={TASK_CONFIGS[taskId]} />
-        ))}
       </>
     ),
+    finalText:
+      "Play around with all seven keys. Then, as you're ready, go to the next lesson",
+    taskIds: [
+      "play-c-across-octaves",
+      "play-d-across-octaves",
+      "play-e-across-octaves",
+      "play-f-across-octaves",
+      "play-g-across-octaves",
+      "play-a-across-octaves",
+      "play-b-across-octaves",
+    ],
+  },
+  {
+    title: "Black Keys",
+    content: (
+      <>
+        <P>Now let's learn about the black keys!</P>
+      </>
+    ),
+    taskIds: ["play-d-again", "play-c-sharp"],
   },
 ];
 

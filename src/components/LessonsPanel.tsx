@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { LESSONS } from "../data/lessons";
+import { Lesson, LESSONS, P } from "../data/lessons";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
-import { TASK_CONFIGS, getPreviousTaskId } from "../types/tasks";
+import { TASK_CONFIGS } from "../types/tasks";
 import { PianoControllerState } from "./PianoController";
+import type { TaskProgress } from "../types/tasks";
 
-interface TaskProgress {
-  taskId: string;
-  progress: number;
-}
+// Add type for React element
+type ReactElement = React.ReactElement<
+  any,
+  string | React.JSXElementConstructor<any>
+>;
 
 interface LessonsPanelProps {
   currentLessonId: number;
@@ -21,12 +23,44 @@ interface LessonsPanelProps {
   setState: React.Dispatch<React.SetStateAction<PianoControllerState>>;
 }
 
+const renderContent = (
+  content: React.ReactNode,
+  taskProgress: TaskProgress[],
+  currentLesson: Lesson
+): React.ReactNode => {
+  console.log("renderContent called with:", {
+    contentType:
+      content && React.isValidElement(content)
+        ? (content as ReactElement).type.name ||
+          typeof (content as ReactElement).type
+        : typeof content,
+    isValidElement: React.isValidElement(content),
+    hasChildren: React.isValidElement(content) ? content.props?.children : null,
+    currentLesson: currentLesson.title,
+  });
+
+  if (!React.isValidElement(content)) {
+    return content;
+  }
+
+  if (content.props.children) {
+    console.log("Processing children of:", {
+      contentType: content.type,
+      childrenCount: React.Children.count(content.props.children),
+    });
+    const children = React.Children.map(content.props.children, (child) =>
+      renderContent(child, taskProgress, currentLesson)
+    );
+    return React.cloneElement(content, {}, children);
+  }
+
+  return content;
+};
+
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   currentLessonId,
   onLessonChange,
   taskProgress,
-  activeTaskId,
-  activeKeysCount,
   setState,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,60 +99,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isMenuOpen]);
-
-  const renderContent = (content: React.ReactNode): React.ReactNode => {
-    if (!React.isValidElement(content)) {
-      return content;
-    }
-
-    if (content.type === Task) {
-      const taskId = content.props.taskConfig.id;
-      const taskConfig = TASK_CONFIGS[taskId];
-      const progress =
-        taskProgress.find((t) => t.taskId === taskId)?.progress || 0;
-
-      const taskProps = {
-        taskConfig,
-        progress,
-        isActive: taskId === activeTaskId,
-        activeNotes: activeKeysCount,
-        nextTask:
-          content.props.nextTask && renderContent(content.props.nextTask),
-        onActivate: () => {
-          const previousTaskId = getPreviousTaskId(taskId);
-          const previousTaskProgress = previousTaskId
-            ? taskProgress.find((t) => t.taskId === previousTaskId)?.progress ||
-              0
-            : Infinity;
-          const previousTaskConfig = previousTaskId
-            ? TASK_CONFIGS[previousTaskId]
-            : null;
-          const isPreviousTaskCompleted = previousTaskConfig
-            ? previousTaskProgress >= previousTaskConfig.total
-            : true;
-
-          if (isPreviousTaskCompleted) {
-            setState((prev) => ({
-              ...prev,
-              pendingNextTask: taskId,
-            }));
-          }
-        },
-      };
-
-      return React.cloneElement(content, taskProps);
-    }
-
-    if (content.props.children) {
-      const children = React.Children.map(
-        content.props.children,
-        renderContent
-      );
-      return React.cloneElement(content, {}, children);
-    }
-
-    return content;
-  };
 
   return (
     <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white p-8 overflow-y-auto">
@@ -196,7 +176,54 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
 
       {currentLesson && (
         <div className="prose prose-invert">
-          {renderContent(currentLesson.content)}
+          {renderContent(currentLesson.content, taskProgress, currentLesson)}
+
+          {currentLesson.taskIds.map((taskId, index) => {
+            const previousTaskId =
+              index > 0 ? currentLesson.taskIds[index - 1] : null;
+            const previousTaskCompleted = previousTaskId
+              ? taskProgress.some(
+                  (t) => t.taskId === previousTaskId && t.status === "completed"
+                )
+              : true;
+
+            console.log(`Rendering task ${taskId}:`, {
+              index,
+              previousTaskId,
+              previousTaskCompleted,
+              progress:
+                taskProgress.find((t) => t.taskId === taskId)?.progress ?? 0,
+              status:
+                taskProgress.find((t) => t.taskId === taskId)?.status ??
+                "active",
+            });
+
+            return (
+              <Task
+                key={taskId}
+                taskConfig={TASK_CONFIGS[taskId]}
+                progress={
+                  taskProgress.find((t) => t.taskId === taskId)?.progress ?? 0
+                }
+                status={
+                  taskProgress.find((t) => t.taskId === taskId)?.status ??
+                  "active"
+                }
+                previousTaskCompleted={previousTaskCompleted}
+              />
+            );
+          })}
+
+          {currentLesson.finalText &&
+            currentLesson.taskIds.every((taskId) =>
+              taskProgress.some(
+                (t) => t.taskId === taskId && t.status === "completed"
+              )
+            ) && (
+              <p className="mt-6 text-gray-400 italic">
+                {currentLesson.finalText}
+              </p>
+            )}
         </div>
       )}
     </div>

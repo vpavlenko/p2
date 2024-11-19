@@ -9,6 +9,7 @@ interface TaskProps {
   isActive?: boolean;
   activeNotes?: number;
   onActivate?: () => void;
+  previousTaskCompleted?: boolean;
 }
 
 export const Task: React.FC<TaskProps> = ({
@@ -17,11 +18,23 @@ export const Task: React.FC<TaskProps> = ({
   status = "active",
   isActive = false,
   onActivate,
+  previousTaskCompleted = true,
 }) => {
   const { total, description } = taskConfig;
   const isCompleting = status === "completing";
   const isCompleted = status === "completed";
   const percentage = Math.min((progress / total) * 100, 100);
+
+  console.log(`Task ${taskConfig.id} render:`, {
+    progress,
+    status,
+    isActive,
+    previousTaskCompleted,
+    isCompleting,
+    isCompleted,
+    shouldShow:
+      previousTaskCompleted || isCompleted || isActive || isCompleting,
+  });
 
   React.useEffect(() => {
     if (!isCompleted && !isCompleting && progress >= total) {
@@ -32,6 +45,11 @@ export const Task: React.FC<TaskProps> = ({
       });
     }
   }, [progress, total, isCompleted, isCompleting]);
+
+  if (!previousTaskCompleted && !isCompleted && !isActive && !isCompleting) {
+    console.log(`Task ${taskConfig.id} hidden due to conditions not met`);
+    return null;
+  }
 
   return (
     <div
