@@ -45,12 +45,17 @@ const LESSONS_WITHOUT_IDS: { title: string; content: React.ReactNode }[] = [
           compare pieces in <MTop100 />
         </P>
         <P>
-          Let's start by getting familiar with the piano. Try pressing some
-          keys!
+          Let's start by getting familiar with the piano. Try playing some C
+          notes!
         </P>
         <Task
-          taskConfig={TASK_CONFIGS["press-any-notes"]}
-          nextTask={<Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />}
+          taskConfig={TASK_CONFIGS["play-c-across-octaves"]}
+          nextTask={
+            <Task
+              taskConfig={TASK_CONFIGS["press-any-notes"]}
+              nextTask={<Task taskConfig={TASK_CONFIGS["play-all-c-notes"]} />}
+            />
+          }
         />
       </>
     ),

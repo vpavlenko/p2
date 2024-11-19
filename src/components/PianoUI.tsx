@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
-import { getKeyboardMap, KEY_DISPLAY_LABELS } from "../constants/keyboard";
+import {
+  getKeyboardMap,
+  KEY_DISPLAY_LABELS,
+  KeyboardMapping,
+} from "../constants/keyboard";
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
@@ -457,19 +461,15 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   ) => {
     const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
-    if (activeTaskId === "play-all-c-notes") {
-      const matchingKey = Object.entries(currentKeyboardMap).find(
-        ([, value]) => value.note === noteNum && value.octave === octaveNum
-      )?.[0];
+    // Find the matching key for this note/octave combination
+    const matchingKey = Object.entries(currentKeyboardMap).find(
+      ([, value]) => value.note === noteNum && value.octave === octaveNum
+    )?.[0];
 
-      if (matchingKey) {
-        return KEY_DISPLAY_LABELS[
-          matchingKey as keyof typeof KEY_DISPLAY_LABELS
-        ];
-      }
-      return undefined;
+    if (matchingKey) {
+      return KEY_DISPLAY_LABELS[matchingKey as keyof typeof KEY_DISPLAY_LABELS];
     }
-    return keyMapping ? KEY_DISPLAY_LABELS[keyMapping] : undefined;
+    return undefined;
   };
 
   return (

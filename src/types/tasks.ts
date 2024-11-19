@@ -48,4 +48,20 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     },
     nextTaskId: null,
   },
+  "play-c-across-octaves": {
+    id: "play-c-across-octaves",
+    description: "Play C notes across different octaves using Z, A, Q, 1 keys",
+    total: 4,
+    keyboardMapping: {
+      KeyZ: { note: 0, octave: 2 }, // C2
+      KeyA: { note: 0, octave: 3 }, // C3
+      KeyQ: { note: 0, octave: 4 }, // C4
+      Digit1: { note: 0, octave: 5 }, // C5
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      const noteKey = `${note}-${octave}`;
+      return note === 0 && !playedNotes.has(noteKey);
+    },
+    nextTaskId: null,
+  },
 };

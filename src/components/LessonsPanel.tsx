@@ -81,6 +81,26 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
         activeNotes: activeKeysCount,
         nextTask:
           content.props.nextTask && renderContent(content.props.nextTask),
+        onActivate: () => {
+          const previousTaskId = getPreviousTaskId(taskId);
+          const previousTaskProgress = previousTaskId
+            ? taskProgress.find((t) => t.taskId === previousTaskId)?.progress ||
+              0
+            : Infinity;
+          const previousTaskConfig = previousTaskId
+            ? TASK_CONFIGS[previousTaskId]
+            : null;
+          const isPreviousTaskCompleted = previousTaskConfig
+            ? previousTaskProgress >= previousTaskConfig.total
+            : true;
+
+          if (isPreviousTaskCompleted) {
+            setState((prev) => ({
+              ...prev,
+              pendingNextTask: taskId,
+            }));
+          }
+        },
       };
 
       return React.cloneElement(content, taskProps);

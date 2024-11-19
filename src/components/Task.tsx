@@ -9,6 +9,7 @@ interface TaskProps {
   nextTask?: React.ReactNode;
   isActive?: boolean;
   activeNotes?: number;
+  onActivate?: () => void;
 }
 
 export const Task: React.FC<TaskProps> = ({
@@ -18,6 +19,7 @@ export const Task: React.FC<TaskProps> = ({
   nextTask,
   isActive = false,
   activeNotes = 0,
+  onActivate,
 }) => {
   const { id, total, description } = taskConfig;
   const [isCompleted, setIsCompleted] = React.useState(false);
@@ -71,7 +73,8 @@ export const Task: React.FC<TaskProps> = ({
           isActive
             ? "ring-2 ring-blue-500 ring-opacity-50 shadow-lg shadow-blue-500/50"
             : ""
-        }`}
+        } ${onActivate ? "cursor-pointer hover:bg-gray-700" : ""}`}
+        onClick={onActivate}
       >
         <div className="flex justify-between items-center mb-2">
           <div className="text-white">
