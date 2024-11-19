@@ -30,8 +30,10 @@ export const TASK_SEQUENCE = [
   "play-c-across-octaves",
   "play-d-across-octaves",
   "play-e-across-octaves",
-  "press-any-notes",
-  "play-all-c-notes",
+  "play-f-across-octaves",
+  "play-g-across-octaves",
+  "play-a-across-octaves",
+  "play-b-across-octaves",
 ] as const;
 
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
@@ -150,37 +152,89 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
 
       return isNewNote;
     },
-    nextTaskId: "press-any-notes",
+    nextTaskId: "play-f-across-octaves",
   },
-  "press-any-notes": {
-    id: "press-any-notes",
-    description: "Press any 20 notes on the piano",
-    total: 20,
-    requiredProgress: 20,
+  "play-f-across-octaves": {
+    id: "play-f-across-octaves",
+    description: "Play F notes across different octaves using V, F, R, 4 keys",
+    total: 4,
+    requiredProgress: 4,
     previousTaskId: "play-e-across-octaves",
-    keyboardMapping: TRADITIONAL_KEYBOARD_MAP,
-    checkProgress: () => true,
-    nextTaskId: "play-all-c-notes",
-  },
-  "play-all-c-notes": {
-    id: "play-all-c-notes",
-    description: "Play all C notes using Z, X, C, V, B, N, M, comma keys",
-    total: 8,
-    requiredProgress: 8,
-    previousTaskId: "press-any-notes",
     keyboardMapping: {
-      KeyZ: { note: 0, octave: 1 }, // C1
-      KeyX: { note: 0, octave: 2 }, // C2
-      KeyC: { note: 0, octave: 3 }, // C3
-      KeyV: { note: 0, octave: 4 }, // C4
-      KeyB: { note: 0, octave: 5 }, // C5
-      KeyN: { note: 0, octave: 6 }, // C6
-      KeyM: { note: 0, octave: 7 }, // C7
-      Comma: { note: 0, octave: 8 }, // C8
+      KeyV: { note: 5, octave: 2 }, // F2
+      KeyF: { note: 5, octave: 3 }, // F3
+      KeyR: { note: 5, octave: 4 }, // F4
+      Digit4: { note: 5, octave: 5 }, // F5
     },
     checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      if (note !== 5 || ![2, 3, 4, 5].includes(octave)) {
+        return false;
+      }
       const noteKey = `${note}-${octave}`;
-      return note === 0 && !playedNotes.has(noteKey);
+      return !playedNotes.has(noteKey);
+    },
+    nextTaskId: "play-g-across-octaves",
+  },
+  "play-g-across-octaves": {
+    id: "play-g-across-octaves",
+    description: "Play G notes across different octaves using B, G, T, 5 keys",
+    total: 4,
+    requiredProgress: 4,
+    previousTaskId: "play-f-across-octaves",
+    keyboardMapping: {
+      KeyB: { note: 7, octave: 2 }, // G2
+      KeyG: { note: 7, octave: 3 }, // G3
+      KeyT: { note: 7, octave: 4 }, // G4
+      Digit5: { note: 7, octave: 5 }, // G5
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      if (note !== 7 || ![2, 3, 4, 5].includes(octave)) {
+        return false;
+      }
+      const noteKey = `${note}-${octave}`;
+      return !playedNotes.has(noteKey);
+    },
+    nextTaskId: "play-a-across-octaves",
+  },
+  "play-a-across-octaves": {
+    id: "play-a-across-octaves",
+    description: "Play A notes across different octaves using N, H, Y, 6 keys",
+    total: 4,
+    requiredProgress: 4,
+    previousTaskId: "play-g-across-octaves",
+    keyboardMapping: {
+      KeyN: { note: 9, octave: 2 }, // A2
+      KeyH: { note: 9, octave: 3 }, // A3
+      KeyY: { note: 9, octave: 4 }, // A4
+      Digit6: { note: 9, octave: 5 }, // A5
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      if (note !== 9 || ![2, 3, 4, 5].includes(octave)) {
+        return false;
+      }
+      const noteKey = `${note}-${octave}`;
+      return !playedNotes.has(noteKey);
+    },
+    nextTaskId: "play-b-across-octaves",
+  },
+  "play-b-across-octaves": {
+    id: "play-b-across-octaves",
+    description: "Play B notes across different octaves using M, J, U, 7 keys",
+    total: 4,
+    requiredProgress: 4,
+    previousTaskId: "play-a-across-octaves",
+    keyboardMapping: {
+      KeyM: { note: 11, octave: 2 }, // B2
+      KeyJ: { note: 11, octave: 3 }, // B3
+      KeyU: { note: 11, octave: 4 }, // B4
+      Digit7: { note: 11, octave: 5 }, // B5
+    },
+    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
+      if (note !== 11 || ![2, 3, 4, 5].includes(octave)) {
+        return false;
+      }
+      const noteKey = `${note}-${octave}`;
+      return !playedNotes.has(noteKey);
     },
     nextTaskId: null,
   },

@@ -118,8 +118,10 @@ export const PianoController: React.FC = () => {
     "play-c-across-octaves": new Set<string>(),
     "play-d-across-octaves": new Set<string>(),
     "play-e-across-octaves": new Set<string>(),
-    "press-any-notes": new Set<string>(),
-    "play-all-c-notes": new Set<string>(),
+    "play-f-across-octaves": new Set<string>(),
+    "play-g-across-octaves": new Set<string>(),
+    "play-a-across-octaves": new Set<string>(),
+    "play-b-across-octaves": new Set<string>(),
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [pendingTaskCompletion] = useState<string | null>(null);
