@@ -13,7 +13,6 @@ import { URL_PREFIX } from "../constants/routes";
 import {
   TASK_CONFIGS,
   TASK_SEQUENCE,
-  isTaskCompleted,
   canTaskBeActivated,
   getNextTaskId,
 } from "../types/tasks";
@@ -65,10 +64,9 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
   // Then handle pending task transitions
   if (state.pendingNextTask) {
     // If we have active keys, stay with current task
+    const currentTaskId =
+      state.taskProgress.find((t) => t.status === "active")?.taskId ?? null;
     if (state.activeKeysSize > 0) {
-      const currentTaskId = state.taskProgress.find(
-        (t) => t.status === "active"
-      )?.taskId;
       console.log(
         "Waiting for key releases before activating:",
         state.pendingNextTask
@@ -131,9 +129,6 @@ export const PianoController: React.FC = () => {
     activeKeysSize: 0,
     pendingNextTask: null,
   });
-  const [pendingKeyReleases, setPendingKeyReleases] = useState<Set<string>>(
-    new Set()
-  );
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -172,15 +167,6 @@ export const PianoController: React.FC = () => {
       });
 
       if (shouldIncrement) {
-        setPendingKeyReleases((prev) => {
-          const next = new Set([...prev, noteKey]);
-          console.log(
-            "[setPendingKeyReleases] New pending releases:",
-            Array.from(next)
-          );
-          return next;
-        });
-
         setTaskPlayedNotes((prev) => ({
           ...prev,
           [taskId]: new Set([...prev[taskId], noteKey]),
@@ -188,10 +174,11 @@ export const PianoController: React.FC = () => {
 
         setTaskProgress((prev) => {
           const existingTask = prev.find((t) => t.taskId === taskId);
-          const newProgress = existingTask?.progress + 1 || 1;
+          const currentProgress = existingTask?.progress ?? 0;
+          const newProgress = currentProgress + 1;
 
           console.log(`[setTaskProgress] Updating task ${taskId}:`, {
-            currentProgress: existingTask?.progress || 0,
+            currentProgress,
             newProgress,
             willComplete: newProgress >= taskConfig.total,
             currentStatus: existingTask?.status,
@@ -405,11 +392,15 @@ export const PianoController: React.FC = () => {
       setTaskProgress((prev) => {
         // Check if task already exists
         const exists = prev.some((t) => t.taskId === state.pendingNextTask);
-        if (!exists) {
+        if (!exists && state.pendingNextTask) {
           // Initialize the new task
           return [
             ...prev,
-            { taskId: state.pendingNextTask, progress: 0, status: "active" },
+            {
+              taskId: state.pendingNextTask,
+              progress: 0,
+              status: "active",
+            } as TaskProgress, // Explicitly type as TaskProgress
           ];
         }
         return prev;

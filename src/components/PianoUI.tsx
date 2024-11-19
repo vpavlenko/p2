@@ -52,7 +52,6 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   shiftedKeyboardKey,
   tonic,
   isShiftPressed,
-  colorMode,
   playNotes,
   releaseNotes,
   isActive,
@@ -147,7 +146,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     zIndex: isHovered ? 3 : style.zIndex || 1,
     border: effectiveColorMode === "traditional" ? "1px solid #333" : "none",
     height:
-      effectiveColorMode === "flat-chromatic"
+      effectiveColorMode === "chromatic"
         ? PIANO_HEIGHT
         : isWhiteKey
         ? effectiveColorMode === "traditional"
@@ -155,7 +154,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
           : PIANO_HEIGHT - WHITE_KEY_TOP_OFFSET
         : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
     top:
-      effectiveColorMode === "flat-chromatic"
+      effectiveColorMode === "chromatic"
         ? 0
         : isWhiteKey
         ? effectiveColorMode === "traditional"
