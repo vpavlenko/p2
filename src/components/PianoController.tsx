@@ -10,7 +10,13 @@ import { immediate } from "tone";
 import { useParams, useNavigate } from "react-router-dom";
 import { LESSONS } from "../data/lessons";
 import { URL_PREFIX } from "../constants/routes";
-import { TASK_CONFIGS } from "../types/tasks";
+import {
+  TASK_CONFIGS,
+  TASK_SEQUENCE,
+  isTaskCompleted,
+  canTaskBeActivated,
+  getNextTaskId,
+} from "../types/tasks";
 
 const NOTE_NAMES = [
   "C",
@@ -32,19 +38,17 @@ interface TaskProgress {
   progress: number;
 }
 
-interface PianoControllerState {
+export interface PianoControllerState {
   taskProgress: Array<{ taskId: string; progress: number }>;
   pendingTaskCompletion: string | null;
   activeKeysSize: number;
   pendingNextTask: string | null;
 }
 
-// Add debug logging to getActiveTaskId
 const getActiveTaskId = (state: PianoControllerState): string | null => {
   console.log("getActiveTaskId called with:", state);
 
-  // If we have a pending next task but keys are still pressed,
-  // stay with the current task
+  // Handle pending task transitions
   if (state.pendingNextTask && state.activeKeysSize > 0) {
     const currentTaskId = state.taskProgress[0]?.taskId;
     console.log(
@@ -55,108 +59,26 @@ const getActiveTaskId = (state: PianoControllerState): string | null => {
     return currentTaskId;
   }
 
-  // If we have a pending next task and no keys pressed, activate it
   if (state.pendingNextTask && state.activeKeysSize === 0) {
     console.log("Activating pending task:", state.pendingNextTask);
     return state.pendingNextTask;
   }
 
-  // First task is active if it's not completed
-  const firstTask = state.taskProgress.find(
-    (t) => t.taskId === "play-c-across-octaves"
-  );
-  const firstTaskCompleted = firstTask && firstTask.progress >= 4;
+  // Find first incomplete task in sequence
+  for (const taskId of TASK_SEQUENCE) {
+    const taskProgress =
+      state.taskProgress.find((t) => t.taskId === taskId)?.progress || 0;
 
-  console.log("First task status:", {
-    exists: !!firstTask,
-    progress: firstTask?.progress,
-    completed: firstTaskCompleted,
-  });
-
-  if (!firstTaskCompleted) {
-    console.log("Activating first task");
-    return "play-c-across-octaves";
-  }
-
-  // Second task is active if first is completed and second isn't completed
-  const secondTask = state.taskProgress.find(
-    (t) => t.taskId === "play-d-across-octaves"
-  );
-  const secondTaskCompleted = secondTask && secondTask.progress >= 4;
-
-  if (
-    firstTaskCompleted &&
-    !secondTaskCompleted &&
-    !state.pendingTaskCompletion
-  ) {
-    console.log("Activating second task");
-    return "play-d-across-octaves";
-  }
-
-  // Third task is active if second is completed and third isn't completed
-  const thirdTask = state.taskProgress.find(
-    (t) => t.taskId === "play-e-across-octaves"
-  );
-  const thirdTaskCompleted = thirdTask && thirdTask.progress >= 4;
-
-  if (
-    secondTaskCompleted &&
-    !thirdTaskCompleted &&
-    !state.pendingTaskCompletion
-  ) {
-    console.log("Activating third task");
-    return "play-e-across-octaves";
-  }
-
-  // Fourth task is active if third is completed and fourth isn't completed
-  const fourthTask = state.taskProgress.find(
-    (t) => t.taskId === "press-any-notes"
-  );
-  const fourthTaskCompleted = fourthTask && fourthTask.progress >= 20;
-
-  if (
-    thirdTaskCompleted &&
-    !fourthTaskCompleted &&
-    !state.pendingTaskCompletion
-  ) {
-    console.log("Activating fourth task");
-    return "press-any-notes";
-  }
-
-  // Fifth task is active if fourth is completed and fifth isn't completed
-  const fifthTask = state.taskProgress.find(
-    (t) => t.taskId === "play-all-c-notes"
-  );
-  const fifthTaskCompleted = fifthTask && fifthTask.progress >= 8;
-
-  if (
-    fourthTaskCompleted &&
-    !fifthTaskCompleted &&
-    !state.pendingTaskCompletion
-  ) {
-    console.log("Activating fifth task");
-    return "play-all-c-notes";
+    if (
+      !isTaskCompleted(taskId, taskProgress) &&
+      canTaskBeActivated(taskId, state.taskProgress)
+    ) {
+      console.log(`Activating task: ${taskId}`);
+      return taskId;
+    }
   }
 
   console.log("No active task - all completed");
-  return null; // All tasks completed
-};
-
-// Add this helper function near getNextTaskId
-const getPreviousTaskId = (currentTaskId: string): string | null => {
-  if (currentTaskId === "play-d-across-octaves") return "play-c-across-octaves";
-  if (currentTaskId === "play-e-across-octaves") return "play-d-across-octaves";
-  if (currentTaskId === "press-any-notes") return "play-e-across-octaves";
-  if (currentTaskId === "play-all-c-notes") return "press-any-notes";
-  return null;
-};
-
-// Update getNextTaskId
-const getNextTaskId = (currentTaskId: string): string | null => {
-  if (currentTaskId === "play-c-across-octaves") return "play-d-across-octaves";
-  if (currentTaskId === "play-d-across-octaves") return "play-e-across-octaves";
-  if (currentTaskId === "play-e-across-octaves") return "press-any-notes";
-  if (currentTaskId === "press-any-notes") return "play-all-c-notes";
   return null;
 };
 
@@ -407,6 +329,7 @@ export const PianoController: React.FC = () => {
         taskProgress={taskProgress}
         activeTaskId={currentActiveTaskId}
         activeKeysCount={activeKeys.size}
+        setState={setState}
       />
       <PianoUI
         tonic={tonic}
@@ -424,12 +347,12 @@ export const PianoController: React.FC = () => {
         fallingNotes={fallingNotes}
         currentlyPlayingId={currentlyPlayingId}
         onStopPlaying={stopProgression}
-        activeTaskId={currentActiveTaskId}
         taskKeyboardMapping={
           currentActiveTaskId
             ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
             : undefined
         }
+        activeTaskId={currentActiveTaskId}
       />
     </>
   );

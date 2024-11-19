@@ -4,7 +4,8 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
-import { TASK_CONFIGS } from "../types/tasks";
+import { TASK_CONFIGS, getPreviousTaskId } from "../types/tasks";
+import { PianoControllerState } from "./PianoController";
 
 interface TaskProgress {
   taskId: string;
@@ -17,6 +18,7 @@ interface LessonsPanelProps {
   taskProgress: TaskProgress[];
   activeTaskId: string | null;
   activeKeysCount: number;
+  setState: React.Dispatch<React.SetStateAction<PianoControllerState>>;
 }
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = ({
@@ -25,6 +27,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = ({
   taskProgress,
   activeTaskId,
   activeKeysCount,
+  setState,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

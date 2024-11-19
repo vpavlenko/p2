@@ -277,7 +277,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   fallingNotes,
   currentlyPlayingId,
   onStopPlaying,
-  activeTaskId,
   taskKeyboardMapping,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -454,11 +453,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   const c2Left = getWhiteKeyPosition(2); // C2 position
 
   // Modify the key rendering logic to only show relevant keys
-  const getKeyboardKey = (
-    noteNum: number,
-    octaveNum: number,
-    keyMapping: string | undefined
-  ) => {
+  const getKeyboardKey = (noteNum: number, octaveNum: number) => {
     const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
     // Find the matching key for this note/octave combination
@@ -537,20 +532,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             // Count white keys in current octave up to this note
             whiteKeyCount += countWhiteKeysInRange(range.start, i);
 
-            // Find keyboard mappings
-            const keyMapping = Object.entries(getKeyboardMap(colorMode)).find(
-              ([, value]) =>
-                value.note === noteNum && value.octave === octaveNum
-            )?.[0];
-
-            const shiftedKeyMapping = Object.entries(
-              getKeyboardMap(colorMode)
-            ).find(
-              ([, value]) =>
-                value.note === noteNum &&
-                value.octave === getShiftedOctave(octaveNum, true)
-            )?.[0];
-
             const commonStyleProps = {
               width:
                 colorMode === "flat-chromatic"
@@ -573,12 +554,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                   note={noteNum}
                   octave={octaveNum}
                   isActive={isNoteActive(noteNum, octaveNum)}
-                  keyboardKey={getKeyboardKey(noteNum, octaveNum, keyMapping)}
-                  shiftedKeyboardKey={getKeyboardKey(
-                    noteNum,
-                    octaveNum,
-                    shiftedKeyMapping
-                  )}
+                  keyboardKey={getKeyboardKey(noteNum, octaveNum)}
+                  shiftedKeyboardKey={getKeyboardKey(noteNum, octaveNum)}
                   style={{
                     ...commonStyleProps,
                     width:
