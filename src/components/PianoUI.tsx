@@ -3,11 +3,7 @@ import { useState, useEffect } from "react";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
 import { getColors } from "../utils/colors";
-import {
-  getKeyboardMap,
-  KEY_DISPLAY_LABELS,
-  C_NOTES_KEYBOARD_MAP,
-} from "../constants/keyboard";
+import { getKeyboardMap, KEY_DISPLAY_LABELS } from "../constants/keyboard";
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";

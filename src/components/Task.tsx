@@ -35,9 +35,9 @@ export const Task: React.FC<TaskProps> = ({
       setWaitingForRelease(true);
 
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
+        particleCount: 1000,
+        spread: 200,
+        origin: { y: 0.8 },
       });
     }
   }, [progress, total, isCompleted, id, activeNotes]);
