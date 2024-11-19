@@ -75,22 +75,22 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     requiredProgress: 4,
     previousTaskId: "play-c-across-octaves",
     keyboardMapping: {
-      KeyX: { note: 2, octave: 3 }, // D3
-      KeyS: { note: 2, octave: 4 }, // D4
-      KeyW: { note: 2, octave: 5 }, // D5
-      Digit2: { note: 2, octave: 6 }, // D6
+      KeyX: { note: 2, octave: 2 }, // D2
+      KeyS: { note: 2, octave: 3 }, // D3
+      KeyW: { note: 2, octave: 4 }, // D4
+      Digit2: { note: 2, octave: 5 }, // D5
     },
     checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
       console.log(`[play-d-across-octaves] Checking progress:`, {
         note,
         octave,
         currentPlayedNotes: Array.from(playedNotes),
-        validOctaves: [3, 4, 5, 6],
+        validOctaves: [2, 3, 4, 5],
         isValidNote: note === 2,
-        isValidOctave: [3, 4, 5, 6].includes(octave),
+        isValidOctave: [2, 3, 4, 5].includes(octave),
       });
 
-      if (note !== 2 || ![3, 4, 5, 6].includes(octave)) {
+      if (note !== 2 || ![2, 3, 4, 5].includes(octave)) {
         console.log(`[play-d-across-octaves] Rejected: invalid note or octave`);
         return false;
       }
@@ -114,22 +114,22 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     requiredProgress: 4,
     previousTaskId: "play-d-across-octaves",
     keyboardMapping: {
-      KeyC: { note: 4, octave: 3 }, // E3
-      KeyD: { note: 4, octave: 4 }, // E4
-      KeyE: { note: 4, octave: 5 }, // E5
-      Digit3: { note: 4, octave: 6 }, // E6
+      KeyC: { note: 4, octave: 2 }, // E2
+      KeyD: { note: 4, octave: 3 }, // E3
+      KeyE: { note: 4, octave: 4 }, // E4
+      Digit3: { note: 4, octave: 5 }, // E5
     },
     checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
       console.log(`[play-e-across-octaves] Checking progress:`, {
         note,
         octave,
         currentPlayedNotes: Array.from(playedNotes),
-        validOctaves: [3, 4, 5, 6],
+        validOctaves: [2, 3, 4, 5],
         isValidNote: note === 4,
-        isValidOctave: [3, 4, 5, 6].includes(octave),
+        isValidOctave: [2, 3, 4, 5].includes(octave),
       });
 
-      if (note !== 4 || ![3, 4, 5, 6].includes(octave)) {
+      if (note !== 4 || ![2, 3, 4, 5].includes(octave)) {
         console.log(`[play-e-across-octaves] Rejected: invalid note or octave`);
         return false;
       }
