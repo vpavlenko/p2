@@ -282,30 +282,86 @@ const createSequenceKeyboardMapping = (
   return mapping;
 };
 
-// Update createTaskConfig to use set checker instead of sequence checker
+// Update createTaskConfig to handle cumulative mappings per lesson
 const createTaskConfig = (
   index: number,
   targetNote: NoteMapping,
   description: string,
-  chromaticNotes: number[]
+  chromaticNotes: number[],
+  lessonNumber: number
 ): TaskConfig => {
-  // Create a set of target notes across all octaves
+  // Create a set of target notes for just this task (the new keys to learn)
   const targetNotes = new Set<string>();
-  // Add notes for octaves 2-5 (4 octaves)
   [2, 3, 4, 5].forEach((octave) => {
     targetNotes.add(`${targetNote.note}-${octave}`);
   });
 
+  // Create the full keyboard mapping that includes all previous notes
+  const fullMapping: KeyboardMapping = {};
+
+  if (lessonNumber === 1) {
+    // Lesson 1: Progressive mapping from C to B
+    const relevantMappings = [
+      NOTE_MAPPINGS.C,
+      NOTE_MAPPINGS.D,
+      NOTE_MAPPINGS.E,
+      NOTE_MAPPINGS.F,
+      NOTE_MAPPINGS.G,
+      NOTE_MAPPINGS.A,
+      NOTE_MAPPINGS.B,
+    ].slice(0, index + 1);
+
+    relevantMappings.forEach((noteMapping) => {
+      if (noteMapping) {
+        noteMapping.keys.forEach((key, octaveOffset) => {
+          fullMapping[key] = {
+            note: noteMapping.note,
+            octave: octaveOffset + 2,
+          };
+        });
+      }
+    });
+  } else if (lessonNumber === 2) {
+    // Lesson 2: Progressive mapping for black keys
+    const lesson2Mappings = [
+      NOTE_MAPPINGS.D,
+      NOTE_MAPPINGS["C#"],
+      NOTE_MAPPINGS["E-again"],
+      NOTE_MAPPINGS["D#"],
+      NOTE_MAPPINGS["A-again"],
+      NOTE_MAPPINGS["G#"],
+      NOTE_MAPPINGS["B-again"],
+      NOTE_MAPPINGS["A#"],
+      NOTE_MAPPINGS["F-again"],
+      NOTE_MAPPINGS["F#"],
+    ];
+
+    // Calculate the index within lesson 2
+    const lesson2Index = index - 7; // Since lesson 2 starts at index 7
+    const relevantMappings = lesson2Mappings.slice(0, lesson2Index + 1);
+
+    relevantMappings.forEach((noteMapping) => {
+      if (noteMapping) {
+        noteMapping.keys.forEach((key, octaveOffset) => {
+          fullMapping[key] = {
+            note: noteMapping.note,
+            octave: octaveOffset + 2,
+          };
+        });
+      }
+    });
+  }
+
   return {
     id: TASK_SEQUENCE[index],
-    description,
-    total: 4, // 4 octaves to play
+    description: `Play ${description} (new keys only)`,
+    total: 4,
     requiredProgress: 4,
     previousTaskId: index > 0 ? TASK_SEQUENCE[index - 1] : null,
     nextTaskId:
       index < TASK_SEQUENCE.length - 1 ? TASK_SEQUENCE[index + 1] : null,
     chromaticNotes,
-    keyboardMapping: createKeyboardMapping(targetNote),
+    keyboardMapping: fullMapping,
     checker: {
       type: "set",
       targetNotes,
@@ -426,107 +482,125 @@ const createFlatChromaticMapping = (
 };
 
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
+  // Lesson 1 tasks
   "play-c-across-octaves": createTaskConfig(
     0,
     NOTE_MAPPINGS.C,
-    "Play C notes across different octaves",
-    [0]
+    "C notes across different octaves",
+    [0],
+    1
   ),
   "play-d-across-octaves": createTaskConfig(
     1,
     NOTE_MAPPINGS.D,
-    "Play D notes across different octaves",
-    [0, 2]
+    "D notes across different octaves",
+    [0, 2],
+    1
   ),
   "play-e-across-octaves": createTaskConfig(
     2,
     NOTE_MAPPINGS.E,
-    "Play E notes across different octaves",
-    [0, 2, 4]
+    "E notes across different octaves",
+    [0, 2, 4],
+    1
   ),
   "play-f-across-octaves": createTaskConfig(
     3,
     NOTE_MAPPINGS.F,
-    "Play F notes across different octaves",
-    [0, 2, 4, 5]
+    "F notes across different octaves",
+    [0, 2, 4, 5],
+    1
   ),
   "play-g-across-octaves": createTaskConfig(
     4,
     NOTE_MAPPINGS.G,
-    "Play G notes across different octaves",
-    [0, 2, 4, 5, 7]
+    "G notes across different octaves",
+    [0, 2, 4, 5, 7],
+    1
   ),
   "play-a-across-octaves": createTaskConfig(
     5,
     NOTE_MAPPINGS.A,
-    "Play A notes across different octaves",
-    [0, 2, 4, 5, 7, 9]
+    "A notes across different octaves",
+    [0, 2, 4, 5, 7, 9],
+    1
   ),
   "play-b-across-octaves": createTaskConfig(
     6,
     NOTE_MAPPINGS.B,
-    "Play B notes across different octaves",
-    [0, 2, 4, 5, 7, 9, 11]
+    "B notes across different octaves",
+    [0, 2, 4, 5, 7, 9, 11],
+    1
   ),
   "play-d-again": createTaskConfig(
     7,
     NOTE_MAPPINGS.D,
-    "Play D notes across different octaves",
-    [0, 2, 4, 5, 7, 9, 11]
+    "D notes across different octaves",
+    [0, 2, 4, 5, 7, 9, 11],
+    2
   ),
   "play-c-sharp": createTaskConfig(
     8,
     NOTE_MAPPINGS["C#"],
-    "Play C# notes across different octaves",
-    [0, 1, 2, 4, 5, 7, 9, 11]
+    "C# notes across different octaves",
+    [0, 1, 2, 4, 5, 7, 9, 11],
+    2
   ),
   "play-e-again": createTaskConfig(
     9,
     NOTE_MAPPINGS["E-again"],
-    "Play E notes across different octaves",
-    [0, 1, 2, 4, 5, 7, 9, 11]
+    "E notes across different octaves",
+    [0, 1, 2, 4, 5, 7, 9, 11],
+    2
   ),
   "play-d-sharp": createTaskConfig(
     10,
     NOTE_MAPPINGS["D#"],
-    "Play D# notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 9, 11]
+    "D# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 9, 11],
+    2
   ),
   "play-a-again": createTaskConfig(
     11,
     NOTE_MAPPINGS["A-again"],
-    "Play A notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 9, 11]
+    "A notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 9, 11],
+    2
   ),
   "play-g-sharp": createTaskConfig(
     12,
     NOTE_MAPPINGS["G#"],
-    "Play G# notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11]
+    "G# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11],
+    2
   ),
   "play-b-again": createTaskConfig(
     13,
     NOTE_MAPPINGS["B-again"],
-    "Play B notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11]
+    "B notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11],
+    2
   ),
   "play-a-sharp": createTaskConfig(
     14,
     NOTE_MAPPINGS["A#"],
-    "Play A# notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]
+    "A# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
+    2
   ),
   "play-f-again": createTaskConfig(
     15,
     NOTE_MAPPINGS["F-again"],
-    "Play F notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]
+    "F notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
+    2
   ),
   "play-f-sharp": createTaskConfig(
     16,
     NOTE_MAPPINGS["F#"],
-    "Play F# notes across different octaves",
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    "F# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    2
   ),
   "play-chromatic-ascending": {
     id: "play-chromatic-ascending",
