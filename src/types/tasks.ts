@@ -323,14 +323,24 @@ const createIntervalSequence = (
   let currentNote = startNote;
   let currentOctave = startOctave;
 
-  while (currentOctave < 8 || (currentOctave === 8 && currentNote === 0)) {
+  // Add safety limit to prevent infinite loops
+  const maxLength = 100; // Reasonable maximum length
+
+  while (sequence.length < maxLength && currentOctave < 8) {
     sequence.push({ note: currentNote, octave: currentOctave });
 
     // Move to next note
     const nextNote = (currentNote + interval) % 12;
     currentNote = nextNote as ChromaticNote;
+
+    // Increment octave if we wrap around
     if (nextNote < currentNote) {
       currentOctave++;
+    }
+
+    // Break if we reach C8
+    if (currentOctave === 8 && currentNote > 0) {
+      break;
     }
   }
 

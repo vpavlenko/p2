@@ -243,9 +243,13 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
         if (activeTaskElement) {
           const containerRect = contentRef.current.getBoundingClientRect();
           const taskRect = activeTaskElement.getBoundingClientRect();
+          const keyboardHeight = 200; // Height of keyboard section
 
-          // Check if task is below the visible area
-          if (taskRect.top > containerRect.bottom) {
+          // Check if task is below the visible area or partially hidden by keyboard
+          if (
+            taskRect.bottom > containerRect.bottom - keyboardHeight ||
+            taskRect.top > containerRect.bottom - keyboardHeight
+          ) {
             activeTaskElement.scrollIntoView({
               behavior: "smooth",
               block: "center",
@@ -339,84 +343,86 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
           </div>
         )}
 
-        {/* Scrollable Content with gradient overlay */}
-        <div className="relative flex-1">
-          <div ref={contentRef} className="h-full overflow-y-auto p-8 pt-4">
-            {currentLesson && (
-              <div className="prose prose-invert">
-                {renderContent(
-                  currentLesson.content,
-                  taskProgress,
-                  currentLesson
-                )}
-
-                {currentLesson.taskIds.map((taskId, index) => (
-                  <MemoizedTask
-                    key={taskId}
-                    taskConfig={TASK_CONFIGS[taskId]}
-                    data-task-id={taskId}
-                    progress={
-                      taskProgress.find((t) => t.taskId === taskId)?.progress ??
-                      0
-                    }
-                    status={
-                      taskProgress.find((t) => t.taskId === taskId)?.status ??
-                      "active"
-                    }
-                    previousTaskCompleted={
-                      index === 0
-                        ? true
-                        : taskProgress.some(
-                            (t) =>
-                              t.taskId === currentLesson.taskIds[index - 1] &&
-                              t.status === "completed"
-                          )
-                    }
-                    isActive={taskId === activeTaskId}
-                    onSkip={onSkipTask}
-                  />
-                ))}
-
-                {currentLesson.finalText &&
-                  currentLesson.taskIds.every((taskId) =>
-                    taskProgress.some(
-                      (t) => t.taskId === taskId && t.status === "completed"
-                    )
-                  ) && (
-                    <p className="mt-6 text-gray-400 italic">
-                      {currentLesson.finalText}
-                    </p>
+        {/* Main scrollable area - includes both content and keyboard */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Content section with minimum height */}
+          <div className="relative min-h-[calc(100vh-300px)]">
+            <div ref={contentRef} className="p-8 pt-4">
+              {currentLesson && (
+                <div className="prose prose-invert">
+                  {renderContent(
+                    currentLesson.content,
+                    taskProgress,
+                    currentLesson
                   )}
-              </div>
-            )}
-          </div>
-          {/* Gradient overlay */}
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent" />
-        </div>
+                  {currentLesson.taskIds.map((taskId, index) => (
+                    <MemoizedTask
+                      key={taskId}
+                      taskConfig={TASK_CONFIGS[taskId]}
+                      data-task-id={taskId}
+                      progress={
+                        taskProgress.find((t) => t.taskId === taskId)
+                          ?.progress ?? 0
+                      }
+                      status={
+                        taskProgress.find((t) => t.taskId === taskId)?.status ??
+                        "active"
+                      }
+                      previousTaskCompleted={
+                        index === 0
+                          ? true
+                          : taskProgress.some(
+                              (t) =>
+                                t.taskId === currentLesson.taskIds[index - 1] &&
+                                t.status === "completed"
+                            )
+                      }
+                      isActive={taskId === activeTaskId}
+                      onSkip={onSkipTask}
+                    />
+                  ))}
+                  {currentLesson.finalText &&
+                    currentLesson.taskIds.every((taskId) =>
+                      taskProgress.some(
+                        (t) => t.taskId === taskId && t.status === "completed"
+                      )
+                    ) && (
+                      <p className="mt-6 text-gray-400 italic">
+                        {currentLesson.finalText}
+                      </p>
+                    )}
+                </div>
+              )}
+            </div>
 
-        {/* Keyboard section */}
-        <div className="mt-auto p-4 border-t border-gray-800">
-          <div className="flex justify-start">
-            <Keyboard
-              layout={KEYBOARD_LAYOUT}
-              display={getDisplay()}
-              buttonTheme={getButtonTheme()}
-              mergeDisplay={true}
-              physicalKeyboardHighlight={false}
-              physicalKeyboardHighlightPress={false}
-              useButtonTag={true}
-              disableButtonHold={true}
-              preventMouseDownDefault={true}
-              baseClass="simple-keyboard-base"
-              theme="hg-theme-default custom-theme"
-              debug={true}
-              onRender={() => {
-                console.log(
-                  "[Keyboard] Rendered. DOM structure:",
-                  document.querySelector(".simple-keyboard-base")?.innerHTML
-                );
-              }}
-            />
+            {/* Gradient overlay */}
+            <div className="pointer-events-none sticky bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent" />
+          </div>
+
+          {/* Keyboard section */}
+          <div className="sticky bottom-0 bg-gray-900 p-4 border-t border-gray-800">
+            <div className="flex justify-start">
+              <Keyboard
+                layout={KEYBOARD_LAYOUT}
+                display={getDisplay()}
+                buttonTheme={getButtonTheme()}
+                mergeDisplay={true}
+                physicalKeyboardHighlight={false}
+                physicalKeyboardHighlightPress={false}
+                useButtonTag={true}
+                disableButtonHold={true}
+                preventMouseDownDefault={true}
+                baseClass="simple-keyboard-base"
+                theme="hg-theme-default custom-theme"
+                debug={true}
+                onRender={() => {
+                  console.log(
+                    "[Keyboard] Rendered. DOM structure:",
+                    document.querySelector(".simple-keyboard-base")?.innerHTML
+                  );
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
