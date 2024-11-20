@@ -142,7 +142,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
           }`
         : "none",
     transition:
-      isActive || isPressed || isHovered
+      activeTaskId || isPressed || isHovered
         ? "all 0.1s ease-in-out"
         : "all 1s ease-in-out",
     cursor: "pointer",
@@ -258,6 +258,76 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
+// Add this new component
+const TaskIndicators: React.FC<{
+  taskConfig: (typeof TASK_CONFIGS)[keyof typeof TASK_CONFIGS];
+  playedNotes: Set<string>;
+  totalWidth: number;
+  keyWidth: number;
+  getWhiteKeyPosition: (octave: number) => number;
+}> = ({
+  taskConfig,
+  playedNotes,
+  totalWidth,
+  keyWidth,
+  getWhiteKeyPosition,
+}) => {
+  // Get all target notes from the task config's checker
+  const targetNotes = [2, 3, 4, 5].map((octave) => ({
+    note:
+      taskConfig.keyboardMapping?.[Object.keys(taskConfig.keyboardMapping)[0]]
+        ?.note ?? 0,
+    octave,
+  }));
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: -30,
+        left: 0,
+        width: totalWidth,
+        height: "30px",
+        display: "flex",
+        alignItems: "flex-end",
+      }}
+    >
+      {targetNotes.map(({ note, octave }) => {
+        const isPlayed = playedNotes.has(`${note}-${octave}`);
+        const isWhiteKey = WHITE_KEYS.includes(note);
+
+        // Calculate position based on the note and octave
+        let left = getWhiteKeyPosition(octave);
+        if (!isWhiteKey) {
+          // Adjust position for black keys
+          left += keyWidth * 0.5;
+        }
+
+        // Add the specific note offset within the octave
+        const whiteKeysBefore = WHITE_KEYS.filter((n) => n < note).length;
+        left += whiteKeysBefore * keyWidth;
+
+        return (
+          <div
+            key={`${note}-${octave}`}
+            style={{
+              position: "absolute",
+              left: left + keyWidth / 2 - 10, // Center the indicator
+              bottom: 0,
+              color: "white",
+              fontSize: "20px",
+              transform: isPlayed ? "none" : "translateY(-5px)",
+              transition: "transform 0.2s ease-in-out",
+            }}
+          >
+            {isPlayed ? "✓" : "↓"}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 interface PianoUIProps {
   tonic: number;
   setTonic: (tonic: number) => void;
@@ -278,6 +348,7 @@ interface PianoUIProps {
   onStopPlaying: () => void;
   taskKeyboardMapping?: KeyboardMapping;
   activeTaskId: string | null;
+  taskPlayedNotes: Record<string, Set<string>>;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -294,6 +365,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   onStopPlaying,
   taskKeyboardMapping,
   activeTaskId,
+  taskPlayedNotes,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -616,6 +688,15 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             c2: { note: 24, left: c2Left },
           }}
         />
+        {activeTaskId && TASK_CONFIGS[activeTaskId] && (
+          <TaskIndicators
+            taskConfig={TASK_CONFIGS[activeTaskId]}
+            playedNotes={taskPlayedNotes[activeTaskId] || new Set()}
+            totalWidth={totalWidth}
+            keyWidth={keyWidth}
+            getWhiteKeyPosition={getWhiteKeyPosition}
+          />
+        )}
       </div>
     </div>
   );

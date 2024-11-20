@@ -656,6 +656,7 @@ export const PianoController: React.FC = () => {
               : undefined
           }
           activeTaskId={currentActiveTaskId}
+          taskPlayedNotes={taskPlayedNotes}
         />
       )}
     </>
