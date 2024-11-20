@@ -12,7 +12,6 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS } from "../types/tasks";
-import * as Tone from "tone";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -516,15 +515,25 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           marginRight: MARGIN_PX / 2,
         }}
       >
-        <ShiftIndicator totalWidth={totalWidth} />
-        <PianoControls
-          tonic={tonic}
-          onTonicChange={setTonic}
-          colorMode={colorMode}
-          onColorModeChange={onColorModeChange}
-          currentVoicing={currentVoicing}
-          onVoicingChange={onVoicingChange}
-        />
+        {activeTaskId === null && taskKeyboardMapping === undefined && (
+          <ShiftIndicator totalWidth={totalWidth} />
+        )}
+        {activeTaskId === null && taskKeyboardMapping === undefined ? (
+          <>
+            <ShiftIndicator totalWidth={totalWidth} />
+            <PianoControls
+              tonic={tonic}
+              onTonicChange={setTonic}
+              colorMode={colorMode}
+              onColorModeChange={onColorModeChange}
+              currentVoicing={currentVoicing}
+              onVoicingChange={onVoicingChange}
+            />
+          </>
+        ) : (
+          // Keep space for future UI elements
+          <div style={{ height: "40px" }} />
+        )}
 
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
           const octaveNum = parseInt(octave);

@@ -70,6 +70,19 @@ const LESSONS_WITHOUT_IDS: {
     ),
     taskIds: ["play-d-again", "play-c-sharp"],
   },
+  {
+    title: "Free Play",
+    content: (
+      <>
+        <P>
+          Congratulations! You've completed the lessons. Now you can freely play
+          around with the piano. Try different tonics, voicings, and color
+          modes!
+        </P>
+      </>
+    ),
+    taskIds: [], // No tasks for free play
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({

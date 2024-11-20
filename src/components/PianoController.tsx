@@ -65,6 +65,17 @@ const getActiveTaskId = (
     pendingNextTask: state.pendingNextTask,
   });
 
+  const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
+  if (!currentLesson) {
+    console.log("No lesson found for id:", currentLessonId);
+    return null;
+  }
+
+  // Check if this is the free play lesson
+  if (currentLesson.taskIds.length === 0) {
+    return null;
+  }
+
   // First check for any completing tasks - they take priority
   const completingTask = state.taskProgress.find(
     (t) => t.status === "completing"
@@ -72,13 +83,6 @@ const getActiveTaskId = (
   if (completingTask) {
     console.log("Found completing task:", completingTask.taskId);
     return completingTask.taskId;
-  }
-
-  // Get current lesson
-  const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
-  if (!currentLesson) {
-    console.log("No lesson found for id:", currentLessonId);
-    return null;
   }
 
   // Check if current lesson is completed
@@ -143,7 +147,7 @@ const initializeTaskProgress = (taskId: string): TaskProgress => ({
   status: "active",
 });
 
-// Add this helper function
+// Update the clearTaskProgressForOtherLessons function
 const clearTaskProgressForOtherLessons = (
   taskProgress: TaskProgress[],
   currentLessonId: number
@@ -151,11 +155,22 @@ const clearTaskProgressForOtherLessons = (
   const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
   if (!currentLesson) return taskProgress;
 
-  console.log("[clearTaskProgressForOtherLessons] Before:", taskProgress);
+  // Keep only tasks from the current lesson
   const filtered = taskProgress.filter((t) =>
     currentLesson.taskIds.includes(t.taskId)
   );
-  console.log("[clearTaskProgressForOtherLessons] After:", filtered);
+
+  // If there are no tasks in progress for this lesson, initialize the first task
+  if (filtered.length === 0 && currentLesson.taskIds.length > 0) {
+    return [
+      {
+        taskId: currentLesson.taskIds[0],
+        progress: 0,
+        status: "active",
+      },
+    ];
+  }
+
   return filtered;
 };
 
@@ -201,53 +216,45 @@ export const PianoController: React.FC = () => {
     const parsedId = parseInt(lessonId || "1");
     console.log("[lessonChange] Changing to lesson:", parsedId);
 
+    if (parsedId === currentLessonId) {
+      return;
+    }
+
     if (!isNaN(parsedId) && LESSONS.some((lesson) => lesson.id === parsedId)) {
       setCurrentLessonId(parsedId);
 
-      // Clear task progress from other lessons and initialize first task
+      // Clear task progress and initialize first task if needed
       setState((prev) => {
         const clearedProgress = clearTaskProgressForOtherLessons(
           prev.taskProgress,
           parsedId
         );
-        console.log("[lessonChange] Cleared progress:", clearedProgress);
-
-        // Initialize first task of new lesson if needed
-        const currentLesson = LESSONS.find((l) => l.id === parsedId);
-        if (currentLesson && currentLesson.taskIds.length > 0) {
-          const firstTaskId = currentLesson.taskIds[0];
-          console.log("[lessonChange] Initializing first task:", firstTaskId);
-
-          // Check if task already exists in cleared progress
-          const exists = clearedProgress.some((t) => t.taskId === firstTaskId);
-          if (!exists) {
-            console.log(
-              "[lessonChange] Creating new task progress for:",
-              firstTaskId
-            );
-            return {
-              ...prev,
-              taskProgress: [
-                ...clearedProgress,
-                {
-                  taskId: firstTaskId,
-                  progress: 0,
-                  status: "active" as const,
-                },
-              ],
-            };
-          }
-        }
 
         return {
           ...prev,
           taskProgress: clearedProgress,
+          pendingNextTask: null, // Reset pending tasks when changing lessons
+          pendingTaskCompletion: null,
         };
       });
+
+      // Reset task played notes for the new lesson
+      const currentLesson = LESSONS.find((l) => l.id === parsedId);
+      if (currentLesson) {
+        setTaskPlayedNotes((prev) => {
+          const newState = { ...prev };
+          currentLesson.taskIds.forEach((taskId) => {
+            newState[taskId] = new Set<string>();
+          });
+          return newState;
+        });
+      }
     } else {
-      navigate(`${URL_PREFIX}/1`, { replace: true });
+      if (parsedId !== 1) {
+        navigate(`${URL_PREFIX}/1`, { replace: true });
+      }
     }
-  }, [lessonId, navigate]);
+  }, [lessonId, navigate, currentLessonId]);
 
   // Add effect to sync activeKeysSize
   useEffect(() => {
