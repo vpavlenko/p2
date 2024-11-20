@@ -195,7 +195,6 @@ export const PianoController: React.FC = () => {
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [samplerReady, setSamplerReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
@@ -320,10 +319,8 @@ export const PianoController: React.FC = () => {
   // Move sampler loading to an earlier useEffect
   useEffect(() => {
     const loadSampler = async () => {
-      setIsLoading(true);
       await ensureSamplerLoaded();
       setSamplerReady(true);
-      setIsLoading(false);
     };
 
     loadSampler();
@@ -625,7 +622,7 @@ export const PianoController: React.FC = () => {
         taskProgress={state.taskProgress}
         activeTaskId={currentActiveTaskId}
       />
-      {isLoading ? (
+      {!samplerReady ? (
         <div className="fixed top-0 left-[600px] right-0 bottom-0 bg-black flex items-center justify-center text-white">
           Loading piano sounds...
         </div>
