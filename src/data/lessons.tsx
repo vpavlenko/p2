@@ -68,7 +68,18 @@ const LESSONS_WITHOUT_IDS: {
         <P>Now let's learn about the black keys!</P>
       </>
     ),
-    taskIds: ["play-d-again", "play-c-sharp"],
+    taskIds: [
+      "play-d-again",
+      "play-c-sharp",
+      "play-e-again",
+      "play-d-sharp",
+      "play-a-again",
+      "play-g-sharp",
+      "play-b-again",
+      "play-a-sharp",
+      "play-f-again",
+      "play-f-sharp",
+    ],
   },
   {
     title: "Free Play",

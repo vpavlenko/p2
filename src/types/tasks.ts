@@ -35,6 +35,14 @@ export const TASK_SEQUENCE = [
   "play-b-across-octaves",
   "play-d-again",
   "play-c-sharp",
+  "play-e-again",
+  "play-d-sharp",
+  "play-a-again",
+  "play-g-sharp",
+  "play-b-again",
+  "play-a-sharp",
+  "play-f-again",
+  "play-f-sharp",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -64,6 +72,14 @@ export const NOTE_MAPPINGS = {
   A: createNoteMapping(9, ["KeyN", "KeyH", "KeyY", "Digit6"]),
   B: createNoteMapping(11, ["KeyM", "KeyJ", "KeyU", "Digit7"]),
   "C#": createNoteMapping(1, ["KeyZ", "KeyA", "KeyQ", "Digit1"]), // Same keys as C for black keys
+  "E-again": createNoteMapping(4, ["KeyV", "KeyF", "KeyR", "Digit4"]),
+  "D#": createNoteMapping(3, ["KeyC", "KeyD", "KeyE", "Digit3"]),
+  "A-again": createNoteMapping(9, ["Comma", "KeyK", "KeyI", "Digit8"]),
+  "G#": createNoteMapping(8, ["KeyM", "KeyJ", "KeyU", "Digit7"]),
+  "B-again": createNoteMapping(11, ["Slash", "Semicolon", "KeyP", "Digit0"]),
+  "A#": createNoteMapping(10, ["Period", "KeyL", "KeyO", "Digit9"]),
+  "F-again": createNoteMapping(5, ["KeyB", "KeyG", "KeyT", "Digit5"]),
+  "F#": createNoteMapping(6, ["KeyN", "KeyH", "KeyY", "Digit6"]),
 } as const;
 
 // Helper function to convert NoteMapping to KeyboardMapping
@@ -161,6 +177,54 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     NOTE_MAPPINGS["C#"],
     "Play C# notes across different octaves",
     [0, 1, 2, 4, 5, 7, 9, 11]
+  ),
+  "play-e-again": createTaskConfig(
+    9,
+    NOTE_MAPPINGS["E-again"],
+    "Play E notes across different octaves",
+    [0, 1, 2, 4, 5, 7, 9, 11]
+  ),
+  "play-d-sharp": createTaskConfig(
+    10,
+    NOTE_MAPPINGS["D#"],
+    "Play D# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 9, 11]
+  ),
+  "play-a-again": createTaskConfig(
+    11,
+    NOTE_MAPPINGS["A-again"],
+    "Play A notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 9, 11]
+  ),
+  "play-g-sharp": createTaskConfig(
+    12,
+    NOTE_MAPPINGS["G#"],
+    "Play G# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11]
+  ),
+  "play-b-again": createTaskConfig(
+    13,
+    NOTE_MAPPINGS["B-again"],
+    "Play B notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 11]
+  ),
+  "play-a-sharp": createTaskConfig(
+    14,
+    NOTE_MAPPINGS["A#"],
+    "Play A# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]
+  ),
+  "play-f-again": createTaskConfig(
+    15,
+    NOTE_MAPPINGS["F-again"],
+    "Play F notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11]
+  ),
+  "play-f-sharp": createTaskConfig(
+    16,
+    NOTE_MAPPINGS["F#"],
+    "Play F# notes across different octaves",
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   ),
 };
 
