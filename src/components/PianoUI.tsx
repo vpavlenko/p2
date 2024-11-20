@@ -11,7 +11,7 @@ import {
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
-import { TASK_CONFIGS } from "../types/tasks";
+import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
