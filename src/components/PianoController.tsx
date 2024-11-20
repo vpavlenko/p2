@@ -47,6 +47,7 @@ export interface PianoControllerState {
   pendingTaskCompletion: string | null;
   activeKeysSize: number;
   pendingNextTask: string | null;
+  lastKeyReleaseTime?: number;
 }
 
 const getLastTaskInLesson = (lessonId: number): string | null => {
@@ -425,51 +426,18 @@ export const PianoController: React.FC = () => {
   const releaseNotes = useCallback(
     (note: number, octave: number) => {
       const noteKey = `${note}-${octave}`;
+      console.log(
+        `[releaseNotes] Releasing ${noteKey}, active keys: ${activeKeys.size}`
+      );
 
-      console.log(`[releaseNotes] Releasing ${noteKey}:`, {
-        activeKeys: Array.from(activeKeys),
-        activeKeysSize: activeKeys.size,
-        completingTask: state.taskProgress.find(
-          (t) => t.status === "completing"
-        )?.taskId,
-      });
-
-      // Remove from active keys first
+      // Remove from active keys
       setActiveKeys((prev) => {
         const next = new Set(prev);
         next.delete(`${note}-${octave}`);
         return next;
       });
 
-      // Handle task completion - but only when ALL keys are released
-      const completingTask = state.taskProgress.find(
-        (t) => t.status === "completing"
-      );
-      if (completingTask && activeKeys.size === 1) {
-        // size=1 because current key hasn't been removed yet
-        console.log(
-          `[releaseNotes] All keys released, completing task ${completingTask.taskId}`
-        );
-
-        setState((prev) => ({
-          ...prev,
-          taskProgress: prev.taskProgress.map((t) =>
-            t.taskId === completingTask.taskId
-              ? { ...t, status: "completed" }
-              : t
-          ),
-        }));
-
-        const nextTaskId = getNextTaskId(completingTask.taskId);
-        if (nextTaskId) {
-          setState((prev) => ({
-            ...prev,
-            pendingNextTask: nextTaskId,
-          }));
-        }
-      }
-
-      // Rest of the note release logic
+      // Handle note release logic
       const relativeNote = (note - tonic + 12) % 12;
       const notesToRelease = VOICINGS[voicing].getNotes(relativeNote, octave);
 
@@ -490,7 +458,7 @@ export const PianoController: React.FC = () => {
         return { note: absoluteNote, octave: o };
       });
     },
-    [state.taskProgress, activeKeys.size, tonic, voicing]
+    [tonic, voicing]
   );
 
   const stopProgression = useCallback(() => {
@@ -620,6 +588,41 @@ export const PianoController: React.FC = () => {
       });
     }
   }, [currentLessonId]);
+
+  // Add this effect near other effects in PianoController
+  useEffect(() => {
+    console.log("[activeKeys effect] Size changed:", {
+      size: activeKeys.size,
+      completingTask: state.taskProgress.find((t) => t.status === "completing")
+        ?.taskId,
+    });
+
+    // If we have no active keys and a completing task, it's time to complete
+    if (activeKeys.size === 0) {
+      const completingTask = state.taskProgress.find(
+        (t) => t.status === "completing"
+      );
+      if (completingTask) {
+        console.log(
+          "[activeKeys effect] Completing task:",
+          completingTask.taskId
+        );
+
+        setState((prev) => {
+          const nextTaskId = getNextTaskId(completingTask.taskId);
+          return {
+            ...prev,
+            taskProgress: prev.taskProgress.map((t) =>
+              t.taskId === completingTask.taskId
+                ? { ...t, status: "completed" }
+                : t
+            ),
+            pendingNextTask: nextTaskId,
+          };
+        });
+      }
+    }
+  }, [activeKeys.size]); // Only depend on activeKeys.size
 
   return (
     <>
