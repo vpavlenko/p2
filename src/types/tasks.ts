@@ -42,6 +42,8 @@ export const TASK_SEQUENCE = [
   "play-chromatic-ascending",
   "play-chromatic-descending",
   "play-chromatic-ascending-flat",
+  "play-major-seconds-from-a0",
+  "play-major-seconds-from-asharp0",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -308,6 +310,100 @@ const createTaskConfig = (
   };
 };
 
+// Add helper function to create sequences with intervals
+const createIntervalSequence = (
+  startNote: number,
+  startOctave: number,
+  interval: number
+): Array<{ note: number; octave: number }> => {
+  const sequence: Array<{ note: number; octave: number }> = [];
+  let currentNote = startNote;
+  let currentOctave = startOctave;
+
+  while (currentOctave < 8 || (currentOctave === 8 && currentNote === 0)) {
+    sequence.push({ note: currentNote, octave: currentOctave });
+
+    // Move to next note
+    currentNote += interval;
+    if (currentNote > 11) {
+      currentNote = currentNote % 12;
+      currentOctave++;
+    }
+  }
+
+  return sequence;
+};
+
+// Create sequences for major second tasks
+const majorSecondFromA0Sequence = createIntervalSequence(9, 0, 2); // Start from A0
+const majorSecondFromASharp0Sequence = createIntervalSequence(10, 0, 2); // Start from A#0
+
+// Create keyboard mappings for the sequences
+const createFlatChromaticMapping = (
+  sequence: Array<{ note: number; octave: number }>
+): KeyboardMapping => {
+  const mapping: KeyboardMapping = {};
+  const keySequence = [
+    // Bottom row
+    "KeyZ",
+    "KeyX",
+    "KeyC",
+    "KeyV",
+    "KeyB",
+    "KeyN",
+    "KeyM",
+    "Comma",
+    "Period",
+    "Slash",
+    // Middle row
+    "KeyA",
+    "KeyS",
+    "KeyD",
+    "KeyF",
+    "KeyG",
+    "KeyH",
+    "KeyJ",
+    "KeyK",
+    "KeyL",
+    "Semicolon",
+    "Quote",
+    // Top row
+    "KeyQ",
+    "KeyW",
+    "KeyE",
+    "KeyR",
+    "KeyT",
+    "KeyY",
+    "KeyU",
+    "KeyI",
+    "KeyO",
+    "KeyP",
+    "BracketLeft",
+    "BracketRight",
+    // Number row
+    "Digit1",
+    "Digit2",
+    "Digit3",
+    "Digit4",
+    "Digit5",
+    "Digit6",
+    "Digit7",
+    "Digit8",
+    "Digit9",
+    "Digit0",
+    "Minus",
+    "Equal",
+  ];
+
+  sequence.forEach(({ note, octave }, index) => {
+    if (index < keySequence.length) {
+      mapping[keySequence[index]] = { note, octave };
+    }
+  });
+
+  return mapping;
+};
+
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-c-across-octaves": createTaskConfig(
     0,
@@ -469,6 +565,44 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-chromatic-descending",
+    nextTaskId: null,
+  },
+
+  "play-major-seconds-from-a0": {
+    id: "play-major-seconds-from-a0",
+    description: "Play notes separated by major seconds, starting from A0",
+    total: majorSecondFromA0Sequence.length,
+    requiredProgress: majorSecondFromA0Sequence.length,
+    keyboardMapping: createFlatChromaticMapping(majorSecondFromA0Sequence),
+    colorMode: "flat-chromatic",
+    chromaticNotes: Array.from(
+      new Set(majorSecondFromA0Sequence.map((n) => n.note))
+    ),
+    checker: {
+      type: "sequence",
+      sequence: majorSecondFromA0Sequence,
+      currentIndex: 0,
+    },
+    previousTaskId: "play-chromatic-ascending-flat",
+    nextTaskId: "play-major-seconds-from-asharp0",
+  },
+
+  "play-major-seconds-from-asharp0": {
+    id: "play-major-seconds-from-asharp0",
+    description: "Play notes separated by major seconds, starting from A#0",
+    total: majorSecondFromASharp0Sequence.length,
+    requiredProgress: majorSecondFromASharp0Sequence.length,
+    keyboardMapping: createFlatChromaticMapping(majorSecondFromASharp0Sequence),
+    colorMode: "flat-chromatic",
+    chromaticNotes: Array.from(
+      new Set(majorSecondFromASharp0Sequence.map((n) => n.note))
+    ),
+    checker: {
+      type: "sequence",
+      sequence: majorSecondFromASharp0Sequence,
+      currentIndex: 0,
+    },
+    previousTaskId: "play-major-seconds-from-a0",
     nextTaskId: null,
   },
 };

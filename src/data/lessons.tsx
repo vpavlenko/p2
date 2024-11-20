@@ -119,6 +119,22 @@ const LESSONS_WITHOUT_IDS: {
       "play-chromatic-ascending-flat",
     ],
   },
+  {
+    title: "Major Second Intervals",
+    content: (
+      <>
+        <P>
+          Let's explore intervals! We'll start with major seconds - the interval
+          of two semitones.
+        </P>
+        <P>
+          First, play all notes separated by major seconds starting from A0.
+          Then we'll play the complementary sequence starting from A#0.
+        </P>
+      </>
+    ),
+    taskIds: ["play-major-seconds-from-a0", "play-major-seconds-from-asharp0"],
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
