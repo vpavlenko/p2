@@ -39,6 +39,11 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
         ? LESSONS[currentLessonIndex + 1]
         : null;
 
+    // Check if all tasks in current lesson are completed
+    const allTasksCompleted = currentLesson?.taskIds.every((taskId) =>
+      taskProgress.some((t) => t.taskId === taskId && t.status === "completed")
+    );
+
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "ArrowLeft" && previousLesson) {
@@ -87,13 +92,10 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
     );
 
     return (
-      <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white p-8 overflow-y-auto">
-        <div
-          className={`mb-8 flex flex-col gap-4 ${
-            isMenuOpen ? "pointer-events-none" : ""
-          }`}
-        >
-          <div className="flex items-center gap-2">
+      <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white flex flex-col">
+        {/* Sticky Header */}
+        <div className="sticky top-0 bg-gray-900 z-20 p-8 pb-4 border-b border-gray-800">
+          <div className="flex items-center gap-2 mb-4">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700 relative z-20 pointer-events-auto"
@@ -119,7 +121,11 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
                   <Link
                     to={`${URL_PREFIX}/${nextLesson.id}`}
                     onClick={() => onLessonChange(nextLesson.id)}
-                    className="block w-full p-2 bg-gray-800 rounded border border-gray-700 text-gray-400 hover:bg-gray-700 text-right select-none"
+                    className={`block w-full p-2 rounded border text-right select-none transition-all duration-300 ${
+                      allTasksCompleted
+                        ? "bg-blue-600 hover:bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                        : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700"
+                    }`}
                   >
                     {currentLessonIndex + 2}. {nextLesson.title} →
                   </Link>
@@ -133,77 +139,85 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
           </div>
         </div>
 
-        {isMenuOpen && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-95 z-10 overflow-y-auto">
-            <div className="p-8 pt-[72px]">
-              <div className="flex flex-col gap-2">
-                {LESSONS.map((lesson, index) => (
-                  <Link
-                    key={lesson.id}
-                    to={`${URL_PREFIX}/${lesson.id}`}
-                    onClick={() => {
-                      onLessonChange(lesson.id);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`mt-2 text-left cursor-pointer hover:text-white ${
-                      lesson.id === currentLessonId
-                        ? "text-white"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    <span>{index + 1}. </span>
-                    {lesson.title}
-                  </Link>
-                ))}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-8 pt-4">
+          {isMenuOpen && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-95 z-10 overflow-y-auto">
+              <div className="p-8 pt-[72px]">
+                <div className="flex flex-col gap-2">
+                  {LESSONS.map((lesson, index) => (
+                    <Link
+                      key={lesson.id}
+                      to={`${URL_PREFIX}/${lesson.id}`}
+                      onClick={() => {
+                        onLessonChange(lesson.id);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`mt-2 text-left cursor-pointer hover:text-white ${
+                        lesson.id === currentLessonId
+                          ? "text-white"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      <span>{index + 1}. </span>
+                      {lesson.title}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {currentLesson && (
-          <div className="prose prose-invert">
-            {renderContent(currentLesson.content, taskProgress, currentLesson)}
-
-            {currentLesson.taskIds.map((taskId, index) => {
-              const previousTaskId =
-                index > 0 ? currentLesson.taskIds[index - 1] : null;
-              const previousTaskCompleted = previousTaskId
-                ? taskProgress.some(
-                    (t) =>
-                      t.taskId === previousTaskId && t.status === "completed"
-                  )
-                : true;
-
-              return (
-                <MemoizedTask
-                  key={taskId}
-                  taskConfig={TASK_CONFIGS[taskId]}
-                  progress={
-                    taskProgress.find((t) => t.taskId === taskId)?.progress ?? 0
-                  }
-                  status={
-                    taskProgress.find((t) => t.taskId === taskId)?.status ??
-                    "active"
-                  }
-                  previousTaskCompleted={previousTaskCompleted}
-                  isActive={taskId === activeTaskId}
-                  onSkip={onSkipTask}
-                />
-              );
-            })}
-
-            {currentLesson.finalText &&
-              currentLesson.taskIds.every((taskId) =>
-                taskProgress.some(
-                  (t) => t.taskId === taskId && t.status === "completed"
-                )
-              ) && (
-                <p className="mt-6 text-gray-400 italic">
-                  {currentLesson.finalText}
-                </p>
+          {currentLesson && (
+            <div className="prose prose-invert">
+              {renderContent(
+                currentLesson.content,
+                taskProgress,
+                currentLesson
               )}
-          </div>
-        )}
+
+              {currentLesson.taskIds.map((taskId, index) => {
+                const previousTaskId =
+                  index > 0 ? currentLesson.taskIds[index - 1] : null;
+                const previousTaskCompleted = previousTaskId
+                  ? taskProgress.some(
+                      (t) =>
+                        t.taskId === previousTaskId && t.status === "completed"
+                    )
+                  : true;
+
+                return (
+                  <MemoizedTask
+                    key={taskId}
+                    taskConfig={TASK_CONFIGS[taskId]}
+                    progress={
+                      taskProgress.find((t) => t.taskId === taskId)?.progress ??
+                      0
+                    }
+                    status={
+                      taskProgress.find((t) => t.taskId === taskId)?.status ??
+                      "active"
+                    }
+                    previousTaskCompleted={previousTaskCompleted}
+                    isActive={taskId === activeTaskId}
+                    onSkip={onSkipTask}
+                  />
+                );
+              })}
+
+              {currentLesson.finalText &&
+                currentLesson.taskIds.every((taskId) =>
+                  taskProgress.some(
+                    (t) => t.taskId === taskId && t.status === "completed"
+                  )
+                ) && (
+                  <p className="mt-6 text-gray-400 italic">
+                    {currentLesson.finalText}
+                  </p>
+                )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
