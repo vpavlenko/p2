@@ -6,6 +6,11 @@ import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
 import { TASK_CONFIGS } from "../types/tasks";
 import type { TaskProgress } from "../types/tasks";
+import Keyboard from "react-simple-keyboard";
+import "react-simple-keyboard/build/css/index.css";
+import { KEY_DISPLAY_LABELS } from "../constants/keyboard";
+import { getColors } from "../utils/colors";
+import { SPECIAL_NOTE_COLORS } from "../components/PianoUI";
 
 interface LessonsPanelProps {
   currentLessonId: number;
@@ -17,6 +22,15 @@ interface LessonsPanelProps {
 
 // Memoize the Task components
 const MemoizedTask = React.memo(Task);
+
+const KEYBOARD_LAYOUT = {
+  default: [
+    "1 2 3 4 5 6 7 8 9 0 - =",
+    "q w e r t y u i o p [ ]",
+    "a s d f g h j k l ; '",
+    "z x c v b n m , . /",
+  ],
+};
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
   ({
@@ -90,6 +104,130 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
       },
       []
     );
+
+    // Add this function to get button colors based on the current mapping
+    const getButtonTheme = () => {
+      if (!activeTaskId) {
+        console.log("[Keyboard] No active task");
+        return [];
+      }
+
+      const taskConfig = TASK_CONFIGS[activeTaskId];
+      if (!taskConfig?.keyboardMapping) {
+        console.log("[Keyboard] No keyboard mapping for task:", activeTaskId);
+        return [];
+      }
+
+      const colors = getColors(0, taskConfig.colorMode || "chromatic");
+      const buttonTheme: Array<{ class: string; buttons: string }> = [];
+
+      console.log("[Keyboard] Building theme with:", {
+        taskId: activeTaskId,
+        colorMode: taskConfig.colorMode,
+        mapping: taskConfig.keyboardMapping,
+        colors,
+      });
+
+      // Debug the DOM structure
+      setTimeout(() => {
+        console.log(
+          "[Keyboard] Current keyboard DOM:",
+          document.querySelector(".simple-keyboard-base")?.innerHTML
+        );
+      }, 100);
+
+      Object.entries(taskConfig.keyboardMapping).forEach(([key, mapping]) => {
+        const keyLabel = KEY_DISPLAY_LABELS[key]?.toLowerCase();
+        if (keyLabel) {
+          const color = colors[mapping.note];
+          const className = `key-${keyLabel.replace(/[^a-z0-9]/g, "")}`;
+
+          const relativeNote = mapping.note % 12;
+          const isSpecialNote = SPECIAL_NOTE_COLORS.includes(relativeNote);
+          const textColor =
+            isSpecialNote || color === "#ffffff" ? "black" : "white";
+
+          console.log(`[Keyboard] Styling key ${keyLabel}:`, {
+            originalKey: key,
+            color,
+            textColor,
+            className,
+            relativeNote,
+            isSpecialNote,
+          });
+
+          buttonTheme.push({
+            class: className,
+            buttons: keyLabel,
+          });
+
+          // Try both direct button and button-text styling
+          const style = document.createElement("style");
+          style.textContent = `
+            /* Direct button styling */
+            .simple-keyboard-base .${className} {
+              background: ${color} !important;
+              color: ${textColor} !important;
+            }
+            
+            /* Button text styling */
+            .simple-keyboard-base .${className} span {
+              color: ${textColor} !important;
+            }
+            
+            /* Alternative selectors */
+            .simple-keyboard-base .hg-button.${className} {
+              background: ${color} !important;
+              color: ${textColor} !important;
+            }
+            
+            .simple-keyboard-base .hg-button.${className} span {
+              color: ${textColor} !important;
+            }
+          `;
+
+          // Clean up existing style
+          const existingStyle = document.querySelector(
+            `style[data-key="${className}"]`
+          );
+          if (existingStyle) {
+            existingStyle.remove();
+          }
+          style.setAttribute("data-key", className);
+          document.head.appendChild(style);
+        }
+      });
+
+      console.log("[Keyboard] Final button theme:", buttonTheme);
+      return buttonTheme;
+    };
+
+    // Add this function to get display mapping
+    const getDisplay = () => {
+      if (!activeTaskId) return {};
+
+      const taskConfig = TASK_CONFIGS[activeTaskId];
+      if (!taskConfig?.keyboardMapping) return {};
+
+      const display: Record<string, string> = {};
+
+      // Initialize all possible keys as empty
+      "1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./"
+        .split("")
+        .forEach((key) => {
+          display[key] = " ";
+        });
+
+      // Set only mapped keys to be visible with their labels
+      Object.entries(taskConfig.keyboardMapping).forEach(([key]) => {
+        const keyLabel = KEY_DISPLAY_LABELS[key]?.toLowerCase();
+        if (keyLabel) {
+          display[keyLabel] = keyLabel;
+        }
+      });
+
+      return display;
+    };
 
     return (
       <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white flex flex-col">
@@ -217,6 +355,32 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
                 )}
             </div>
           )}
+        </div>
+
+        {/* Add keyboard at the bottom */}
+        <div className="mt-auto p-4 border-t border-gray-800">
+          <div className="flex justify-start">
+            <Keyboard
+              layout={KEYBOARD_LAYOUT}
+              display={getDisplay()}
+              buttonTheme={getButtonTheme()}
+              mergeDisplay={true}
+              physicalKeyboardHighlight={false}
+              physicalKeyboardHighlightPress={false}
+              useButtonTag={true}
+              disableButtonHold={true}
+              preventMouseDownDefault={true}
+              baseClass="simple-keyboard-base"
+              theme="hg-theme-default custom-theme"
+              debug={true}
+              onRender={() => {
+                console.log(
+                  "[Keyboard] Rendered. DOM structure:",
+                  document.querySelector(".simple-keyboard-base")?.innerHTML
+                );
+              }}
+            />
+          </div>
         </div>
       </div>
     );
