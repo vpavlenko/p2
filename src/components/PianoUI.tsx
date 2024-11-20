@@ -12,6 +12,7 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS } from "../types/tasks";
+import * as Tone from "tone";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -19,7 +20,6 @@ const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
 
 const BLACK_KEY_HEIGHT_MULTIPLIER = 0.65; // Black keys are 60% of total height
 export const PIANO_HEIGHT = 80; // Total piano height in pixels
-const WHITE_KEY_TOP_OFFSET = PIANO_HEIGHT * (1 - BLACK_KEY_HEIGHT_MULTIPLIER); // White keys start 20px from top in chromatic mode
 
 interface PianoKeyProps {
   note: number;
@@ -52,6 +52,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   shiftedKeyboardKey,
   tonic,
   isShiftPressed,
+  colorMode,
   playNotes,
   releaseNotes,
   isActive,
@@ -66,9 +67,12 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     : undefined;
 
   // Determine which color mode to use for this note
-  const effectiveColorMode = chromaticNotes?.includes(note)
-    ? "chromatic"
-    : "traditional";
+  const effectiveColorMode =
+    colorMode === "flat-chromatic"
+      ? "flat-chromatic"
+      : chromaticNotes?.includes(note)
+      ? "chromatic"
+      : "traditional";
 
   const colors = getColors(tonic, effectiveColorMode);
   const relativeNote = (note - tonic + 12) % 12;

@@ -25,9 +25,22 @@ export const sampler = new Tone.Sampler({
   baseUrl: "https://tonejs.github.io/audio/salamander/",
   onload: () => {
     console.log("Sampler loaded");
+    console.log("Audio Context State:", Tone.getContext().state);
     samplerLoaded = true;
   },
 }).toDestination();
+
+const originalTriggerAttack = sampler.triggerAttack;
+sampler.triggerAttack = function (...args) {
+  console.log("Audio Context State:", Tone.getContext().state);
+  return originalTriggerAttack.apply(this, args);
+};
+
+const originalTriggerRelease = sampler.triggerRelease;
+sampler.triggerRelease = function (...args) {
+  console.log("Audio Context State:", Tone.getContext().state);
+  return originalTriggerRelease.apply(this, args);
+};
 
 export const ensureSamplerLoaded = async () => {
   if (samplerLoaded) {
