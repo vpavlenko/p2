@@ -12,13 +12,20 @@ interface LessonsPanelProps {
   onLessonChange: (lessonId: number) => void;
   taskProgress: TaskProgress[];
   activeTaskId: string | null;
+  onSkipTask?: (taskId: string) => void;
 }
 
 // Memoize the Task components
 const MemoizedTask = React.memo(Task);
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
-  ({ currentLessonId, onLessonChange, taskProgress, activeTaskId }) => {
+  ({
+    currentLessonId,
+    onLessonChange,
+    taskProgress,
+    activeTaskId,
+    onSkipTask,
+  }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const currentLessonIndex = LESSONS.findIndex(
@@ -180,6 +187,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
                   }
                   previousTaskCompleted={previousTaskCompleted}
                   isActive={taskId === activeTaskId}
+                  onSkip={onSkipTask}
                 />
               );
             })}

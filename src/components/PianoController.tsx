@@ -643,6 +643,25 @@ export const PianoController: React.FC = () => {
     }
   }, [activeKeys.size]); // Only depend on activeKeys.size
 
+  const handleSkipTask = useCallback((taskId: string) => {
+    setState((prev) => {
+      const nextTaskId = getNextTaskId(taskId);
+      return {
+        ...prev,
+        taskProgress: prev.taskProgress.map((t) =>
+          t.taskId === taskId
+            ? {
+                ...t,
+                status: "completed",
+                progress: TASK_CONFIGS[taskId].total,
+              }
+            : t
+        ),
+        pendingNextTask: nextTaskId,
+      };
+    });
+  }, []);
+
   return (
     <>
       <LessonsPanel
@@ -650,6 +669,7 @@ export const PianoController: React.FC = () => {
         onLessonChange={handleLessonChange}
         taskProgress={state.taskProgress}
         activeTaskId={currentActiveTaskId}
+        onSkipTask={handleSkipTask}
       />
       {!samplerReady ? (
         <div className="fixed top-0 left-[600px] right-0 bottom-0 bg-black flex items-center justify-center text-white">

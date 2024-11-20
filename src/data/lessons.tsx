@@ -106,9 +106,18 @@ const LESSONS_WITHOUT_IDS: {
           Follow the arrows - they show which note to play next. Previous notes
           will show checkmarks.
         </P>
+        <P>
+          Finally, try playing the ascending sequence again using the flat
+          keyboard layout - where each key is arranged in chromatic order from
+          left to right.
+        </P>
       </>
     ),
-    taskIds: ["play-chromatic-ascending", "play-chromatic-descending"],
+    taskIds: [
+      "play-chromatic-ascending",
+      "play-chromatic-descending",
+      "play-chromatic-ascending-flat",
+    ],
   },
 ];
 

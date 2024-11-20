@@ -10,6 +10,7 @@ interface TaskProps {
   activeNotes?: number;
   onActivate?: () => void;
   previousTaskCompleted?: boolean;
+  onSkip?: (taskId: string) => void;
 }
 
 export const Task: React.FC<TaskProps> = ({
@@ -19,22 +20,12 @@ export const Task: React.FC<TaskProps> = ({
   isActive = false,
   onActivate,
   previousTaskCompleted = true,
+  onSkip,
 }) => {
   const { total, description } = taskConfig;
   const isCompleting = status === "completing";
   const isCompleted = status === "completed";
   const percentage = Math.min((progress / total) * 100, 100);
-
-  console.log(`Task ${taskConfig.id} render:`, {
-    progress,
-    status,
-    isActive,
-    previousTaskCompleted,
-    isCompleting,
-    isCompleted,
-    shouldShow:
-      previousTaskCompleted || isCompleted || isActive || isCompleting,
-  });
 
   React.useEffect(() => {
     if (!isCompleted && !isCompleting && progress >= total) {
@@ -47,7 +38,6 @@ export const Task: React.FC<TaskProps> = ({
   }, [progress, total, isCompleted, isCompleting]);
 
   if (!previousTaskCompleted && !isCompleted && !isActive && !isCompleting) {
-    console.log(`Task ${taskConfig.id} hidden due to conditions not met`);
     return null;
   }
 
@@ -71,6 +61,19 @@ export const Task: React.FC<TaskProps> = ({
             description
           )}
         </div>
+        <div className="flex items-center gap-4">
+          {!isCompleted && onSkip && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSkip(taskConfig.id);
+              }}
+              className="px-2 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+            >
+              Skip
+            </button>
+          )}
+        </div>
         {!isCompleted && (
           <div
             className={`${isCompleted ? "text-green-400" : "text-gray-400"}`}
@@ -86,6 +89,9 @@ export const Task: React.FC<TaskProps> = ({
           }`}
           style={{ width: `${percentage}%` }}
         />
+        {!isCompleted && (
+          <div className="text-gray-400">{`${progress}/${total}`}</div>
+        )}
       </div>
       {isCompleting && (
         <div className="text-xs text-gray-500 mt-2">

@@ -41,6 +41,7 @@ export const TASK_SEQUENCE = [
   "play-f-sharp",
   "play-chromatic-ascending",
   "play-chromatic-descending",
+  "play-chromatic-ascending-flat",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -447,6 +448,27 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-chromatic-ascending",
+    nextTaskId: null,
+  },
+
+  "play-chromatic-ascending-flat": {
+    id: "play-chromatic-ascending-flat",
+    description:
+      "Play notes in ascending chromatic order using flat keyboard layout",
+    total: ASCENDING_KEY_SEQUENCE.length,
+    requiredProgress: ASCENDING_KEY_SEQUENCE.length,
+    keyboardMapping: createSequenceKeyboardMapping(
+      ascendingSequence,
+      ASCENDING_KEY_SEQUENCE
+    ),
+    colorMode: "flat-chromatic",
+    chromaticNotes: Array.from(new Set(ascendingSequence.map((n) => n.note))),
+    checker: {
+      type: "sequence",
+      sequence: ascendingSequence,
+      currentIndex: 0,
+    },
+    previousTaskId: "play-chromatic-descending",
     nextTaskId: null,
   },
 };
