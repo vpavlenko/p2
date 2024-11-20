@@ -298,59 +298,58 @@ const calculateKeyPosition = (
   return whiteKeyCount * keyWidth;
 };
 
-// Update the TaskIndicators component to use this function
+// Update TaskIndicators to handle sequence visualization
 const TaskIndicators: React.FC<{
-  taskConfig: (typeof TASK_CONFIGS)[keyof typeof TASK_CONFIGS];
-  playedNotes: Set<string>;
+  taskConfig: TaskConfig;
   totalWidth: number;
   keyWidth: number;
-}> = ({ taskConfig, playedNotes, totalWidth, keyWidth }) => {
-  const targetNotes = [2, 3, 4, 5].map((octave) => ({
-    note:
-      taskConfig.keyboardMapping?.[Object.keys(taskConfig.keyboardMapping)[0]]
-        ?.note ?? 0,
-    octave,
-  }));
+}> = ({ taskConfig, totalWidth, keyWidth }) => {
+  if (taskConfig.checker.type === "sequence") {
+    const { sequence, currentIndex } = taskConfig.checker;
 
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: -30,
-        left: 0,
-        width: totalWidth,
-        height: "30px",
-        display: "flex",
-        alignItems: "flex-end",
-      }}
-    >
-      {targetNotes.map(({ note, octave }) => {
-        const isPlayed = playedNotes.has(`${note}-${octave}`);
-        const left = calculateKeyPosition(note, octave, keyWidth);
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: -30,
+          left: 0,
+          width: totalWidth,
+          height: "30px",
+          display: "flex",
+          alignItems: "flex-end",
+        }}
+      >
+        {sequence.map(({ note, octave }, index) => {
+          const isPlayed = index < currentIndex;
+          const isCurrent = index === currentIndex;
+          const left = calculateKeyPosition(note, octave, keyWidth);
 
-        return (
-          <div
-            key={`${note}-${octave}`}
-            style={{
-              position: "absolute",
-              left: left,
-              bottom: 0,
-              color: "white",
-              fontSize: "20px",
-              transform: isPlayed ? "none" : "translateY(-5px)",
-              transition: "transform 0.2s ease-in-out",
-              width: keyWidth,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {isPlayed ? "✓" : "↓"}
-          </div>
-        );
-      })}
-    </div>
-  );
+          return (
+            <div
+              key={`${note}-${octave}`}
+              style={{
+                position: "absolute",
+                left: left,
+                bottom: 0,
+                color: "white",
+                fontSize: "20px",
+                transform: isCurrent ? "translateY(-5px)" : "none",
+                transition: "transform 0.2s ease-in-out",
+                width: keyWidth,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {isPlayed ? "✓" : isCurrent ? "↓" : ""}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Existing set-based visualization...
 };
 
 interface PianoUIProps {
@@ -390,7 +389,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   onStopPlaying,
   taskKeyboardMapping,
   activeTaskId,
-  taskPlayedNotes,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -716,7 +714,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
         {activeTaskId && TASK_CONFIGS[activeTaskId] && (
           <TaskIndicators
             taskConfig={TASK_CONFIGS[activeTaskId]}
-            playedNotes={taskPlayedNotes[activeTaskId] || new Set()}
             totalWidth={totalWidth}
             keyWidth={keyWidth}
           />

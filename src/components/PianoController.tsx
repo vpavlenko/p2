@@ -13,6 +13,7 @@ import { URL_PREFIX } from "../constants/routes";
 import {
   TASK_CONFIGS,
   canTaskBeActivated,
+  checkSequenceProgress,
   getNextTaskId,
 } from "../types/tasks";
 import { ensureSamplerLoaded } from "../audio/sampler";
@@ -275,7 +276,19 @@ export const PianoController: React.FC = () => {
 
       const noteKey = `${note}-${octave}`;
       const taskNotes = taskPlayedNotes[taskId];
-      const shouldIncrement = taskConfig.checkProgress(note, octave, taskNotes);
+      let shouldIncrement = false;
+
+      if (taskConfig.checker.type === "sequence") {
+        // For sequence tasks, check if the note matches the current sequence position
+        shouldIncrement = checkSequenceProgress(
+          taskConfig.checker,
+          note,
+          octave
+        );
+      } else {
+        // For set tasks, check if the note hasn't been played yet
+        shouldIncrement = !taskNotes.has(noteKey);
+      }
 
       console.log(`[incrementTaskProgress] Task ${taskId}:`, {
         noteKey,
@@ -283,6 +296,7 @@ export const PianoController: React.FC = () => {
         currentProgress:
           state.taskProgress.find((t) => t.taskId === taskId)?.progress || 0,
         total: taskConfig.total,
+        checkerType: taskConfig.checker.type,
       });
 
       if (shouldIncrement) {
@@ -319,9 +333,14 @@ export const PianoController: React.FC = () => {
                 ],
           };
         });
+
+        // For sequence tasks, increment the currentIndex
+        if (taskConfig.checker.type === "sequence" && shouldIncrement) {
+          taskConfig.checker.currentIndex++;
+        }
       }
     },
-    [taskPlayedNotes]
+    [taskPlayedNotes, state.taskProgress]
   );
 
   // Move sampler loading to an earlier useEffect

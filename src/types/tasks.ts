@@ -9,11 +9,7 @@ export interface TaskConfig {
   keyboardMapping?: KeyboardMapping;
   colorMode?: ColorMode;
   chromaticNotes?: number[];
-  checkProgress: (
-    note: number,
-    octave: number,
-    playedNotes: Set<string>
-  ) => boolean;
+  checker: TaskChecker;
   nextTaskId?: string | null;
   requiredProgress: number;
   previousTaskId?: string | null;
@@ -43,6 +39,8 @@ export const TASK_SEQUENCE = [
   "play-a-sharp",
   "play-f-again",
   "play-f-sharp",
+  "play-chromatic-ascending",
+  "play-chromatic-descending",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -96,6 +94,145 @@ export const createKeyboardMapping = (
   return mapping;
 };
 
+// Add new type for sequence checking
+export type SequenceChecker = {
+  type: "sequence";
+  sequence: Array<{ note: number; octave: number }>;
+  currentIndex: number;
+};
+
+export type SetChecker = {
+  type: "set";
+  targetNotes: Set<string>; // Format: "note-octave"
+};
+
+export type TaskChecker = SequenceChecker | SetChecker;
+
+// Create the ascending sequence starting from A0
+const createAscendingChromaticSequence = (): Array<{
+  note: number;
+  octave: number;
+}> => {
+  // Start from A0 (note 9, octave 0)
+  const sequence: Array<{ note: number; octave: number }> = [];
+  let currentNote = 9; // A
+  let currentOctave = 0;
+
+  // Generate sequence until we reach the end of keyboard
+  while (!(currentNote === 0 && currentOctave === 8)) {
+    // Stop at C8
+    sequence.push({ note: currentNote, octave: currentOctave });
+
+    // Move to next note
+    currentNote++;
+    if (currentNote > 11) {
+      currentNote = 0;
+      currentOctave++;
+    }
+  }
+
+  // Add final C8
+  sequence.push({ note: 0, octave: 8 });
+
+  return sequence;
+};
+
+// Create the descending sequence starting from C8
+const createDescendingChromaticSequence = (): Array<{
+  note: number;
+  octave: number;
+}> => {
+  // Start from C8 (note 0, octave 8)
+  const sequence: Array<{ note: number; octave: number }> = [];
+  let currentNote = 0; // C
+  let currentOctave = 8;
+
+  // Generate sequence until we reach A0
+  while (!(currentNote === 9 && currentOctave === 0)) {
+    // Stop at A0
+    sequence.push({ note: currentNote, octave: currentOctave });
+
+    // Move to previous note
+    currentNote--;
+    if (currentNote < 0) {
+      currentNote = 11;
+      currentOctave--;
+    }
+  }
+
+  // Add final A0
+  sequence.push({ note: 9, octave: 0 });
+
+  return sequence;
+};
+
+// Create the ascending and descending sequences
+const ascendingSequence = createAscendingChromaticSequence();
+const descendingSequence = createDescendingChromaticSequence();
+
+// Define key sequence
+const CHROMATIC_KEY_SEQUENCE = [
+  "KeyZ",
+  "KeyX",
+  "KeyC",
+  "KeyV",
+  "KeyB",
+  "KeyN",
+  "KeyM",
+  "Comma",
+  "Period",
+  "Slash",
+  "KeyA",
+  "KeyS",
+  "KeyD",
+  "KeyF",
+  "KeyG",
+  "KeyH",
+  "KeyJ",
+  "KeyK",
+  "KeyL",
+  "Semicolon",
+  "Quote",
+  "KeyQ",
+  "KeyW",
+  "KeyE",
+  "KeyR",
+  "KeyT",
+  "KeyY",
+  "KeyU",
+  "KeyI",
+  "KeyO",
+  "KeyP",
+  "BracketLeft",
+  "BracketRight",
+  "Digit1",
+  "Digit2",
+  "Digit3",
+  "Digit4",
+  "Digit5",
+  "Digit6",
+  "Digit7",
+  "Digit8",
+  "Digit9",
+  "Digit0",
+  "Minus",
+  "Equal",
+];
+
+// Add this helper function to create keyboard mapping for sequences
+const createSequenceKeyboardMapping = (
+  sequence: Array<{ note: number; octave: number }>,
+  keys: string[]
+): KeyboardMapping => {
+  const mapping: KeyboardMapping = {};
+  sequence.forEach(({ note, octave }, index) => {
+    if (index < keys.length) {
+      mapping[keys[index]] = { note, octave };
+    }
+  });
+  return mapping;
+};
+
 // Update createTaskConfig to use NOTE_MAPPINGS
 const createTaskConfig = (
   index: number,
@@ -113,12 +250,10 @@ const createTaskConfig = (
       index < TASK_SEQUENCE.length - 1 ? TASK_SEQUENCE[index + 1] : null,
     chromaticNotes,
     keyboardMapping: createKeyboardMapping(targetNote),
-    checkProgress: (note: number, octave: number, playedNotes: Set<string>) => {
-      if (note !== targetNote.note || ![2, 3, 4, 5].includes(octave)) {
-        return false;
-      }
-      const noteKey = `${note}-${octave}`;
-      return !playedNotes.has(noteKey);
+    checker: {
+      type: "sequence",
+      sequence: ascendingSequence,
+      currentIndex: 0,
     },
   };
 };
@@ -226,6 +361,45 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     "Play F# notes across different octaves",
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   ),
+  "play-chromatic-ascending": {
+    id: "play-chromatic-ascending",
+    description: "Play notes in ascending chromatic order, starting from A0",
+    total: CHROMATIC_KEY_SEQUENCE.length,
+    requiredProgress: CHROMATIC_KEY_SEQUENCE.length,
+    keyboardMapping: createSequenceKeyboardMapping(
+      ascendingSequence,
+      CHROMATIC_KEY_SEQUENCE
+    ),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(new Set(ascendingSequence.map((n) => n.note))),
+    checker: {
+      type: "sequence",
+      sequence: ascendingSequence,
+      currentIndex: 0,
+    },
+    previousTaskId: "play-f-sharp",
+    nextTaskId: "play-chromatic-descending",
+  },
+
+  "play-chromatic-descending": {
+    id: "play-chromatic-descending",
+    description: "Play notes in descending chromatic order, starting from C8",
+    total: CHROMATIC_KEY_SEQUENCE.length,
+    requiredProgress: CHROMATIC_KEY_SEQUENCE.length,
+    keyboardMapping: createSequenceKeyboardMapping(
+      descendingSequence,
+      CHROMATIC_KEY_SEQUENCE
+    ),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(new Set(descendingSequence.map((n) => n.note))),
+    checker: {
+      type: "sequence",
+      sequence: descendingSequence,
+      currentIndex: 0,
+    },
+    previousTaskId: "play-chromatic-ascending",
+    nextTaskId: null,
+  },
 };
 
 export const isTaskCompleted = (taskId: string, progress: number): boolean => {
@@ -263,4 +437,14 @@ export const getNextTaskId = (currentTaskId: string): string | null => {
 
 export const getPreviousTaskId = (currentTaskId: string): string | null => {
   return TASK_CONFIGS[currentTaskId]?.previousTaskId || null;
+};
+
+// Add helper to check if a note matches the current sequence position
+export const checkSequenceProgress = (
+  checker: SequenceChecker,
+  note: number,
+  octave: number
+): boolean => {
+  const target = checker.sequence[checker.currentIndex];
+  return target.note === note && target.octave === octave;
 };

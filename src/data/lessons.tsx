@@ -94,6 +94,22 @@ const LESSONS_WITHOUT_IDS: {
     ),
     taskIds: [], // No tasks for free play
   },
+  {
+    title: "Chromatic Sequences",
+    content: (
+      <>
+        <P>
+          Now let's play all notes in sequence! First ascending from A0, then
+          descending from C8.
+        </P>
+        <P>
+          Follow the arrows - they show which note to play next. Previous notes
+          will show checkmarks.
+        </P>
+      </>
+    ),
+    taskIds: ["play-chromatic-ascending", "play-chromatic-descending"],
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
