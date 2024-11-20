@@ -5,22 +5,36 @@
 
 .simple-keyboard-base .hg-button {
   background-color: #444 !important;
-  height: 40px !important;
-  width: 40px !important;
-  border-radius: 4px !important;
+  height: 20px !important;
+  width: 20px !important;
+  border-radius: 3px !important;
   border: none !important;
-  margin: 2px !important;
-  font-size: 14px !important;
+  margin: 1px !important;
+  font-size: 11px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   text-transform: lowercase !important;
   font-weight: bold !important;
+  transition: all 0.1s ease-in-out !important;
 }
 
 .simple-keyboard-base .hg-button.hg-standardBtn {
-  min-width: 40px !important;
-  max-width: 40px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+}
+
+/* Row offsets for staggered layout */
+.simple-keyboard-base .hg-row:nth-child(2) {
+  padding-left: 10px !important;
+}
+
+.simple-keyboard-base .hg-row:nth-child(3) {
+  padding-left: 15px !important;
+}
+
+.simple-keyboard-base .hg-row:nth-child(4) {
+  padding-left: 20px !important;
 }
 
 /* Special characters styling */
@@ -39,6 +53,7 @@
 .simple-keyboard-base .hg-row {
   display: flex !important;
   justify-content: flex-start !important;
+  margin: 2px 0 !important;
 }
 
 /* Hide unmapped keys text */
@@ -49,4 +64,16 @@
 /* Show text for mapped keys */
 .simple-keyboard-base .hg-button[class*="key-"] {
   color: inherit !important;
+}
+
+/* Glow effect for active keys */
+.simple-keyboard-base .hg-button.hg-activeButton {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
+  transform: scale(0.95) !important;
+}
+
+/* Add glow effect to colored keys when active */
+.simple-keyboard-base .hg-button[class*="key-"].hg-activeButton {
+  box-shadow: 0 0 12px currentColor !important;
+  transform: scale(0.95) !important;
 } 
