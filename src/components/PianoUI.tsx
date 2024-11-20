@@ -145,22 +145,22 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
     border: effectiveColorMode === "traditional" ? "1px solid #333" : "none",
-    height:
-      effectiveColorMode === "chromatic"
+    height: (() => {
+      if (effectiveColorMode === "flat-chromatic") {
+        return PIANO_HEIGHT;
+      }
+      // For both traditional and chromatic modes
+      return isWhiteKey
         ? PIANO_HEIGHT
-        : isWhiteKey
-        ? effectiveColorMode === "traditional"
-          ? PIANO_HEIGHT
-          : PIANO_HEIGHT - WHITE_KEY_TOP_OFFSET
-        : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER,
-    top:
-      effectiveColorMode === "chromatic"
-        ? 0
-        : isWhiteKey
-        ? effectiveColorMode === "traditional"
-          ? 0
-          : WHITE_KEY_TOP_OFFSET
-        : 0,
+        : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER;
+    })(),
+    top: (() => {
+      if (effectiveColorMode === "flat-chromatic") {
+        return 0;
+      }
+      // For both traditional and chromatic modes
+      return isWhiteKey ? 0 : 0;
+    })(),
   };
 
   return (
