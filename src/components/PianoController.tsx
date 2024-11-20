@@ -13,8 +13,9 @@ import { URL_PREFIX } from "../constants/routes";
 import {
   TASK_CONFIGS,
   canTaskBeActivated,
-  checkSequenceProgress,
   getNextTaskId,
+  checkTaskProgress,
+  checkSequenceProgress,
 } from "../types/tasks";
 import { ensureSamplerLoaded } from "../audio/sampler";
 
@@ -216,47 +217,73 @@ export const PianoController: React.FC = () => {
   // Initialize currentLessonId from URL parameter
   useEffect(() => {
     const parsedId = parseInt(lessonId || "1");
-    console.log("[lessonChange] Changing to lesson:", parsedId);
+    console.log("[lessonChange] Changing to lesson:", parsedId, {
+      currentLessonId,
+      lessonId,
+    });
 
-    if (parsedId === currentLessonId) {
-      return;
-    }
+    // Get the current lesson and its first task
+    const currentLesson = LESSONS.find((l) => l.id === parsedId);
+    const firstTaskId = currentLesson?.taskIds[0];
+
+    console.log("[lessonChange] Lesson info:", {
+      currentLesson,
+      firstTaskId,
+      hasTaskIds: currentLesson?.taskIds.length,
+    });
 
     if (!isNaN(parsedId) && LESSONS.some((lesson) => lesson.id === parsedId)) {
       setCurrentLessonId(parsedId);
 
       // Clear task progress and initialize first task if needed
       setState((prev) => {
-        const clearedProgress = clearTaskProgressForOtherLessons(
-          prev.taskProgress,
-          parsedId
-        );
+        console.log("[lessonChange] Previous state:", {
+          taskProgress: prev.taskProgress,
+          pendingNextTask: prev.pendingNextTask,
+        });
+
+        // Always start with a clean slate for the new lesson
+        const newTaskProgress = firstTaskId
+          ? [
+              {
+                taskId: firstTaskId,
+                progress: 0,
+                status: "active",
+              },
+            ]
+          : [];
+
+        console.log("[lessonChange] Setting new state:", {
+          newTaskProgress,
+          firstTaskId,
+        });
 
         return {
           ...prev,
-          taskProgress: clearedProgress,
-          pendingNextTask: null, // Reset pending tasks when changing lessons
+          taskProgress: newTaskProgress,
+          pendingNextTask: null,
           pendingTaskCompletion: null,
         };
       });
 
       // Reset task played notes for the new lesson
-      const currentLesson = LESSONS.find((l) => l.id === parsedId);
       if (currentLesson) {
         setTaskPlayedNotes((prev) => {
           const newState = { ...prev };
           currentLesson.taskIds.forEach((taskId) => {
             newState[taskId] = new Set<string>();
           });
+          console.log("[lessonChange] Reset task played notes:", newState);
           return newState;
         });
       }
     } else {
+      console.log("[lessonChange] Invalid lesson ID, redirecting to lesson 1");
       if (parsedId !== 1) {
         navigate(`${URL_PREFIX}/1`, { replace: true });
       }
     }
-  }, [lessonId, navigate, currentLessonId]);
+  }, [lessonId, navigate]); // Remove currentLessonId dependency to prevent double initialization
 
   // Add effect to sync activeKeysSize
   useEffect(() => {
@@ -405,7 +432,51 @@ export const PianoController: React.FC = () => {
           }
           return prev;
         });
-        incrementTaskProgress(activeTaskId, note, octave);
+
+        const taskConfig = TASK_CONFIGS[activeTaskId];
+        if (taskConfig) {
+          const noteKey = `${note}-${octave}`;
+          const taskNotes = taskPlayedNotes[activeTaskId];
+          const shouldIncrement =
+            !taskNotes.has(noteKey) &&
+            checkTaskProgress(taskConfig.checker, note, octave);
+
+          if (shouldIncrement) {
+            setTaskPlayedNotes((prev) => ({
+              ...prev,
+              [activeTaskId]: new Set([...prev[activeTaskId], noteKey]),
+            }));
+
+            setState((prev) => {
+              const existingTask = prev.taskProgress.find(
+                (t) => t.taskId === activeTaskId
+              );
+              const currentProgress = existingTask?.progress ?? 0;
+              const newProgress = currentProgress + 1;
+
+              return {
+                ...prev,
+                taskProgress: existingTask
+                  ? prev.taskProgress.map((t) =>
+                      t.taskId === activeTaskId
+                        ? {
+                            ...t,
+                            progress: newProgress,
+                            status:
+                              newProgress >= taskConfig.total
+                                ? "completing"
+                                : "active",
+                          }
+                        : t
+                    )
+                  : [
+                      ...prev.taskProgress,
+                      { taskId: activeTaskId, progress: 1, status: "active" },
+                    ],
+              };
+            });
+          }
+        }
       }
 
       const playedNotes = notesToPlay.map(({ note: n, octave: o }) => {

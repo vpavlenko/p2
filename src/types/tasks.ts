@@ -285,17 +285,24 @@ const createSequenceKeyboardMapping = (
   return mapping;
 };
 
-// Update createTaskConfig to use NOTE_MAPPINGS
+// Update createTaskConfig to use set checker instead of sequence checker
 const createTaskConfig = (
   index: number,
   targetNote: NoteMapping,
   description: string,
   chromaticNotes: number[]
 ): TaskConfig => {
+  // Create a set of target notes across all octaves
+  const targetNotes = new Set<string>();
+  // Add notes for octaves 2-5 (4 octaves)
+  [2, 3, 4, 5].forEach((octave) => {
+    targetNotes.add(`${targetNote.note}-${octave}`);
+  });
+
   return {
     id: TASK_SEQUENCE[index],
     description,
-    total: 4,
+    total: 4, // 4 octaves to play
     requiredProgress: 4,
     previousTaskId: index > 0 ? TASK_SEQUENCE[index - 1] : null,
     nextTaskId:
@@ -303,9 +310,8 @@ const createTaskConfig = (
     chromaticNotes,
     keyboardMapping: createKeyboardMapping(targetNote),
     checker: {
-      type: "sequence",
-      sequence: ascendingSequence,
-      currentIndex: 0,
+      type: "set",
+      targetNotes,
     },
   };
 };
@@ -644,7 +650,7 @@ export const getPreviousTaskId = (currentTaskId: string): string | null => {
   return TASK_CONFIGS[currentTaskId]?.previousTaskId || null;
 };
 
-// Add helper to check if a note matches the current sequence position
+// Add this function before checkTaskProgress
 export const checkSequenceProgress = (
   checker: SequenceChecker,
   note: number,
@@ -652,4 +658,19 @@ export const checkSequenceProgress = (
 ): boolean => {
   const target = checker.sequence[checker.currentIndex];
   return target.note === note && target.octave === octave;
+};
+
+// Update the checkTaskProgress function to use checkSequenceProgress
+export const checkTaskProgress = (
+  checker: TaskChecker,
+  note: number,
+  octave: number
+): boolean => {
+  if (checker.type === "sequence") {
+    return checkSequenceProgress(checker, note, octave);
+  } else {
+    // Set checker
+    const noteKey = `${note}-${octave}`;
+    return checker.targetNotes.has(noteKey);
+  }
 };
