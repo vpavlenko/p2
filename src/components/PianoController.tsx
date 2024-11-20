@@ -150,33 +150,6 @@ const initializeTaskProgress = (taskId: string): TaskProgress => ({
   status: "active",
 });
 
-// Update the clearTaskProgressForOtherLessons function
-const clearTaskProgressForOtherLessons = (
-  taskProgress: TaskProgress[],
-  currentLessonId: number
-): TaskProgress[] => {
-  const currentLesson = LESSONS.find((l) => l.id === currentLessonId);
-  if (!currentLesson) return taskProgress;
-
-  // Keep only tasks from the current lesson
-  const filtered = taskProgress.filter((t) =>
-    currentLesson.taskIds.includes(t.taskId)
-  );
-
-  // If there are no tasks in progress for this lesson, initialize the first task
-  if (filtered.length === 0 && currentLesson.taskIds.length > 0) {
-    return [
-      {
-        taskId: currentLesson.taskIds[0],
-        progress: 0,
-        status: "active",
-      },
-    ];
-  }
-
-  return filtered;
-};
-
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
@@ -236,19 +209,19 @@ export const PianoController: React.FC = () => {
       setCurrentLessonId(parsedId);
 
       // Clear task progress and initialize first task if needed
-      setState((prev) => {
+      setState((prev: PianoControllerState): PianoControllerState => {
         console.log("[lessonChange] Previous state:", {
           taskProgress: prev.taskProgress,
           pendingNextTask: prev.pendingNextTask,
         });
 
         // Always start with a clean slate for the new lesson
-        const newTaskProgress = firstTaskId
+        const newTaskProgress: TaskProgress[] = firstTaskId
           ? [
               {
                 taskId: firstTaskId,
                 progress: 0,
-                status: "active",
+                status: "active" as const,
               },
             ]
           : [];
