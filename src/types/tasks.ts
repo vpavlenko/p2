@@ -2,6 +2,9 @@ import { ColorMode } from "../components/types";
 import { KeyboardMapping } from "../constants/keyboard";
 import { LESSONS } from "../data/lessons";
 
+export type RelativeNote = 0 | 2 | 4 | 5 | 7 | 9 | 11; // C D E F G A B
+export type ChromaticNote = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+
 export interface TaskConfig {
   id: string;
   description: string;
@@ -48,14 +51,14 @@ export const TASK_SEQUENCE = [
 
 // First, let's create a type for our key mappings
 export type NoteMapping = {
-  note: number;
+  note: ChromaticNote;
   octave: number;
   keys: string[]; // Array of keys that can trigger this note
 };
 
 // Create a function to generate both keyboard mapping and key display
 export const createNoteMapping = (
-  note: number,
+  note: ChromaticNote,
   keys: [string, string, string, string] // Four keys for four octaves
 ): NoteMapping => ({
   note,
@@ -98,9 +101,14 @@ export const createKeyboardMapping = (
 };
 
 // Add new type for sequence checking
+type NoteInSequence = {
+  note: ChromaticNote;
+  octave: number;
+};
+
 export type SequenceChecker = {
   type: "sequence";
-  sequence: Array<{ note: number; octave: number }>;
+  sequence: NoteInSequence[];
   currentIndex: number;
 };
 
@@ -112,59 +120,48 @@ export type SetChecker = {
 export type TaskChecker = SequenceChecker | SetChecker;
 
 // Create the ascending sequence starting from A0
-const createAscendingChromaticSequence = (): Array<{
-  note: number;
-  octave: number;
-}> => {
-  // Start from A0 (note 9, octave 0)
-  const sequence: Array<{ note: number; octave: number }> = [];
-  let currentNote = 9; // A
+const createAscendingChromaticSequence = (): NoteInSequence[] => {
+  const sequence: NoteInSequence[] = [];
+  let currentNote = 9 as ChromaticNote; // A
   let currentOctave = 0;
 
-  // Generate sequence until we reach the end of keyboard
   while (!(currentNote === 0 && currentOctave === 8)) {
-    // Stop at C8
     sequence.push({ note: currentNote, octave: currentOctave });
 
     // Move to next note
-    currentNote++;
-    if (currentNote > 11) {
-      currentNote = 0;
+    const nextNote = (currentNote + 1) % 12;
+    currentNote = nextNote as ChromaticNote;
+    if (nextNote === 0) {
       currentOctave++;
     }
   }
 
   // Add final C8
-  sequence.push({ note: 0, octave: 8 });
+  sequence.push({ note: 0 as ChromaticNote, octave: 8 });
 
   return sequence;
 };
 
 // Create the descending sequence starting from C8
-const createDescendingChromaticSequence = (): Array<{
-  note: number;
-  octave: number;
-}> => {
-  // Start from C8 (note 0, octave 8)
-  const sequence: Array<{ note: number; octave: number }> = [];
-  let currentNote = 0; // C
+const createDescendingChromaticSequence = (): NoteInSequence[] => {
+  const sequence: NoteInSequence[] = [];
+  let currentNote = 0 as ChromaticNote; // C
   let currentOctave = 8;
 
-  // Generate sequence until we reach A0
   while (!(currentNote === 9 && currentOctave === 0)) {
-    // Stop at A0
     sequence.push({ note: currentNote, octave: currentOctave });
 
     // Move to previous note
-    currentNote--;
-    if (currentNote < 0) {
-      currentNote = 11;
+    let nextNote = currentNote - 1;
+    if (nextNote < 0) {
+      nextNote = 11;
       currentOctave--;
     }
+    currentNote = nextNote as ChromaticNote;
   }
 
   // Add final A0
-  sequence.push({ note: 9, octave: 0 });
+  sequence.push({ note: 9 as ChromaticNote, octave: 0 });
 
   return sequence;
 };
@@ -318,11 +315,11 @@ const createTaskConfig = (
 
 // Add helper function to create sequences with intervals
 const createIntervalSequence = (
-  startNote: number,
+  startNote: ChromaticNote,
   startOctave: number,
   interval: number
-): Array<{ note: number; octave: number }> => {
-  const sequence: Array<{ note: number; octave: number }> = [];
+): NoteInSequence[] => {
+  const sequence: NoteInSequence[] = [];
   let currentNote = startNote;
   let currentOctave = startOctave;
 
@@ -330,9 +327,9 @@ const createIntervalSequence = (
     sequence.push({ note: currentNote, octave: currentOctave });
 
     // Move to next note
-    currentNote += interval;
-    if (currentNote > 11) {
-      currentNote = currentNote % 12;
+    const nextNote = (currentNote + interval) % 12;
+    currentNote = nextNote as ChromaticNote;
+    if (nextNote < currentNote) {
       currentOctave++;
     }
   }
@@ -341,8 +338,16 @@ const createIntervalSequence = (
 };
 
 // Create sequences for major second tasks
-const majorSecondFromA0Sequence = createIntervalSequence(9, 0, 2); // Start from A0
-const majorSecondFromASharp0Sequence = createIntervalSequence(10, 0, 2); // Start from A#0
+const majorSecondFromA0Sequence = createIntervalSequence(
+  9 as ChromaticNote,
+  0,
+  2
+); // Start from A0
+const majorSecondFromASharp0Sequence = createIntervalSequence(
+  10 as ChromaticNote,
+  0,
+  2
+); // Start from A#0
 
 // Create keyboard mappings for the sequences
 const createFlatChromaticMapping = (

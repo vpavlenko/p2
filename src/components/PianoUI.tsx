@@ -12,10 +12,11 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
+import type { ChromaticNote } from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
-export const SPECIAL_NOTE_COLORS = [0, 4, 6, 9, 11] as const;
+export const SPECIAL_NOTE_COLORS: ChromaticNote[] = [0, 4, 6, 9, 11];
 
 const BLACK_KEY_HEIGHT_MULTIPLIER = 0.65; // Black keys are 60% of total height
 export const PIANO_HEIGHT = 80; // Total piano height in pixels

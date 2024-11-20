@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Lesson, LESSONS } from "../data/lessons";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
@@ -11,6 +11,7 @@ import "react-simple-keyboard/build/css/index.css";
 import { KEY_DISPLAY_LABELS } from "../constants/keyboard";
 import { getColors } from "../utils/colors";
 import { SPECIAL_NOTE_COLORS } from "../components/PianoUI";
+import type { ChromaticNote } from "../types/tasks";
 
 interface LessonsPanelProps {
   currentLessonId: number;
@@ -142,7 +143,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
           const color = colors[mapping.note];
           const className = `key-${keyLabel.replace(/[^a-z0-9]/g, "")}`;
 
-          const relativeNote = mapping.note % 12;
+          const relativeNote = (mapping.note % 12) as ChromaticNote;
           const isSpecialNote = SPECIAL_NOTE_COLORS.includes(relativeNote);
           const textColor =
             isSpecialNote || color === "#ffffff" ? "black" : "white";
@@ -229,6 +230,31 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
       return display;
     };
 
+    // Add ref for content container
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // Add effect to scroll to active task when it changes
+    useEffect(() => {
+      if (activeTaskId && contentRef.current) {
+        const activeTaskElement = contentRef.current.querySelector(
+          `[data-task-id="${activeTaskId}"]`
+        );
+
+        if (activeTaskElement) {
+          const containerRect = contentRef.current.getBoundingClientRect();
+          const taskRect = activeTaskElement.getBoundingClientRect();
+
+          // Check if task is below the visible area
+          if (taskRect.top > containerRect.bottom) {
+            activeTaskElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }
+      }
+    }, [activeTaskId]);
+
     return (
       <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white flex flex-col">
         {/* Sticky Header */}
@@ -277,57 +303,58 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 pt-4">
-          {isMenuOpen && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-95 z-10 overflow-y-auto">
-              <div className="p-8 pt-[72px]">
-                <div className="flex flex-col gap-2">
-                  {LESSONS.map((lesson, index) => (
-                    <Link
-                      key={lesson.id}
-                      to={`${URL_PREFIX}/${lesson.id}`}
-                      onClick={() => {
-                        onLessonChange(lesson.id);
-                        setIsMenuOpen(false);
-                      }}
-                      className={`mt-2 text-left cursor-pointer hover:text-white ${
-                        lesson.id === currentLessonId
-                          ? "text-white"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <span>{index + 1}. </span>
-                      {lesson.title}
-                    </Link>
-                  ))}
-                </div>
+        {/* Menu Overlay - Move outside of scrollable content */}
+        {isMenuOpen && (
+          <div className="absolute inset-0 bg-gray-900 z-30 overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center gap-2 mb-4">
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 bg-gray-800 rounded border border-gray-700 hover:bg-gray-700"
+                >
+                  <Bars3Icon className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {LESSONS.map((lesson, index) => (
+                  <Link
+                    key={lesson.id}
+                    to={`${URL_PREFIX}/${lesson.id}`}
+                    onClick={() => {
+                      onLessonChange(lesson.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className={`mt-2 text-left cursor-pointer hover:text-white ${
+                      lesson.id === currentLessonId
+                        ? "text-white"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    <span>{index + 1}. </span>
+                    {lesson.title}
+                  </Link>
+                ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {currentLesson && (
-            <div className="prose prose-invert">
-              {renderContent(
-                currentLesson.content,
-                taskProgress,
-                currentLesson
-              )}
+        {/* Scrollable Content with gradient overlay */}
+        <div className="relative flex-1">
+          <div ref={contentRef} className="h-full overflow-y-auto p-8 pt-4">
+            {currentLesson && (
+              <div className="prose prose-invert">
+                {renderContent(
+                  currentLesson.content,
+                  taskProgress,
+                  currentLesson
+                )}
 
-              {currentLesson.taskIds.map((taskId, index) => {
-                const previousTaskId =
-                  index > 0 ? currentLesson.taskIds[index - 1] : null;
-                const previousTaskCompleted = previousTaskId
-                  ? taskProgress.some(
-                      (t) =>
-                        t.taskId === previousTaskId && t.status === "completed"
-                    )
-                  : true;
-
-                return (
+                {currentLesson.taskIds.map((taskId, index) => (
                   <MemoizedTask
                     key={taskId}
                     taskConfig={TASK_CONFIGS[taskId]}
+                    data-task-id={taskId}
                     progress={
                       taskProgress.find((t) => t.taskId === taskId)?.progress ??
                       0
@@ -336,28 +363,38 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
                       taskProgress.find((t) => t.taskId === taskId)?.status ??
                       "active"
                     }
-                    previousTaskCompleted={previousTaskCompleted}
+                    previousTaskCompleted={
+                      index === 0
+                        ? true
+                        : taskProgress.some(
+                            (t) =>
+                              t.taskId === currentLesson.taskIds[index - 1] &&
+                              t.status === "completed"
+                          )
+                    }
                     isActive={taskId === activeTaskId}
                     onSkip={onSkipTask}
                   />
-                );
-              })}
+                ))}
 
-              {currentLesson.finalText &&
-                currentLesson.taskIds.every((taskId) =>
-                  taskProgress.some(
-                    (t) => t.taskId === taskId && t.status === "completed"
-                  )
-                ) && (
-                  <p className="mt-6 text-gray-400 italic">
-                    {currentLesson.finalText}
-                  </p>
-                )}
-            </div>
-          )}
+                {currentLesson.finalText &&
+                  currentLesson.taskIds.every((taskId) =>
+                    taskProgress.some(
+                      (t) => t.taskId === taskId && t.status === "completed"
+                    )
+                  ) && (
+                    <p className="mt-6 text-gray-400 italic">
+                      {currentLesson.finalText}
+                    </p>
+                  )}
+              </div>
+            )}
+          </div>
+          {/* Gradient overlay */}
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent" />
         </div>
 
-        {/* Add keyboard at the bottom */}
+        {/* Keyboard section */}
         <div className="mt-auto p-4 border-t border-gray-800">
           <div className="flex justify-start">
             <Keyboard
