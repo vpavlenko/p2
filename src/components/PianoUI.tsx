@@ -143,8 +143,8 @@ const PianoKey: React.FC<PianoKeyProps> = ({
         : "none",
     transition:
       activeTaskId || isPressed || isHovered
-        ? "all 0.1s ease-in-out"
-        : "all 1s ease-in-out",
+        ? "transform 0.1s ease-in-out, background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out"
+        : "transform 1s ease-in-out, background-color 1s ease-in-out, box-shadow 1s ease-in-out",
     cursor: "pointer",
     zIndex: isHovered ? 3 : style.zIndex || 1,
     border: effectiveColorMode === "traditional" ? "1px solid #333" : "none",
@@ -153,6 +153,11 @@ const PianoKey: React.FC<PianoKeyProps> = ({
         return PIANO_HEIGHT;
       }
       // For both traditional and chromatic modes
+      if (effectiveColorMode === "chromatic") {
+        return isWhiteKey
+          ? PIANO_HEIGHT - 2
+          : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER - 2;
+      }
       return isWhiteKey
         ? PIANO_HEIGHT
         : PIANO_HEIGHT * BLACK_KEY_HEIGHT_MULTIPLIER;
@@ -161,8 +166,11 @@ const PianoKey: React.FC<PianoKeyProps> = ({
       if (effectiveColorMode === "flat-chromatic") {
         return 0;
       }
+      if (effectiveColorMode === "chromatic") {
+        return 1;
+      }
+      return 0;
       // For both traditional and chromatic modes
-      return isWhiteKey ? 0 : 0;
     })(),
   };
 
