@@ -170,8 +170,8 @@ const createDescendingChromaticSequence = (): Array<{
 const ascendingSequence = createAscendingChromaticSequence();
 const descendingSequence = createDescendingChromaticSequence();
 
-// Define key sequence
-const CHROMATIC_KEY_SEQUENCE = [
+// Define key sequence for ascending (left to right)
+const ASCENDING_KEY_SEQUENCE = [
   "KeyZ",
   "KeyX",
   "KeyC",
@@ -217,6 +217,55 @@ const CHROMATIC_KEY_SEQUENCE = [
   "Digit0",
   "Minus",
   "Equal",
+];
+
+// Define key sequence for descending (right to left)
+const DESCENDING_KEY_SEQUENCE = [
+  "Equal",
+  "Minus",
+  "Digit0",
+  "Digit9",
+  "Digit8",
+  "Digit7",
+  "Digit6",
+  "Digit5",
+  "Digit4",
+  "Digit3",
+  "Digit2",
+  "Digit1",
+  "BracketRight",
+  "BracketLeft",
+  "KeyP",
+  "KeyO",
+  "KeyI",
+  "KeyU",
+  "KeyY",
+  "KeyT",
+  "KeyR",
+  "KeyE",
+  "KeyW",
+  "KeyQ",
+  "Quote",
+  "Semicolon",
+  "KeyL",
+  "KeyK",
+  "KeyJ",
+  "KeyH",
+  "KeyG",
+  "KeyF",
+  "KeyD",
+  "KeyS",
+  "KeyA",
+  "Slash",
+  "Period",
+  "Comma",
+  "KeyM",
+  "KeyN",
+  "KeyB",
+  "KeyV",
+  "KeyC",
+  "KeyX",
+  "KeyZ",
 ];
 
 // Add this helper function to create keyboard mapping for sequences
@@ -364,11 +413,11 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-chromatic-ascending": {
     id: "play-chromatic-ascending",
     description: "Play notes in ascending chromatic order, starting from A0",
-    total: CHROMATIC_KEY_SEQUENCE.length,
-    requiredProgress: CHROMATIC_KEY_SEQUENCE.length,
+    total: ASCENDING_KEY_SEQUENCE.length,
+    requiredProgress: ASCENDING_KEY_SEQUENCE.length,
     keyboardMapping: createSequenceKeyboardMapping(
       ascendingSequence,
-      CHROMATIC_KEY_SEQUENCE
+      ASCENDING_KEY_SEQUENCE
     ),
     colorMode: "chromatic",
     chromaticNotes: Array.from(new Set(ascendingSequence.map((n) => n.note))),
@@ -384,11 +433,11 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-chromatic-descending": {
     id: "play-chromatic-descending",
     description: "Play notes in descending chromatic order, starting from C8",
-    total: CHROMATIC_KEY_SEQUENCE.length,
-    requiredProgress: CHROMATIC_KEY_SEQUENCE.length,
+    total: DESCENDING_KEY_SEQUENCE.length,
+    requiredProgress: DESCENDING_KEY_SEQUENCE.length,
     keyboardMapping: createSequenceKeyboardMapping(
       descendingSequence,
-      CHROMATIC_KEY_SEQUENCE
+      DESCENDING_KEY_SEQUENCE
     ),
     colorMode: "chromatic",
     chromaticNotes: Array.from(new Set(descendingSequence.map((n) => n.note))),
