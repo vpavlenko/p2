@@ -258,21 +258,45 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
-// Add this new component
+// Update the calculateKeyPosition function
+const calculateKeyPosition = (
+  noteNum: number,
+  octaveNum: number,
+  keyWidth: number
+): number => {
+  let whiteKeyCount = 0;
+  // Count white keys in previous octaves
+  for (let o = 0; o < octaveNum; o++) {
+    whiteKeyCount += countWhiteKeysInRange(
+      OCTAVE_RANGES[o].start,
+      OCTAVE_RANGES[o].length
+    );
+  }
+
+  // For black keys, find the previous white key and position relative to it
+  if (!WHITE_KEYS.includes(noteNum)) {
+    // Find the previous white key
+    const prevWhiteKey = Math.max(...WHITE_KEYS.filter((n) => n < noteNum));
+    // Count white keys up to the previous white key
+    const whiteKeysBefore = WHITE_KEYS.filter((n) => n <= prevWhiteKey).length;
+    whiteKeyCount += whiteKeysBefore;
+    // Position halfway between white keys
+    return (whiteKeyCount - 0.5) * keyWidth;
+  }
+
+  // For white keys, simply count white keys up to this note
+  const whiteKeysBefore = WHITE_KEYS.filter((n) => n < noteNum).length;
+  whiteKeyCount += whiteKeysBefore;
+  return whiteKeyCount * keyWidth;
+};
+
+// Update the TaskIndicators component to use this function
 const TaskIndicators: React.FC<{
   taskConfig: (typeof TASK_CONFIGS)[keyof typeof TASK_CONFIGS];
   playedNotes: Set<string>;
   totalWidth: number;
   keyWidth: number;
-  getWhiteKeyPosition: (octave: number) => number;
-}> = ({
-  taskConfig,
-  playedNotes,
-  totalWidth,
-  keyWidth,
-  getWhiteKeyPosition,
-}) => {
-  // Get all target notes from the task config's checker
+}> = ({ taskConfig, playedNotes, totalWidth, keyWidth }) => {
   const targetNotes = [2, 3, 4, 5].map((octave) => ({
     note:
       taskConfig.keyboardMapping?.[Object.keys(taskConfig.keyboardMapping)[0]]
@@ -294,30 +318,23 @@ const TaskIndicators: React.FC<{
     >
       {targetNotes.map(({ note, octave }) => {
         const isPlayed = playedNotes.has(`${note}-${octave}`);
-        const isWhiteKey = WHITE_KEYS.includes(note);
-
-        // Calculate position based on the note and octave
-        let left = getWhiteKeyPosition(octave);
-        if (!isWhiteKey) {
-          // Adjust position for black keys
-          left += keyWidth * 0.5;
-        }
-
-        // Add the specific note offset within the octave
-        const whiteKeysBefore = WHITE_KEYS.filter((n) => n < note).length;
-        left += whiteKeysBefore * keyWidth;
+        const left = calculateKeyPosition(note, octave, keyWidth);
 
         return (
           <div
             key={`${note}-${octave}`}
             style={{
               position: "absolute",
-              left: left + keyWidth / 2 - 10, // Center the indicator
+              left: left,
               bottom: 0,
               color: "white",
               fontSize: "20px",
               transform: isPlayed ? "none" : "translateY(-5px)",
               transition: "transform 0.2s ease-in-out",
+              width: keyWidth,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
             {isPlayed ? "✓" : "↓"}
@@ -694,7 +711,6 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             playedNotes={taskPlayedNotes[activeTaskId] || new Set()}
             totalWidth={totalWidth}
             keyWidth={keyWidth}
-            getWhiteKeyPosition={getWhiteKeyPosition}
           />
         )}
       </div>
