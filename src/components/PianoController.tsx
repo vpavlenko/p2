@@ -301,6 +301,14 @@ export const PianoController: React.FC = () => {
 
       if (!matches) return;
 
+      // For set checkers, check if note was already played
+      if (taskConfig.checker.type === "set") {
+        const noteKey = `${note}-${octave}`;
+        if (taskPlayedNotes[taskId]?.has(noteKey)) {
+          return; // Skip if note was already played
+        }
+      }
+
       // Update state in one place
       setState((prev) => {
         const existingTask = prev.taskProgress.find((t) => t.taskId === taskId);
@@ -342,7 +350,7 @@ export const PianoController: React.FC = () => {
         }));
       }
     },
-    [state.sequenceIndices]
+    [state.sequenceIndices, taskPlayedNotes]
   );
 
   // Move sampler loading to an earlier useEffect

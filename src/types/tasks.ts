@@ -106,18 +106,68 @@ type NoteInSequence = {
   octave: number;
 };
 
+// Add these new types for the public API
+export interface CheckerState {
+  completedNotes: Array<{ note: number; octave: number }>;
+  activeTargets: Array<{ note: number; octave: number }>;
+}
+
+// Update the checker types to include methods for getting state
 export type SequenceChecker = {
   type: "sequence";
   sequence: NoteInSequence[];
   currentIndex: number;
+  getState: () => CheckerState;
 };
 
 export type SetChecker = {
   type: "set";
-  targetNotes: Set<string>; // Format: "note-octave"
+  targetNotes: Set<string>;
+  getState: (playedNotes?: Set<string>) => CheckerState;
 };
 
 export type TaskChecker = SequenceChecker | SetChecker;
+
+// Add helper functions to implement the getState methods
+export const createSequenceChecker = (
+  sequence: NoteInSequence[]
+): SequenceChecker => ({
+  type: "sequence",
+  sequence,
+  currentIndex: 0,
+  getState: function () {
+    return {
+      completedNotes: this.sequence.slice(0, this.currentIndex),
+      activeTargets: this.sequence.slice(
+        this.currentIndex,
+        this.currentIndex + 1
+      ),
+    };
+  },
+});
+
+export const createSetChecker = (targetNotes: Set<string>): SetChecker => ({
+  type: "set",
+  targetNotes,
+  getState: function (playedNotes: Set<string> = new Set()) {
+    const completed: Array<{ note: number; octave: number }> = [];
+    const active: Array<{ note: number; octave: number }> = [];
+
+    Array.from(this.targetNotes).forEach((noteKey) => {
+      const [note, octave] = noteKey.split("-").map(Number);
+      if (playedNotes.has(noteKey)) {
+        completed.push({ note, octave });
+      } else {
+        active.push({ note, octave });
+      }
+    });
+
+    return {
+      completedNotes: completed,
+      activeTargets: active,
+    };
+  },
+});
 
 // Create the ascending sequence starting from A0
 const createAscendingChromaticSequence = (): NoteInSequence[] => {
@@ -282,7 +332,7 @@ const createSequenceKeyboardMapping = (
   return mapping;
 };
 
-// Update createTaskConfig to handle cumulative mappings per lesson
+// Update createTaskConfig to use the new checker creators
 const createTaskConfig = (
   index: number,
   targetNote: NoteMapping,
@@ -290,11 +340,14 @@ const createTaskConfig = (
   chromaticNotes: number[],
   lessonNumber: number
 ): TaskConfig => {
-  // Create a set of target notes for just this task (the new keys to learn)
+  // Create a set of target notes for just this task
   const targetNotes = new Set<string>();
   [2, 3, 4, 5].forEach((octave) => {
     targetNotes.add(`${targetNote.note}-${octave}`);
   });
+
+  // Create the checker using the new creator function
+  const checker = createSetChecker(targetNotes);
 
   // Create the full keyboard mapping that includes all previous notes
   const fullMapping: KeyboardMapping = {};
@@ -360,10 +413,7 @@ const createTaskConfig = (
     previousTaskId: index > 0 ? TASK_SEQUENCE[index - 1] : null,
     chromaticNotes,
     keyboardMapping: fullMapping,
-    checker: {
-      type: "set",
-      targetNotes,
-    },
+    checker,
   };
 };
 
@@ -615,11 +665,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     ),
     colorMode: "chromatic",
     chromaticNotes: Array.from(new Set(ascendingSequence.map((n) => n.note))),
-    checker: {
-      type: "sequence",
-      sequence: ascendingSequence,
-      currentIndex: 0,
-    },
+    checker: createSequenceChecker(ascendingSequence),
     previousTaskId: "play-f-sharp",
   },
 
@@ -634,11 +680,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     ),
     colorMode: "chromatic",
     chromaticNotes: Array.from(new Set(descendingSequence.map((n) => n.note))),
-    checker: {
-      type: "sequence",
-      sequence: descendingSequence,
-      currentIndex: 0,
-    },
+    checker: createSequenceChecker(descendingSequence),
     previousTaskId: "play-chromatic-ascending",
   },
 
@@ -654,11 +696,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     ),
     colorMode: "flat-chromatic",
     chromaticNotes: Array.from(new Set(ascendingSequence.map((n) => n.note))),
-    checker: {
-      type: "sequence",
-      sequence: ascendingSequence,
-      currentIndex: 0,
-    },
+    checker: createSequenceChecker(ascendingSequence),
     previousTaskId: "play-chromatic-descending",
   },
 
@@ -672,11 +710,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     chromaticNotes: Array.from(
       new Set(majorSecondFromA0Sequence.map((n) => n.note))
     ),
-    checker: {
-      type: "sequence",
-      sequence: majorSecondFromA0Sequence,
-      currentIndex: 0,
-    },
+    checker: createSequenceChecker(majorSecondFromA0Sequence),
     previousTaskId: "play-chromatic-ascending-flat",
   },
 
@@ -690,11 +724,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     chromaticNotes: Array.from(
       new Set(majorSecondFromASharp0Sequence.map((n) => n.note))
     ),
-    checker: {
-      type: "sequence",
-      sequence: majorSecondFromASharp0Sequence,
-      currentIndex: 0,
-    },
+    checker: createSequenceChecker(majorSecondFromASharp0Sequence),
     previousTaskId: "play-major-seconds-from-a0",
   },
 };
@@ -748,27 +778,7 @@ export const getPreviousTaskId = (currentTaskId: string): string | null => {
   return TASK_CONFIGS[currentTaskId]?.previousTaskId || null;
 };
 
-// Add this function before checkTaskProgress
-export const checkSequenceProgress = (
-  checker: SequenceChecker,
-  note: number,
-  octave: number
-): boolean => {
-  const target = checker.sequence[checker.currentIndex];
-  const matches = target && target.note === note && target.octave === octave;
-
-  console.log("[checkSequenceProgress]", {
-    currentIndex: checker.currentIndex,
-    target,
-    played: { note, octave },
-    matches,
-    sequenceLength: checker.sequence.length,
-  });
-
-  return matches;
-};
-
-// Update the checkTaskProgress function to use checkSequenceProgress
+// Update the checkTaskProgress function to handle both types properly
 export const checkTaskProgress = (
   checker: TaskChecker,
   note: number,
@@ -787,4 +797,24 @@ export const checkTaskProgress = (
     console.log("[checkTaskProgress] Set check result:", { noteKey, result });
     return result;
   }
+};
+
+// Update checkSequenceProgress to be more robust
+export const checkSequenceProgress = (
+  checker: SequenceChecker,
+  note: number,
+  octave: number
+): boolean => {
+  const target = checker.sequence[checker.currentIndex];
+  if (!target) return false;
+
+  const matches = target.note === note && target.octave === octave;
+  console.log("[checkSequenceProgress]", {
+    currentIndex: checker.currentIndex,
+    target,
+    played: { note, octave },
+    matches,
+    sequenceLength: checker.sequence.length,
+  });
+  return matches;
 };

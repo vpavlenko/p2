@@ -299,14 +299,14 @@ const TaskIndicator: React.FC<{
   );
 };
 
-// Update TaskIndicators to pass colorMode prop
+// Update TaskIndicators to use the new checker API
 const TaskIndicators: React.FC<{
   taskConfig: TaskConfig;
   totalWidth: number;
   keyWidth: number;
   activeKeysCount: number;
   isCompleting: boolean;
-  colorMode: ColorMode; // Add colorMode prop
+  colorMode: ColorMode;
 }> = ({
   taskConfig,
   totalWidth,
@@ -315,6 +315,12 @@ const TaskIndicators: React.FC<{
   isCompleting,
   colorMode,
 }) => {
+  // Get the current state from the checker
+  const checkerState =
+    taskConfig.checker.type === "sequence"
+      ? taskConfig.checker.getState()
+      : taskConfig.checker.getState(taskConfig.playedNotes);
+
   return (
     <div
       style={{
@@ -350,44 +356,29 @@ const TaskIndicators: React.FC<{
       {/* Only show indicators if not completing */}
       {!isCompleting && (
         <>
-          {taskConfig.checker.type === "sequence"
-            ? // Sequence visualization
-              taskConfig.checker.sequence.map(({ note, octave }, index) => (
-                <TaskIndicator
-                  key={`${note}-${octave}`}
-                  note={note}
-                  octave={octave}
-                  keyWidth={keyWidth}
-                  isPlayed={
-                    taskConfig.checker.type === "sequence" &&
-                    index < taskConfig.checker.currentIndex
-                  }
-                  isCurrent={
-                    taskConfig.checker.type === "sequence" &&
-                    index === taskConfig.checker.currentIndex
-                  }
-                  isSetMode={false}
-                  colorMode={colorMode}
-                />
-              ))
-            : // Set-based visualization
-              Array.from(taskConfig.checker.targetNotes).map((noteKey) => {
-                const [note, octave] = noteKey.split("-").map(Number);
-                const isPlayed = taskConfig.playedNotes?.has(noteKey);
+          {/* Show completed notes */}
+          {checkerState.completedNotes.map(({ note, octave }) => (
+            <TaskIndicator
+              key={`completed-${note}-${octave}`}
+              note={note}
+              octave={octave}
+              keyWidth={keyWidth}
+              isPlayed={true}
+              colorMode={colorMode}
+            />
+          ))}
 
-                return (
-                  <TaskIndicator
-                    key={noteKey}
-                    noteKey={noteKey}
-                    note={note}
-                    octave={octave}
-                    keyWidth={keyWidth}
-                    isPlayed={isPlayed}
-                    isSetMode={true}
-                    colorMode={colorMode}
-                  />
-                );
-              })}
+          {/* Show active targets */}
+          {checkerState.activeTargets.map(({ note, octave }) => (
+            <TaskIndicator
+              key={`active-${note}-${octave}`}
+              note={note}
+              octave={octave}
+              keyWidth={keyWidth}
+              isCurrent={true}
+              colorMode={colorMode}
+            />
+          ))}
         </>
       )}
     </div>
