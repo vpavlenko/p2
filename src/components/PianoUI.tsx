@@ -418,6 +418,50 @@ const TaskIndicators: React.FC<{
   );
 };
 
+// Update the helper function to include white key counting logic
+const calculateKeyLeftPosition = (
+  noteNum: number,
+  octaveNum: number,
+  keyWidth: number,
+  colorMode: ColorMode
+): number => {
+  if (colorMode === "flat-chromatic") {
+    // Calculate total key count inside the function
+    let keyCount = 0;
+    for (let o = 0; o < octaveNum; o++) {
+      keyCount += OCTAVE_RANGES[o].length;
+    }
+    // Add keys in current octave up to this note
+    const currentOctave = OCTAVE_RANGES[octaveNum];
+    keyCount += noteNum - currentOctave.start;
+
+    return keyWidth * (7 / 12) * (keyCount + 0.5);
+  }
+
+  const isWhiteKey = WHITE_KEYS.includes(noteNum);
+
+  // Calculate white key count
+  let whiteKeyCount = 0;
+
+  // Count white keys in previous octaves
+  for (let o = 0; o < octaveNum; o++) {
+    whiteKeyCount += countWhiteKeysInRange(
+      OCTAVE_RANGES[o].start,
+      OCTAVE_RANGES[o].length
+    );
+  }
+
+  // Count white keys in current octave up to this note
+  const currentOctave = OCTAVE_RANGES[octaveNum];
+  const notesBeforeCurrent = noteNum - currentOctave.start;
+  whiteKeyCount += countWhiteKeysInRange(
+    currentOctave.start,
+    notesBeforeCurrent
+  );
+
+  return keyWidth * (isWhiteKey ? whiteKeyCount : whiteKeyCount - 0.5);
+};
+
 interface PianoUIProps {
   tonic: number;
   setTonic: (tonic: number) => void;
@@ -616,22 +660,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     activeTaskId,
   };
 
-  // Inside PianoUI component, before the return statement
-  // Add these calculations for reference points
-  const getWhiteKeyPosition = (targetOctave: number): number => {
-    let whiteKeyCount = 0;
-    for (let o = 0; o < targetOctave; o++) {
-      whiteKeyCount += countWhiteKeysInRange(
-        OCTAVE_RANGES[o].start,
-        OCTAVE_RANGES[o].length
-      );
-    }
-    return whiteKeyCount * keyWidth;
-  };
-
-  // Calculate reference points for C1 and C2
-  const c1Left = getWhiteKeyPosition(1); // C1 position
-  const c2Left = getWhiteKeyPosition(2); // C2 position
+  const c1Left = calculateKeyLeftPosition(0, 1, keyWidth, "traditional");
+  const c2Left = calculateKeyLeftPosition(0, 2, keyWidth, "traditional");
 
   // Modify the key rendering logic to only show relevant keys
   const getKeyboardKey = (noteNum: number, octaveNum: number) => {
@@ -705,34 +735,13 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             const noteNum = (range.start + i) % 12;
             const isWhiteKey = WHITE_KEYS.includes(noteNum);
 
-            // Calculate position based on cumulative keys before this note
-            let keyCount = 0;
-            let whiteKeyCount = 0;
-
-            // Count keys in previous octaves
-            for (let o = 0; o < octaveNum; o++) {
-              keyCount += OCTAVE_RANGES[o].length;
-              // Count white keys in previous octaves
-              whiteKeyCount += countWhiteKeysInRange(
-                OCTAVE_RANGES[o].start,
-                OCTAVE_RANGES[o].length
-              );
-            }
-            // Count keys in current octave up to this note
-            keyCount += i;
-            // Count white keys in current octave up to this note
-            whiteKeyCount += countWhiteKeysInRange(range.start, i);
-
             const commonStyleProps = {
               width:
-                colorMode === "flat-chromatic"
-                  ? keyWidth * (7 / 12) // Adjust width to fit 12 keys in the space of 7
-                  : keyWidth,
+                colorMode === "flat-chromatic" ? keyWidth * (7 / 12) : keyWidth,
               height: PIANO_HEIGHT,
               borderRadius: "0 0 5px 5px",
             };
 
-            // In flat-chromatic mode, render all keys. In other modes, use existing logic
             if (
               colorMode === "flat-chromatic" ||
               isWhiteKey ||
@@ -751,15 +760,16 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                     ...commonStyleProps,
                     width:
                       colorMode === "flat-chromatic"
-                        ? keyWidth * (7 / 12) // Slight gap between keys
+                        ? keyWidth * (7 / 12)
                         : isWhiteKey
                         ? keyWidth
                         : keyWidth - 3,
-                    left:
-                      colorMode === "flat-chromatic"
-                        ? keyWidth * (7 / 12) * (keyCount + 0.5)
-                        : keyWidth *
-                          (isWhiteKey ? whiteKeyCount : whiteKeyCount - 0.5),
+                    left: calculateKeyLeftPosition(
+                      noteNum,
+                      octaveNum,
+                      keyWidth,
+                      colorMode
+                    ),
                     zIndex:
                       colorMode === "flat-chromatic" ? 1 : isWhiteKey ? 1 : 2,
                   }}
