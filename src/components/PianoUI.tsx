@@ -13,6 +13,7 @@ import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
 import type { TaskProgress } from "../types/tasks";
+import { PianoControllerState } from "./PianoController";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -257,7 +258,7 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
-// Update TaskIndicator component to accept colorMode prop and use calculateKeyLeftPosition
+// Update TaskIndicator component to add debug output
 const TaskIndicator: React.FC<{
   noteKey?: string;
   note: number;
@@ -266,7 +267,7 @@ const TaskIndicator: React.FC<{
   isPlayed?: boolean;
   isCurrent?: boolean;
   isSetMode?: boolean;
-  colorMode: ColorMode; // Add colorMode prop
+  colorMode: ColorMode;
 }> = ({
   note,
   octave,
@@ -277,6 +278,15 @@ const TaskIndicator: React.FC<{
   colorMode,
 }) => {
   const left = calculateKeyLeftPosition(note, octave, keyWidth, colorMode);
+
+  console.log("[TaskIndicator] Rendering:", {
+    note,
+    octave,
+    isPlayed,
+    isCurrent,
+    isSetMode,
+    left,
+  });
 
   return (
     <div
@@ -294,32 +304,45 @@ const TaskIndicator: React.FC<{
         alignItems: "center",
       }}
     >
-      {isPlayed ? "✓" : isSetMode || isCurrent ? "↓" : ""}
+      {isPlayed ? "✓" : isCurrent ? "↓" : ""}
     </div>
   );
 };
 
-// Update TaskIndicators to use the new checker API
-const TaskIndicators: React.FC<{
+// Update TaskIndicators to properly handle both checker types
+interface TaskIndicatorsProps {
   taskConfig: TaskConfig;
   totalWidth: number;
   keyWidth: number;
   activeKeysCount: number;
   isCompleting: boolean;
   colorMode: ColorMode;
-}> = ({
+  currentIndex: number;
+  playedNotes: Set<string>;
+}
+
+const TaskIndicators: React.FC<TaskIndicatorsProps> = ({
   taskConfig,
   totalWidth,
   keyWidth,
   activeKeysCount,
   isCompleting,
   colorMode,
+  currentIndex,
+  playedNotes,
 }) => {
   // Get the current state from the checker
   const checkerState =
     taskConfig.checker.type === "sequence"
-      ? taskConfig.checker.getState()
-      : taskConfig.checker.getState(taskConfig.playedNotes);
+      ? taskConfig.checker.getState(currentIndex)
+      : taskConfig.checker.getState(playedNotes);
+
+  console.log("[TaskIndicators] Checker state:", {
+    type: taskConfig.checker.type,
+    state: checkerState,
+    currentIndex,
+    playedNotes,
+  });
 
   return (
     <div
@@ -357,28 +380,40 @@ const TaskIndicators: React.FC<{
       {!isCompleting && (
         <>
           {/* Show completed notes */}
-          {checkerState.completedNotes.map(({ note, octave }) => (
-            <TaskIndicator
-              key={`completed-${note}-${octave}`}
-              note={note}
-              octave={octave}
-              keyWidth={keyWidth}
-              isPlayed={true}
-              colorMode={colorMode}
-            />
-          ))}
+          {checkerState.completedNotes.map(({ note, octave }) => {
+            console.log("[TaskIndicator] Rendering completed note:", {
+              note,
+              octave,
+            });
+            return (
+              <TaskIndicator
+                key={`completed-${note}-${octave}`}
+                note={note}
+                octave={octave}
+                keyWidth={keyWidth}
+                isPlayed={true}
+                colorMode={colorMode}
+              />
+            );
+          })}
 
           {/* Show active targets */}
-          {checkerState.activeTargets.map(({ note, octave }) => (
-            <TaskIndicator
-              key={`active-${note}-${octave}`}
-              note={note}
-              octave={octave}
-              keyWidth={keyWidth}
-              isCurrent={true}
-              colorMode={colorMode}
-            />
-          ))}
+          {checkerState.activeTargets.map(({ note, octave }) => {
+            console.log("[TaskIndicator] Rendering active target:", {
+              note,
+              octave,
+            });
+            return (
+              <TaskIndicator
+                key={`active-${note}-${octave}`}
+                note={note}
+                octave={octave}
+                keyWidth={keyWidth}
+                isCurrent={true}
+                colorMode={colorMode}
+              />
+            );
+          })}
         </>
       )}
     </div>
@@ -451,6 +486,7 @@ interface PianoUIProps {
   activeTaskId: string | null;
   taskProgress: TaskProgress[];
   taskPlayedNotes: Record<string, Set<string>>;
+  state: PianoControllerState;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -469,6 +505,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   activeTaskId,
   taskProgress,
   taskPlayedNotes,
+  state,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -762,8 +799,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           (() => {
             const taskConfig = {
               ...TASK_CONFIGS[activeTaskId],
-              playedNotes:
-                taskPlayedNotes[activeTaskId as keyof typeof taskPlayedNotes],
+              playedNotes: taskPlayedNotes[activeTaskId] || new Set(),
             };
             const isCompleting = taskProgress.some(
               (t) => t.taskId === activeTaskId && t.status === "completing"
@@ -777,6 +813,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                 activeKeysCount={activeKeys.size}
                 isCompleting={isCompleting}
                 colorMode={colorMode}
+                currentIndex={state.sequenceIndices[activeTaskId] || 0}
+                playedNotes={taskPlayedNotes[activeTaskId] || new Set()}
               />
             );
           })()}

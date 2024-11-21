@@ -110,52 +110,60 @@ type NoteInSequence = {
 export interface CheckerState {
   completedNotes: Array<{ note: number; octave: number }>;
   activeTargets: Array<{ note: number; octave: number }>;
+  progress: number;
 }
 
-// Update the checker types to include methods for getting state
+// Update the checker types to be more stateless
 export type SequenceChecker = {
   type: "sequence";
   sequence: NoteInSequence[];
-  currentIndex: number;
-  getState: () => CheckerState;
+  getState: (currentIndex: number) => CheckerState;
+  checkNote: (note: number, octave: number, currentIndex: number) => boolean;
 };
 
 export type SetChecker = {
   type: "set";
   targetNotes: Set<string>;
-  getState: (playedNotes?: Set<string>) => CheckerState;
+  getState: (playedNotes: Set<string>) => CheckerState;
+  checkNote: (
+    note: number,
+    octave: number,
+    playedNotes: Set<string>
+  ) => boolean;
 };
 
 export type TaskChecker = SequenceChecker | SetChecker;
 
-// Add helper functions to implement the getState methods
+// Update the checker creators
 export const createSequenceChecker = (
   sequence: NoteInSequence[]
 ): SequenceChecker => ({
   type: "sequence",
   sequence,
-  currentIndex: 0,
-  getState: function () {
-    return {
-      completedNotes: this.sequence.slice(0, this.currentIndex),
-      activeTargets: this.sequence.slice(
-        this.currentIndex,
-        this.currentIndex + 1
-      ),
-    };
+  getState: (currentIndex: number) => ({
+    completedNotes: sequence.slice(0, currentIndex),
+    activeTargets: sequence.slice(currentIndex, currentIndex + 1),
+    progress: currentIndex,
+  }),
+  checkNote: (note: number, octave: number, currentIndex: number) => {
+    const target = sequence[currentIndex];
+    return target && target.note === note && target.octave === octave;
   },
 });
 
 export const createSetChecker = (targetNotes: Set<string>): SetChecker => ({
   type: "set",
   targetNotes,
-  getState: function (playedNotes: Set<string> = new Set()) {
+  getState: (playedNotes: Set<string> = new Set()) => {
     const completed: Array<{ note: number; octave: number }> = [];
     const active: Array<{ note: number; octave: number }> = [];
 
-    Array.from(this.targetNotes).forEach((noteKey) => {
+    // Ensure playedNotes is a Set
+    const safePlayedNotes = playedNotes || new Set<string>();
+
+    Array.from(targetNotes).forEach((noteKey) => {
       const [note, octave] = noteKey.split("-").map(Number);
-      if (playedNotes.has(noteKey)) {
+      if (safePlayedNotes.has(noteKey)) {
         completed.push({ note, octave });
       } else {
         active.push({ note, octave });
@@ -165,7 +173,17 @@ export const createSetChecker = (targetNotes: Set<string>): SetChecker => ({
     return {
       completedNotes: completed,
       activeTargets: active,
+      progress: completed.length,
     };
+  },
+  checkNote: (
+    note: number,
+    octave: number,
+    playedNotes: Set<string> = new Set()
+  ) => {
+    const noteKey = `${note}-${octave}`;
+    const safePlayedNotes = playedNotes || new Set<string>();
+    return targetNotes.has(noteKey) && !safePlayedNotes.has(noteKey);
   },
 });
 
@@ -776,45 +794,4 @@ export const getNextTaskId = (currentTaskId: string): string | null => {
 
 export const getPreviousTaskId = (currentTaskId: string): string | null => {
   return TASK_CONFIGS[currentTaskId]?.previousTaskId || null;
-};
-
-// Update the checkTaskProgress function to handle both types properly
-export const checkTaskProgress = (
-  checker: TaskChecker,
-  note: number,
-  octave: number
-): boolean => {
-  console.log("[checkTaskProgress] Called with:", { checker, note, octave });
-
-  if (checker.type === "sequence") {
-    const result = checkSequenceProgress(checker, note, octave);
-    console.log("[checkTaskProgress] Sequence check result:", result);
-    return result;
-  } else {
-    // Set checker
-    const noteKey = `${note}-${octave}`;
-    const result = checker.targetNotes.has(noteKey);
-    console.log("[checkTaskProgress] Set check result:", { noteKey, result });
-    return result;
-  }
-};
-
-// Update checkSequenceProgress to be more robust
-export const checkSequenceProgress = (
-  checker: SequenceChecker,
-  note: number,
-  octave: number
-): boolean => {
-  const target = checker.sequence[checker.currentIndex];
-  if (!target) return false;
-
-  const matches = target.note === note && target.octave === octave;
-  console.log("[checkSequenceProgress]", {
-    currentIndex: checker.currentIndex,
-    target,
-    played: { note, octave },
-    matches,
-    sequenceLength: checker.sequence.length,
-  });
-  return matches;
 };

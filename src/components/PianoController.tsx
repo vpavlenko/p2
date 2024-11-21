@@ -14,7 +14,6 @@ import {
   TASK_CONFIGS,
   canTaskBeActivated,
   getNextTaskId,
-  checkTaskProgress,
 } from "../types/tasks";
 import { ensureSamplerLoaded } from "../audio/sampler";
 
@@ -33,21 +32,18 @@ const NOTE_NAMES = [
   "B",
 ] as const;
 
-interface TaskProgress {
+interface TaskState {
   taskId: string;
   progress: number;
   status: "active" | "completing" | "completed";
 }
 
 export interface PianoControllerState {
-  taskProgress: Array<{
-    taskId: string;
-    progress: number;
-    status: "active" | "completing" | "completed";
-  }>;
+  taskProgress: TaskState[];
   pendingNextTask: string | null;
   activeKeysSize: number;
   sequenceIndices: Record<string, number>;
+  taskPlayedNotes: Record<string, Set<string>>;
 }
 
 const getLastTaskInLesson = (lessonId: number): string | null => {
@@ -158,6 +154,7 @@ export const PianoController: React.FC = () => {
     pendingNextTask: null,
     activeKeysSize: 0,
     sequenceIndices: {},
+    taskPlayedNotes: {},
   });
   const [taskPlayedNotes, setTaskPlayedNotes] = useState<
     Record<string, Set<string>>
@@ -224,7 +221,7 @@ export const PianoController: React.FC = () => {
         });
 
         // Always start with a clean slate for the new lesson
-        const newTaskProgress: TaskProgress[] = firstTaskId
+        const newTaskProgress: TaskState[] = firstTaskId
           ? [
               {
                 taskId: firstTaskId,
@@ -278,79 +275,53 @@ export const PianoController: React.FC = () => {
       const taskConfig = TASK_CONFIGS[taskId];
       if (!taskConfig) return;
 
-      console.log("[incrementTaskProgress]", {
-        taskId,
-        note,
-        octave,
-        type: taskConfig.checker.type,
-        currentIndex: state.sequenceIndices[taskId] || 0,
-      });
+      const checker = taskConfig.checker;
+      const currentIndex = state.sequenceIndices[taskId] || 0;
+      const playedNotes = state.taskPlayedNotes[taskId] || new Set();
 
-      // Check if the note matches based on checker type
+      // Check if the note matches using the checker's checkNote method
       const matches =
-        taskConfig.checker.type === "sequence"
-          ? checkTaskProgress(
-              {
-                ...taskConfig.checker,
-                currentIndex: state.sequenceIndices[taskId] || 0,
-              },
-              note,
-              octave
-            )
-          : checkTaskProgress(taskConfig.checker, note, octave);
+        checker.type === "sequence"
+          ? checker.checkNote(note, octave, currentIndex)
+          : checker.checkNote(note, octave, playedNotes);
 
       if (!matches) return;
 
-      // For set checkers, check if note was already played
-      if (taskConfig.checker.type === "set") {
-        const noteKey = `${note}-${octave}`;
-        if (taskPlayedNotes[taskId]?.has(noteKey)) {
-          return; // Skip if note was already played
-        }
-      }
+      // Get current state to determine progress
+      const checkerState =
+        checker.type === "sequence"
+          ? checker.getState(currentIndex)
+          : checker.getState(playedNotes);
 
-      // Update state in one place
-      setState((prev) => {
-        const existingTask = prev.taskProgress.find((t) => t.taskId === taskId);
-        const currentProgress = existingTask?.progress ?? 0;
-        const newProgress = currentProgress + 1;
-        const shouldComplete = newProgress >= taskConfig.total;
+      const newProgress = checkerState.progress + 1;
 
-        return {
-          ...prev,
-          // Update sequence index if it's a sequence checker
-          sequenceIndices:
-            taskConfig.checker.type === "sequence"
-              ? {
-                  ...prev.sequenceIndices,
-                  [taskId]: (prev.sequenceIndices[taskId] || 0) + 1,
-                }
-              : prev.sequenceIndices,
-          // Always update task progress
-          taskProgress: existingTask
-            ? prev.taskProgress.map((t) =>
-                t.taskId === taskId
-                  ? {
-                      ...t,
-                      progress: newProgress,
-                      status: shouldComplete ? "completing" : t.status,
-                    }
-                  : t
-              )
-            : [...prev.taskProgress, { taskId, progress: 1, status: "active" }],
-        };
-      });
-
-      // For set checkers, track played notes
-      if (taskConfig.checker.type === "set") {
-        const noteKey = `${note}-${octave}`;
-        setTaskPlayedNotes((prev) => ({
-          ...prev,
-          [taskId]: new Set([...(prev[taskId] || []), noteKey]),
-        }));
-      }
+      // Update state
+      setState((prev) => ({
+        ...prev,
+        sequenceIndices:
+          checker.type === "sequence"
+            ? { ...prev.sequenceIndices, [taskId]: currentIndex + 1 }
+            : prev.sequenceIndices,
+        taskPlayedNotes:
+          checker.type === "set"
+            ? {
+                ...prev.taskPlayedNotes,
+                [taskId]: new Set([...playedNotes, `${note}-${octave}`]),
+              }
+            : prev.taskPlayedNotes,
+        taskProgress: prev.taskProgress.map((t) =>
+          t.taskId === taskId
+            ? {
+                ...t,
+                progress: newProgress,
+                status:
+                  newProgress >= taskConfig.total ? "completing" : "active",
+              }
+            : t
+        ),
+      }));
     },
-    [state.sequenceIndices, taskPlayedNotes]
+    [state]
   );
 
   // Move sampler loading to an earlier useEffect
@@ -595,7 +566,7 @@ export const PianoController: React.FC = () => {
                 taskId: state.pendingNextTask,
                 progress: 0,
                 status: "active",
-              } as TaskProgress,
+              } as TaskState,
             ],
           };
         }
@@ -801,8 +772,9 @@ export const PianoController: React.FC = () => {
               : undefined
           }
           activeTaskId={currentActiveTaskId}
-          taskPlayedNotes={taskPlayedNotes}
           taskProgress={state.taskProgress}
+          taskPlayedNotes={state.taskPlayedNotes}
+          state={state}
         />
       )}
     </>
