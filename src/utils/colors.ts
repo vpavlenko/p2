@@ -1,4 +1,5 @@
 import { ColorMode } from "../components/types";
+import { ChromaticNote } from "../types/tasks";
 
 export const COLORS: { [key: number]: string } = {
   0: "white",
@@ -33,4 +34,10 @@ export const getColors = (
     rotatedColors[i] = COLORS[(i - tonic + 12) % 12];
   }
   return rotatedColors;
+};
+
+export const getLabelColorForNote = (note: number): string => {
+  const chromaticNote = (note % 12) as ChromaticNote;
+  const shouldUseDarkText = [0, 4, 6, 9, 11].includes(chromaticNote);
+  return shouldUseDarkText ? "black" : "white";
 };

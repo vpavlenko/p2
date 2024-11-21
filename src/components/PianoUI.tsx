@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { FallingNotes, FallingNote } from "./FallingNotes";
 import { ColorMode } from "./types";
-import { getColors } from "../utils/colors";
+import { getColors, getLabelColorForNote } from "../utils/colors";
 import {
   getKeyboardMap,
   KEY_DISPLAY_LABELS,
@@ -12,11 +12,14 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
-import type { ChromaticNote, TaskProgress } from "../types/tasks";
+import type {
+  SequenceChecker,
+  TaskChecker,
+  TaskProgress,
+} from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
-export const SPECIAL_NOTE_COLORS: ChromaticNote[] = [0, 4, 6, 9, 11];
 
 const BLACK_KEY_HEIGHT_MULTIPLIER = 0.65; // Black keys are 60% of total height
 export const PIANO_HEIGHT = 80; // Total piano height in pixels
@@ -114,16 +117,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color:
-      effectiveColorMode === "traditional"
-        ? isWhiteKey
-          ? "black"
-          : "white"
-        : SPECIAL_NOTE_COLORS.includes(
-            relativeNote as (typeof SPECIAL_NOTE_COLORS)[number]
-          )
-        ? "black"
-        : "white",
+    color: getLabelColorForNote(relativeNote),
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -299,7 +293,46 @@ const calculateKeyPosition = (
   return whiteKeyCount * keyWidth;
 };
 
-// Update TaskIndicators to hide indicators during completion
+// Add this helper function before TaskIndicators
+const TaskIndicator: React.FC<{
+  noteKey?: string;
+  note: number;
+  octave: number;
+  keyWidth: number;
+  isPlayed?: boolean;
+  isCurrent?: boolean;
+}> = ({ note, octave, keyWidth, isPlayed, isCurrent }) => {
+  const left = calculateKeyPosition(note, octave, keyWidth);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: left,
+        bottom: 0,
+        color: isPlayed ? "#4ade80" : "white",
+        fontSize: "20px",
+        transform: isCurrent ? "translateY(-5px)" : "none",
+        transition: "transform 0.2s ease-in-out",
+        width: keyWidth,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {isPlayed ? "✓" : isCurrent ? "↓" : ""}
+    </div>
+  );
+};
+
+// Add this type guard before TaskIndicator component
+const isSequenceChecker = (
+  checker: TaskChecker
+): checker is SequenceChecker => {
+  return checker.type === "sequence";
+};
+
+// Update TaskIndicators to use proper type checking
 const TaskIndicators: React.FC<{
   taskConfig: TaskConfig;
   totalWidth: number;
@@ -344,60 +377,36 @@ const TaskIndicators: React.FC<{
         <>
           {taskConfig.checker.type === "sequence"
             ? // Sequence visualization
-              (() => {
-                const sequenceChecker = taskConfig.checker;
-                return sequenceChecker.sequence.map(
-                  ({ note, octave }, index) => {
-                    const isPlayed = index < sequenceChecker.currentIndex;
-                    const isCurrent = index === sequenceChecker.currentIndex;
-                    const left = calculateKeyPosition(note, octave, keyWidth);
-
-                    return (
-                      <div
-                        key={`${note}-${octave}`}
-                        style={{
-                          position: "absolute",
-                          left: left,
-                          bottom: 0,
-                          color: "white",
-                          fontSize: "20px",
-                          transform: isCurrent ? "translateY(-5px)" : "none",
-                          transition: "transform 0.2s ease-in-out",
-                          width: keyWidth,
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        {isPlayed ? "✓" : isCurrent ? "↓" : ""}
-                      </div>
-                    );
+              taskConfig.checker.sequence.map(({ note, octave }, index) => (
+                <TaskIndicator
+                  key={`${note}-${octave}`}
+                  note={note}
+                  octave={octave}
+                  keyWidth={keyWidth}
+                  isPlayed={
+                    isSequenceChecker(taskConfig.checker) &&
+                    index < taskConfig.checker.currentIndex
                   }
-                );
-              })()
+                  isCurrent={
+                    isSequenceChecker(taskConfig.checker) &&
+                    index === taskConfig.checker.currentIndex
+                  }
+                />
+              ))
             : // Set-based visualization
               Array.from(taskConfig.checker.targetNotes).map((noteKey) => {
                 const [note, octave] = noteKey.split("-").map(Number);
-                const left = calculateKeyPosition(note, octave, keyWidth);
                 const isPlayed = taskConfig.playedNotes?.has(noteKey);
 
                 return (
-                  <div
+                  <TaskIndicator
                     key={noteKey}
-                    style={{
-                      position: "absolute",
-                      left: left,
-                      bottom: 0,
-                      color: "white",
-                      fontSize: "20px",
-                      width: keyWidth,
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    {isPlayed ? "✓" : "↓"}
-                  </div>
+                    noteKey={noteKey}
+                    note={note}
+                    octave={octave}
+                    keyWidth={keyWidth}
+                    isPlayed={isPlayed}
+                  />
                 );
               })}
         </>

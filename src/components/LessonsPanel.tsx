@@ -10,6 +10,7 @@ import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import { KEY_DISPLAY_LABELS, KeyboardMapping } from "../constants/keyboard";
 import { getColors } from "../utils/colors";
+import { getLabelColorForNote } from "../utils/colors";
 
 interface KeyboardState {
   activeKeyCodes: Set<string>;
@@ -111,7 +112,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
       []
     );
 
-    // Add this function to get button colors based on the current mapping
+    // Update the getButtonTheme function
     const getButtonTheme = (keyboardState: KeyboardState) => {
       if (!activeTaskId || !keyboardState.taskKeyboardMapping) return [];
 
@@ -121,36 +122,71 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
       const colors = getColors(0, taskConfig.colorMode || "chromatic");
       const buttonTheme: Array<{ class: string; buttons: string }> = [];
 
+      // First, create a mapping of key labels to their notes
+      const keyLabelToNote: Record<string, number> = {};
       Object.entries(taskConfig.keyboardMapping).forEach(
         ([keyCode, mapping]) => {
           const keyLabel = KEY_DISPLAY_LABELS[keyCode]?.toLowerCase();
           if (keyLabel) {
-            const color = colors[mapping.note];
-            // Create the full className string at once
-            const className = keyboardState.activeKeyCodes.has(keyCode)
-              ? `${keyCode}-mapped key-active`
-              : `${keyCode}-mapped`;
-
-            buttonTheme.push({
-              class: className,
-              buttons: keyLabel,
-            });
-
-            // Add the CSS for this specific key
-            addKeyStyle(keyCode, color);
+            keyLabelToNote[keyLabel] = mapping.note;
           }
         }
       );
 
+      // Create styles for all keyboard keys
+      Object.entries(KEY_DISPLAY_LABELS).forEach(([keyCode, label]) => {
+        const keyLabel = label.toLowerCase();
+        const note = keyLabelToNote[keyLabel];
+
+        // If this key is mapped to a note
+        if (note !== undefined) {
+          const backgroundColor = colors[note];
+          const textColor = getLabelColorForNote(note);
+          const isActive = keyboardState.activeKeyCodes.has(keyCode);
+
+          const className = isActive
+            ? `${keyCode}-mapped key-active`
+            : `${keyCode}-mapped`;
+
+          buttonTheme.push({
+            class: className,
+            buttons: keyLabel,
+          });
+
+          // Add the CSS for this specific key
+          addKeyStyle(keyCode, backgroundColor, textColor);
+        } else {
+          // For unmapped keys, use a default style
+          buttonTheme.push({
+            class: `${keyCode}-unmapped`,
+            buttons: keyLabel,
+          });
+
+          // Add default styling for unmapped keys
+          addKeyStyle(keyCode, "#444", "rgba(255, 255, 255, 0.3)");
+        }
+      });
+
       return buttonTheme;
     };
 
-    // Helper to add per-key styles
-    const addKeyStyle = (keyCode: string, color: string) => {
+    // Update the addKeyStyle function
+    const addKeyStyle = (
+      keyCode: string,
+      backgroundColor: string,
+      textColor: string
+    ) => {
       const style = document.createElement("style");
       style.textContent = `
-        .simple-keyboard-base .${keyCode}-mapped {
-          background: ${color} !important;
+        .simple-keyboard-base .${keyCode}-mapped,
+        .simple-keyboard-base .${keyCode}-unmapped {
+          background: ${backgroundColor} !important;
+          color: ${textColor} !important;
+        }
+        .simple-keyboard-base .${keyCode}-mapped.key-active {
+          background: ${backgroundColor} !important;
+          color: ${textColor} !important;
+          transform: scale(0.95);
         }
       `;
 
