@@ -383,17 +383,21 @@ const createIntervalSequence = (
   while (sequence.length < maxLength && currentOctave < 8) {
     sequence.push({ note: currentNote, octave: currentOctave });
 
-    // Move to next note
-    const nextNote = (currentNote + interval) % 12;
-    currentNote = nextNote as ChromaticNote;
+    // Calculate next note and octave
+    let nextNote = currentNote + interval;
+    let nextOctave = currentOctave;
 
-    // Increment octave if we wrap around
-    if (nextNote < currentNote) {
-      currentOctave++;
+    // If we cross over 11, we need to adjust both note and octave
+    if (nextNote > 11) {
+      nextNote = nextNote % 12;
+      nextOctave++;
     }
 
-    // Break if we reach C8
-    if (currentOctave === 8 && currentNote > 0) {
+    currentNote = nextNote as ChromaticNote;
+    currentOctave = nextOctave;
+
+    // Break if we reach or exceed C8
+    if (currentOctave >= 8) {
       break;
     }
   }
