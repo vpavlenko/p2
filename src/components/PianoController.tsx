@@ -15,7 +15,6 @@ import {
   canTaskBeActivated,
   getNextTaskId,
   checkTaskProgress,
-  checkSequenceProgress,
 } from "../types/tasks";
 import { ensureSamplerLoaded } from "../audio/sampler";
 
@@ -46,10 +45,9 @@ export interface PianoControllerState {
     progress: number;
     status: "active" | "completing" | "completed";
   }>;
-  pendingTaskCompletion: string | null;
-  activeKeysSize: number;
   pendingNextTask: string | null;
-  lastKeyReleaseTime?: number;
+  activeKeysSize: number;
+  sequenceIndices: Record<string, number>;
 }
 
 const getLastTaskInLesson = (lessonId: number): string | null => {
@@ -143,13 +141,6 @@ const getActiveTaskId = (
   return null;
 };
 
-// Add this helper function at the top level
-const initializeTaskProgress = (taskId: string): TaskProgress => ({
-  taskId,
-  progress: 0,
-  status: "active",
-});
-
 export const PianoController: React.FC = () => {
   const [tonic, setTonic] = useState<number>(0);
   const [voicing, setVoicing] = useState<Voicing>("single");
@@ -164,9 +155,9 @@ export const PianoController: React.FC = () => {
   const { lessonId } = useParams();
   const [state, setState] = useState<PianoControllerState>({
     taskProgress: [],
-    pendingTaskCompletion: null,
-    activeKeysSize: 0,
     pendingNextTask: null,
+    activeKeysSize: 0,
+    sequenceIndices: {},
   });
   const [taskPlayedNotes, setTaskPlayedNotes] = useState<
     Record<string, Set<string>>
@@ -190,10 +181,14 @@ export const PianoController: React.FC = () => {
 
   // Move resetTaskState inside the component
   const resetTaskState = useCallback((taskId: string) => {
-    const taskConfig = TASK_CONFIGS[taskId];
-    if (taskConfig && taskConfig.checker.type === "sequence") {
-      taskConfig.checker.currentIndex = 0;
-    }
+    console.log("[resetTaskState] Resetting state for task:", taskId);
+    setState((prev) => ({
+      ...prev,
+      sequenceIndices: {
+        ...prev.sequenceIndices,
+        [taskId]: 0,
+      },
+    }));
     setTaskPlayedNotes((prev) => ({
       ...prev,
       [taskId]: new Set<string>(),
@@ -248,7 +243,6 @@ export const PianoController: React.FC = () => {
           ...prev,
           taskProgress: newTaskProgress,
           pendingNextTask: null,
-          pendingTaskCompletion: null,
         };
       });
 
@@ -282,111 +276,73 @@ export const PianoController: React.FC = () => {
   const incrementTaskProgress = useCallback(
     (taskId: string, note: number, octave: number) => {
       const taskConfig = TASK_CONFIGS[taskId];
-      if (!taskConfig) {
-        console.log("No task config found for:", taskId);
-        return;
-      }
+      if (!taskConfig) return;
 
-      console.log("[incrementTaskProgress] Before update:", {
+      console.log("[incrementTaskProgress]", {
         taskId,
         note,
         octave,
-        checkerType: taskConfig.checker.type,
-        currentIndex:
-          taskConfig.checker.type === "sequence"
-            ? taskConfig.checker.currentIndex
-            : "N/A",
-        taskConfig,
+        type: taskConfig.checker.type,
+        currentIndex: state.sequenceIndices[taskId] || 0,
       });
 
-      const noteKey = `${note}-${octave}`;
-      const taskNotes = taskPlayedNotes[taskId];
-      let shouldIncrement = false;
+      // Check if the note matches based on checker type
+      const matches =
+        taskConfig.checker.type === "sequence"
+          ? checkTaskProgress(
+              {
+                ...taskConfig.checker,
+                currentIndex: state.sequenceIndices[taskId] || 0,
+              },
+              note,
+              octave
+            )
+          : checkTaskProgress(taskConfig.checker, note, octave);
 
-      if (taskConfig.checker.type === "sequence") {
-        shouldIncrement = checkSequenceProgress(
-          taskConfig.checker,
-          note,
-          octave
-        );
-        console.log("[incrementTaskProgress] Sequence check:", {
-          shouldIncrement,
-          expectedNote:
-            taskConfig.checker.sequence[taskConfig.checker.currentIndex],
-          receivedNote: { note, octave },
-          currentIndex: taskConfig.checker.currentIndex,
-        });
-      } else {
-        shouldIncrement = !taskNotes.has(noteKey);
-      }
+      if (!matches) return;
 
-      if (shouldIncrement) {
-        // Create a new copy of the task config
-        const updatedTaskConfigs = { ...TASK_CONFIGS };
-        if (taskConfig.checker.type === "sequence") {
-          updatedTaskConfigs[taskId] = {
-            ...taskConfig,
-            checker: {
-              ...taskConfig.checker,
-              currentIndex: taskConfig.checker.currentIndex + 1,
-            },
-          };
+      // Update state in one place
+      setState((prev) => {
+        const existingTask = prev.taskProgress.find((t) => t.taskId === taskId);
+        const currentProgress = existingTask?.progress ?? 0;
+        const newProgress = currentProgress + 1;
+        const shouldComplete = newProgress >= taskConfig.total;
 
-          // Update the global TASK_CONFIGS
-          Object.assign(TASK_CONFIGS, updatedTaskConfigs);
-        }
+        return {
+          ...prev,
+          // Update sequence index if it's a sequence checker
+          sequenceIndices:
+            taskConfig.checker.type === "sequence"
+              ? {
+                  ...prev.sequenceIndices,
+                  [taskId]: (prev.sequenceIndices[taskId] || 0) + 1,
+                }
+              : prev.sequenceIndices,
+          // Always update task progress
+          taskProgress: existingTask
+            ? prev.taskProgress.map((t) =>
+                t.taskId === taskId
+                  ? {
+                      ...t,
+                      progress: newProgress,
+                      status: shouldComplete ? "completing" : t.status,
+                    }
+                  : t
+              )
+            : [...prev.taskProgress, { taskId, progress: 1, status: "active" }],
+        };
+      });
 
+      // For set checkers, track played notes
+      if (taskConfig.checker.type === "set") {
+        const noteKey = `${note}-${octave}`;
         setTaskPlayedNotes((prev) => ({
           ...prev,
-          [taskId]: new Set([...prev[taskId], noteKey]),
+          [taskId]: new Set([...(prev[taskId] || []), noteKey]),
         }));
-
-        setState((prev) => {
-          const existingTask = prev.taskProgress.find(
-            (t) => t.taskId === taskId
-          );
-          const currentProgress = existingTask?.progress ?? 0;
-          const newProgress = currentProgress + 1;
-
-          // Create a new copy of the task config to avoid mutating the original
-          const updatedTaskConfigs = { ...TASK_CONFIGS };
-          if (taskConfig.checker.type === "sequence") {
-            updatedTaskConfigs[taskId] = {
-              ...taskConfig,
-              checker: {
-                ...taskConfig.checker,
-                currentIndex: taskConfig.checker.currentIndex + 1,
-              },
-            };
-          }
-
-          // Update the global TASK_CONFIGS
-          Object.assign(TASK_CONFIGS, updatedTaskConfigs);
-
-          return {
-            ...prev,
-            taskProgress: existingTask
-              ? prev.taskProgress.map((t) =>
-                  t.taskId === taskId
-                    ? {
-                        ...t,
-                        progress: newProgress,
-                        status:
-                          newProgress >= taskConfig.total
-                            ? "completing"
-                            : "active",
-                      }
-                    : t
-                )
-              : [
-                  ...prev.taskProgress,
-                  { taskId, progress: 1, status: "active" },
-                ],
-          };
-        });
       }
     },
-    [taskPlayedNotes]
+    [state.sequenceIndices]
   );
 
   // Move sampler loading to an earlier useEffect
@@ -402,9 +358,11 @@ export const PianoController: React.FC = () => {
   // Update playNotes to handle loading state
   const playNotes = useCallback(
     async (note: number, octave: number) => {
-      if (!samplerReady) {
-        console.log("Sampler not ready yet, ignoring note");
-        return [];
+      if (!samplerReady) return [];
+
+      const activeTaskId = getActiveTaskId(state, currentLessonId);
+      if (activeTaskId) {
+        incrementTaskProgress(activeTaskId, note, octave);
       }
 
       console.log("[playNotes] Called with:", { note, octave, tonic });
@@ -412,7 +370,7 @@ export const PianoController: React.FC = () => {
         taskProgress: state.taskProgress,
         activeKeys: Array.from(activeKeys),
         currentLessonId,
-        state,
+        sequenceIndices: state.sequenceIndices,
         taskPlayedNotes,
       });
 
@@ -422,82 +380,7 @@ export const PianoController: React.FC = () => {
       const notesToPlay = VOICINGS[voicing].getNotes(relativeNote, octave);
       console.log("Notes to play:", notesToPlay);
 
-      // Check progress for active task
-      const activeTaskId = getActiveTaskId(state, currentLessonId);
-      console.log("Active task check:", {
-        activeTaskId,
-        currentLessonId,
-        taskProgressLength: state.taskProgress.length,
-        stateTaskProgressLength: state.taskProgress.length,
-      });
-
-      if (activeTaskId) {
-        console.log("Incrementing progress for task:", activeTaskId);
-        // Initialize task if it doesn't exist
-        setState((prev) => {
-          console.log(
-            "Current task progress before update:",
-            prev.taskProgress
-          );
-          if (!prev.taskProgress.some((t) => t.taskId === activeTaskId)) {
-            console.log("Initializing new task:", activeTaskId);
-            return {
-              ...prev,
-              taskProgress: [
-                ...prev.taskProgress,
-                initializeTaskProgress(activeTaskId),
-              ],
-            };
-          }
-          return prev;
-        });
-
-        const taskConfig = TASK_CONFIGS[activeTaskId];
-        if (taskConfig) {
-          const noteKey = `${note}-${octave}`;
-          const taskNotes = taskPlayedNotes[activeTaskId];
-          const shouldIncrement =
-            !taskNotes.has(noteKey) &&
-            checkTaskProgress(taskConfig.checker, note, octave);
-
-          if (shouldIncrement) {
-            setTaskPlayedNotes((prev) => ({
-              ...prev,
-              [activeTaskId]: new Set([...prev[activeTaskId], noteKey]),
-            }));
-
-            setState((prev) => {
-              const existingTask = prev.taskProgress.find(
-                (t) => t.taskId === activeTaskId
-              );
-              const currentProgress = existingTask?.progress ?? 0;
-              const newProgress = currentProgress + 1;
-
-              return {
-                ...prev,
-                taskProgress: existingTask
-                  ? prev.taskProgress.map((t) =>
-                      t.taskId === activeTaskId
-                        ? {
-                            ...t,
-                            progress: newProgress,
-                            status:
-                              newProgress >= taskConfig.total
-                                ? "completing"
-                                : "active",
-                          }
-                        : t
-                    )
-                  : [
-                      ...prev.taskProgress,
-                      { taskId: activeTaskId, progress: 1, status: "active" },
-                    ],
-              };
-            });
-          }
-        }
-      }
-
+      // Play the notes
       const playedNotes = notesToPlay.map(({ note: n, octave: o }) => {
         const absoluteNote = (n + tonic) % 12;
         const noteString = `${NOTE_NAMES[absoluteNote]}${o}`;
@@ -526,9 +409,12 @@ export const PianoController: React.FC = () => {
       samplerReady,
       tonic,
       voicing,
-      incrementTaskProgress,
-      state,
+      state.sequenceIndices,
+      state.taskProgress,
       currentLessonId,
+      activeKeys,
+      taskPlayedNotes,
+      incrementTaskProgress,
     ]
   );
 
@@ -593,10 +479,61 @@ export const PianoController: React.FC = () => {
 
   const handleLessonChange = useCallback(
     (lessonId: number) => {
+      console.log("[lessonChange] Changing to lesson:", lessonId, {
+        currentLessonId,
+        lessonId,
+      });
+
+      const currentLesson = LESSONS.find((l) => l.id === lessonId);
+      if (!currentLesson) return;
+
+      const firstTaskId = currentLesson.taskIds[0];
+      console.log("[lessonChange] Lesson info:", {
+        currentLesson,
+        firstTaskId,
+        hasTaskIds: currentLesson.taskIds.length,
+      });
+
+      // Reset all task states for the new lesson
+      const newTaskProgress = currentLesson.taskIds.map((taskId) => ({
+        taskId,
+        progress: 0,
+        status: "active" as const,
+      }));
+
+      // Reset sequence indices and played notes for all tasks in the lesson
+      const newSequenceIndices: Record<string, number> = {};
+      const newTaskPlayedNotes: Record<string, Set<string>> = {};
+
+      currentLesson.taskIds.forEach((taskId) => {
+        const taskConfig = TASK_CONFIGS[taskId];
+        if (taskConfig) {
+          if (taskConfig.checker.type === "sequence") {
+            newSequenceIndices[taskId] = 0;
+          }
+          newTaskPlayedNotes[taskId] = new Set();
+        }
+      });
+
+      // Update all states at once
+      setState((prev) => ({
+        ...prev,
+        taskProgress: newTaskProgress,
+        sequenceIndices: newSequenceIndices,
+        pendingNextTask: null,
+      }));
+
+      setTaskPlayedNotes(newTaskPlayedNotes);
       setCurrentLessonId(lessonId);
       navigate(`${URL_PREFIX}/${lessonId}`);
+
+      console.log("[lessonChange] Reset states:", {
+        newTaskProgress,
+        newSequenceIndices,
+        newTaskPlayedNotes,
+      });
     },
-    [navigate]
+    [currentLessonId, navigate]
   );
 
   useEffect(() => {
@@ -781,6 +718,38 @@ export const PianoController: React.FC = () => {
       /* dependencies */
     ]
   );
+
+  // Add this effect to initialize sequenceCheckers when tasks change
+  useEffect(() => {
+    console.log(
+      "[sequenceCheckers] Initializing for active task:",
+      currentActiveTaskId
+    );
+    if (currentActiveTaskId) {
+      const taskConfig = TASK_CONFIGS[currentActiveTaskId];
+      if (taskConfig?.checker.type === "sequence") {
+        setState((prev) => {
+          // Only initialize if not already present
+          if (
+            typeof prev.sequenceIndices[currentActiveTaskId] === "undefined"
+          ) {
+            console.log(
+              "[sequenceCheckers] Initializing new sequence checker for:",
+              currentActiveTaskId
+            );
+            return {
+              ...prev,
+              sequenceIndices: {
+                ...prev.sequenceIndices,
+                [currentActiveTaskId]: 0,
+              },
+            };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [currentActiveTaskId]);
 
   return (
     <>

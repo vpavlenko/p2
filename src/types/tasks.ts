@@ -755,7 +755,17 @@ export const checkSequenceProgress = (
   octave: number
 ): boolean => {
   const target = checker.sequence[checker.currentIndex];
-  return target.note === note && target.octave === octave;
+  const matches = target && target.note === note && target.octave === octave;
+
+  console.log("[checkSequenceProgress]", {
+    currentIndex: checker.currentIndex,
+    target,
+    played: { note, octave },
+    matches,
+    sequenceLength: checker.sequence.length,
+  });
+
+  return matches;
 };
 
 // Update the checkTaskProgress function to use checkSequenceProgress
@@ -764,11 +774,17 @@ export const checkTaskProgress = (
   note: number,
   octave: number
 ): boolean => {
+  console.log("[checkTaskProgress] Called with:", { checker, note, octave });
+
   if (checker.type === "sequence") {
-    return checkSequenceProgress(checker, note, octave);
+    const result = checkSequenceProgress(checker, note, octave);
+    console.log("[checkTaskProgress] Sequence check result:", result);
+    return result;
   } else {
     // Set checker
     const noteKey = `${note}-${octave}`;
-    return checker.targetNotes.has(noteKey);
+    const result = checker.targetNotes.has(noteKey);
+    console.log("[checkTaskProgress] Set check result:", { noteKey, result });
+    return result;
   }
 };
