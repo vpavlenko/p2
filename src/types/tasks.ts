@@ -13,9 +13,9 @@ export interface TaskConfig {
   colorMode?: ColorMode;
   chromaticNotes?: number[];
   checker: TaskChecker;
-  nextTaskId?: string | null;
   requiredProgress: number;
   previousTaskId?: string | null;
+  playedNotes?: Set<string>;
 }
 
 export interface TaskProgress {
@@ -354,12 +354,10 @@ const createTaskConfig = (
 
   return {
     id: TASK_SEQUENCE[index],
-    description: `Play ${description} (new keys only)`,
+    description: `Play ${description}`,
     total: 4,
     requiredProgress: 4,
     previousTaskId: index > 0 ? TASK_SEQUENCE[index - 1] : null,
-    nextTaskId:
-      index < TASK_SEQUENCE.length - 1 ? TASK_SEQUENCE[index + 1] : null,
     chromaticNotes,
     keyboardMapping: fullMapping,
     checker: {
@@ -619,7 +617,6 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-f-sharp",
-    nextTaskId: "play-chromatic-descending",
   },
 
   "play-chromatic-descending": {
@@ -639,7 +636,6 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-chromatic-ascending",
-    nextTaskId: null,
   },
 
   "play-chromatic-ascending-flat": {
@@ -660,7 +656,6 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-chromatic-descending",
-    nextTaskId: null,
   },
 
   "play-major-seconds-from-a0": {
@@ -679,7 +674,6 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-chromatic-ascending-flat",
-    nextTaskId: "play-major-seconds-from-asharp0",
   },
 
   "play-major-seconds-from-asharp0": {
@@ -698,7 +692,6 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       currentIndex: 0,
     },
     previousTaskId: "play-major-seconds-from-a0",
-    nextTaskId: null,
   },
 };
 
@@ -732,7 +725,19 @@ export const canTaskBeActivated = (
 };
 
 export const getNextTaskId = (currentTaskId: string): string | null => {
-  return TASK_CONFIGS[currentTaskId]?.nextTaskId || null;
+  // Find which lesson contains this task
+  const lesson = LESSONS.find((lesson) =>
+    lesson.taskIds.includes(currentTaskId)
+  );
+  if (!lesson) return null;
+
+  // Find the index of current task in the lesson
+  const currentIndex = lesson.taskIds.indexOf(currentTaskId);
+  if (currentIndex === -1 || currentIndex === lesson.taskIds.length - 1)
+    return null;
+
+  // Return the next task in the lesson
+  return lesson.taskIds[currentIndex + 1];
 };
 
 export const getPreviousTaskId = (currentTaskId: string): string | null => {

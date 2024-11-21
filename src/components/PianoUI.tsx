@@ -12,7 +12,7 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
-import type { ChromaticNote } from "../types/tasks";
+import type { ChromaticNote, TaskProgress } from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -299,58 +299,130 @@ const calculateKeyPosition = (
   return whiteKeyCount * keyWidth;
 };
 
-// Update TaskIndicators to handle sequence visualization
+// Update TaskIndicators to hide indicators during completion
 const TaskIndicators: React.FC<{
   taskConfig: TaskConfig;
   totalWidth: number;
   keyWidth: number;
-}> = ({ taskConfig, totalWidth, keyWidth }) => {
-  if (taskConfig.checker.type === "sequence") {
-    const { sequence, currentIndex } = taskConfig.checker;
+  activeKeysCount: number;
+  isCompleting: boolean;
+}> = ({ taskConfig, totalWidth, keyWidth, activeKeysCount, isCompleting }) => {
+  console.log("[TaskIndicators] Rendering with:", {
+    checkerType: taskConfig.checker.type,
+    currentIndex:
+      taskConfig.checker.type === "sequence"
+        ? taskConfig.checker.currentIndex
+        : "N/A",
+    sequence:
+      taskConfig.checker.type === "sequence"
+        ? taskConfig.checker.sequence
+        : "N/A",
+    activeKeysCount,
+    isCompleting,
+    targetNotes:
+      taskConfig.checker.type === "set"
+        ? Array.from(taskConfig.checker.targetNotes)
+        : "N/A",
+    playedNotes: taskConfig.playedNotes,
+  });
 
-    return (
-      <div
-        style={{
-          position: "absolute",
-          top: -30,
-          left: 0,
-          width: totalWidth,
-          height: "30px",
-          display: "flex",
-          alignItems: "flex-end",
-        }}
-      >
-        {sequence.map(({ note, octave }, index) => {
-          const isPlayed = index < currentIndex;
-          const isCurrent = index === currentIndex;
-          const left = calculateKeyPosition(note, octave, keyWidth);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: -30,
+        left: 0,
+        width: totalWidth,
+        height: "30px",
+        display: "flex",
+        alignItems: "flex-end",
+      }}
+    >
+      {/* Release keys message */}
+      {isCompleting && activeKeysCount > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "rgba(255, 255, 255, 0.8)",
+            fontSize: "14px",
+            whiteSpace: "nowrap",
+            padding: "4px 12px",
+            borderRadius: "4px",
+            background: "rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          Release all keys to continue
+        </div>
+      )}
 
-          return (
-            <div
-              key={`${note}-${octave}`}
-              style={{
-                position: "absolute",
-                left: left,
-                bottom: 0,
-                color: "white",
-                fontSize: "20px",
-                transform: isCurrent ? "translateY(-5px)" : "none",
-                transition: "transform 0.2s ease-in-out",
-                width: keyWidth,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              {isPlayed ? "✓" : isCurrent ? "↓" : ""}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+      {/* Only show indicators if not completing */}
+      {!isCompleting && (
+        <>
+          {taskConfig.checker.type === "sequence"
+            ? // Sequence visualization
+              (() => {
+                const sequenceChecker = taskConfig.checker;
+                return sequenceChecker.sequence.map(
+                  ({ note, octave }, index) => {
+                    const isPlayed = index < sequenceChecker.currentIndex;
+                    const isCurrent = index === sequenceChecker.currentIndex;
+                    const left = calculateKeyPosition(note, octave, keyWidth);
 
-  // Existing set-based visualization...
+                    return (
+                      <div
+                        key={`${note}-${octave}`}
+                        style={{
+                          position: "absolute",
+                          left: left,
+                          bottom: 0,
+                          color: "white",
+                          fontSize: "20px",
+                          transform: isCurrent ? "translateY(-5px)" : "none",
+                          transition: "transform 0.2s ease-in-out",
+                          width: keyWidth,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        {isPlayed ? "✓" : isCurrent ? "↓" : ""}
+                      </div>
+                    );
+                  }
+                );
+              })()
+            : // Set-based visualization
+              Array.from(taskConfig.checker.targetNotes).map((noteKey) => {
+                const [note, octave] = noteKey.split("-").map(Number);
+                const left = calculateKeyPosition(note, octave, keyWidth);
+                const isPlayed = taskConfig.playedNotes?.has(noteKey);
+
+                return (
+                  <div
+                    key={noteKey}
+                    style={{
+                      position: "absolute",
+                      left: left,
+                      bottom: 0,
+                      color: "white",
+                      fontSize: "20px",
+                      width: keyWidth,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {isPlayed ? "✓" : "↓"}
+                  </div>
+                );
+              })}
+        </>
+      )}
+    </div>
+  );
 };
 
 interface PianoUIProps {
@@ -373,6 +445,7 @@ interface PianoUIProps {
   onStopPlaying: () => void;
   taskKeyboardMapping?: KeyboardMapping;
   activeTaskId: string | null;
+  taskProgress: TaskProgress[];
   taskPlayedNotes: Record<string, Set<string>>;
 }
 
@@ -390,6 +463,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   onStopPlaying,
   taskKeyboardMapping,
   activeTaskId,
+  taskProgress,
+  taskPlayedNotes,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -712,13 +787,28 @@ export const PianoUI: React.FC<PianoUIProps> = ({
             c2: { note: 24, left: c2Left },
           }}
         />
-        {activeTaskId && TASK_CONFIGS[activeTaskId] && (
-          <TaskIndicators
-            taskConfig={TASK_CONFIGS[activeTaskId]}
-            totalWidth={totalWidth}
-            keyWidth={keyWidth}
-          />
-        )}
+        {activeTaskId &&
+          TASK_CONFIGS[activeTaskId] &&
+          (() => {
+            const taskConfig = {
+              ...TASK_CONFIGS[activeTaskId],
+              playedNotes:
+                taskPlayedNotes[activeTaskId as keyof typeof taskPlayedNotes],
+            };
+            const isCompleting = taskProgress.some(
+              (t) => t.taskId === activeTaskId && t.status === "completing"
+            );
+
+            return (
+              <TaskIndicators
+                taskConfig={taskConfig}
+                totalWidth={totalWidth}
+                keyWidth={keyWidth}
+                activeKeysCount={activeKeys.size}
+                isCompleting={isCompleting}
+              />
+            );
+          })()}
       </div>
     </div>
   );

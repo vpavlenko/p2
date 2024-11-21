@@ -23,21 +23,20 @@ export const Task: React.FC<TaskProps> = ({
   onSkip,
 }) => {
   const { total, description } = taskConfig;
-  const isCompleting = status === "completing";
   const isCompleted = status === "completed";
   const percentage = Math.min((progress / total) * 100, 100);
 
   React.useEffect(() => {
-    if (!isCompleted && !isCompleting && progress >= total) {
+    if (status === "active" && progress >= total) {
       confetti({
         particleCount: 1000,
         spread: 200,
         origin: { y: 0.8 },
       });
     }
-  }, [progress, total, isCompleted, isCompleting]);
+  }, [progress, total, status]);
 
-  if (!previousTaskCompleted && !isCompleted && !isActive && !isCompleting) {
+  if (!previousTaskCompleted && !isCompleted && !isActive) {
     return null;
   }
 
@@ -73,14 +72,10 @@ export const Task: React.FC<TaskProps> = ({
               Skip
             </button>
           )}
+          {!isCompleted && (
+            <div className="text-gray-400">{`${progress}/${total}`}</div>
+          )}
         </div>
-        {!isCompleted && (
-          <div
-            className={`${isCompleted ? "text-green-400" : "text-gray-400"}`}
-          >
-            {`${progress}/${total}`}
-          </div>
-        )}
       </div>
       <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
         <div
@@ -89,15 +84,7 @@ export const Task: React.FC<TaskProps> = ({
           }`}
           style={{ width: `${percentage}%` }}
         />
-        {!isCompleted && (
-          <div className="text-gray-400">{`${progress}/${total}`}</div>
-        )}
       </div>
-      {isCompleting && (
-        <div className="text-xs text-gray-500 mt-2">
-          Release all keys to continue...
-        </div>
-      )}
     </div>
   );
 };
