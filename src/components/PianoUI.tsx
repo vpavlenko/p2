@@ -12,11 +12,7 @@ import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
 import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
-import type {
-  SequenceChecker,
-  TaskChecker,
-  TaskProgress,
-} from "../types/tasks";
+import type { TaskProgress } from "../types/tasks";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];
 const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
@@ -261,39 +257,7 @@ const countWhiteKeysInRange = (start: number, length: number): number => {
   return count;
 };
 
-// Update the calculateKeyPosition function
-const calculateKeyPosition = (
-  noteNum: number,
-  octaveNum: number,
-  keyWidth: number
-): number => {
-  let whiteKeyCount = 0;
-  // Count white keys in previous octaves
-  for (let o = 0; o < octaveNum; o++) {
-    whiteKeyCount += countWhiteKeysInRange(
-      OCTAVE_RANGES[o].start,
-      OCTAVE_RANGES[o].length
-    );
-  }
-
-  // For black keys, find the previous white key and position relative to it
-  if (!WHITE_KEYS.includes(noteNum)) {
-    // Find the previous white key
-    const prevWhiteKey = Math.max(...WHITE_KEYS.filter((n) => n < noteNum));
-    // Count white keys up to the previous white key
-    const whiteKeysBefore = WHITE_KEYS.filter((n) => n <= prevWhiteKey).length;
-    whiteKeyCount += whiteKeysBefore;
-    // Position halfway between white keys
-    return (whiteKeyCount - 0.5) * keyWidth;
-  }
-
-  // For white keys, simply count white keys up to this note
-  const whiteKeysBefore = WHITE_KEYS.filter((n) => n < noteNum).length;
-  whiteKeyCount += whiteKeysBefore;
-  return whiteKeyCount * keyWidth;
-};
-
-// Add this helper function before TaskIndicators
+// Update TaskIndicator component to accept colorMode prop and use calculateKeyLeftPosition
 const TaskIndicator: React.FC<{
   noteKey?: string;
   note: number;
@@ -302,8 +266,17 @@ const TaskIndicator: React.FC<{
   isPlayed?: boolean;
   isCurrent?: boolean;
   isSetMode?: boolean;
-}> = ({ note, octave, keyWidth, isPlayed, isCurrent, isSetMode }) => {
-  const left = calculateKeyPosition(note, octave, keyWidth);
+  colorMode: ColorMode; // Add colorMode prop
+}> = ({
+  note,
+  octave,
+  keyWidth,
+  isPlayed,
+  isCurrent,
+  isSetMode,
+  colorMode,
+}) => {
+  const left = calculateKeyLeftPosition(note, octave, keyWidth, colorMode);
 
   return (
     <div
@@ -315,7 +288,7 @@ const TaskIndicator: React.FC<{
         fontSize: "20px",
         transform: isCurrent ? "translateY(-5px)" : "none",
         transition: "transform 0.2s ease-in-out",
-        width: keyWidth,
+        width: colorMode === "flat-chromatic" ? keyWidth * (7 / 12) : keyWidth,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -326,21 +299,22 @@ const TaskIndicator: React.FC<{
   );
 };
 
-// Add this type guard before TaskIndicator component
-const isSequenceChecker = (
-  checker: TaskChecker
-): checker is SequenceChecker => {
-  return checker.type === "sequence";
-};
-
-// Update TaskIndicators to use proper type checking
+// Update TaskIndicators to pass colorMode prop
 const TaskIndicators: React.FC<{
   taskConfig: TaskConfig;
   totalWidth: number;
   keyWidth: number;
   activeKeysCount: number;
   isCompleting: boolean;
-}> = ({ taskConfig, totalWidth, keyWidth, activeKeysCount, isCompleting }) => {
+  colorMode: ColorMode; // Add colorMode prop
+}> = ({
+  taskConfig,
+  totalWidth,
+  keyWidth,
+  activeKeysCount,
+  isCompleting,
+  colorMode,
+}) => {
   return (
     <div
       style={{
@@ -385,14 +359,15 @@ const TaskIndicators: React.FC<{
                   octave={octave}
                   keyWidth={keyWidth}
                   isPlayed={
-                    isSequenceChecker(taskConfig.checker) &&
+                    taskConfig.checker.type === "sequence" &&
                     index < taskConfig.checker.currentIndex
                   }
                   isCurrent={
-                    isSequenceChecker(taskConfig.checker) &&
+                    taskConfig.checker.type === "sequence" &&
                     index === taskConfig.checker.currentIndex
                   }
                   isSetMode={false}
+                  colorMode={colorMode}
                 />
               ))
             : // Set-based visualization
@@ -409,6 +384,7 @@ const TaskIndicators: React.FC<{
                     keyWidth={keyWidth}
                     isPlayed={isPlayed}
                     isSetMode={true}
+                    colorMode={colorMode}
                   />
                 );
               })}
@@ -809,6 +785,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                 keyWidth={keyWidth}
                 activeKeysCount={activeKeys.size}
                 isCompleting={isCompleting}
+                colorMode={colorMode}
               />
             );
           })()}
