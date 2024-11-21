@@ -301,7 +301,8 @@ const TaskIndicator: React.FC<{
   keyWidth: number;
   isPlayed?: boolean;
   isCurrent?: boolean;
-}> = ({ note, octave, keyWidth, isPlayed, isCurrent }) => {
+  isSetMode?: boolean;
+}> = ({ note, octave, keyWidth, isPlayed, isCurrent, isSetMode }) => {
   const left = calculateKeyPosition(note, octave, keyWidth);
 
   return (
@@ -320,7 +321,7 @@ const TaskIndicator: React.FC<{
         alignItems: "center",
       }}
     >
-      {isPlayed ? "✓" : isCurrent ? "↓" : ""}
+      {isPlayed ? "✓" : isSetMode || isCurrent ? "↓" : ""}
     </div>
   );
 };
@@ -391,6 +392,7 @@ const TaskIndicators: React.FC<{
                     isSequenceChecker(taskConfig.checker) &&
                     index === taskConfig.checker.currentIndex
                   }
+                  isSetMode={false}
                 />
               ))
             : // Set-based visualization
@@ -406,6 +408,7 @@ const TaskIndicators: React.FC<{
                     octave={octave}
                     keyWidth={keyWidth}
                     isPlayed={isPlayed}
+                    isSetMode={true}
                   />
                 );
               })}
