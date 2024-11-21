@@ -307,25 +307,6 @@ const TaskIndicators: React.FC<{
   activeKeysCount: number;
   isCompleting: boolean;
 }> = ({ taskConfig, totalWidth, keyWidth, activeKeysCount, isCompleting }) => {
-  console.log("[TaskIndicators] Rendering with:", {
-    checkerType: taskConfig.checker.type,
-    currentIndex:
-      taskConfig.checker.type === "sequence"
-        ? taskConfig.checker.currentIndex
-        : "N/A",
-    sequence:
-      taskConfig.checker.type === "sequence"
-        ? taskConfig.checker.sequence
-        : "N/A",
-    activeKeysCount,
-    isCompleting,
-    targetNotes:
-      taskConfig.checker.type === "set"
-        ? Array.from(taskConfig.checker.targetNotes)
-        : "N/A",
-    playedNotes: taskConfig.playedNotes,
-  });
-
   return (
     <div
       style={{
@@ -346,7 +327,7 @@ const TaskIndicators: React.FC<{
             top: 0,
             left: "50%",
             transform: "translateX(-50%)",
-            color: "rgba(255, 255, 255, 0.8)",
+            color: "rgba(255, 255, 255, 0.5)",
             fontSize: "14px",
             whiteSpace: "nowrap",
             padding: "4px 12px",

@@ -261,8 +261,36 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
 
     return (
       <div className="fixed top-0 left-0 w-[600px] h-screen bg-gray-900 text-white flex flex-col">
-        {/* Sticky Header */}
-        <div className="sticky top-0 bg-gray-900 z-20 p-8 pb-4 border-b border-gray-800">
+        {/* Keyboard section - moved to top */}
+        <div className="bg-gray-900 p-4 border-b border-gray-800">
+          <div className="w-full flex justify-end">
+            <div className="w-[274px]">
+              <Keyboard
+                layout={KEYBOARD_LAYOUT}
+                display={getDisplay()}
+                buttonTheme={getButtonTheme()}
+                mergeDisplay={true}
+                physicalKeyboardHighlight={false}
+                physicalKeyboardHighlightPress={false}
+                useButtonTag={true}
+                disableButtonHold={true}
+                preventMouseDownDefault={true}
+                baseClass="simple-keyboard-base"
+                theme="hg-theme-default custom-theme"
+                debug={true}
+                onRender={() => {
+                  console.log(
+                    "[Keyboard] Rendered. DOM structure:",
+                    document.querySelector(".simple-keyboard-base")?.innerHTML
+                  );
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Header */}
+        <div className="bg-gray-900 z-20 p-8 pb-4 border-b border-gray-800">
           <div className="flex items-center gap-2 mb-4">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -343,10 +371,9 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
           </div>
         )}
 
-        {/* Main scrollable area - includes both content and keyboard */}
+        {/* Main scrollable content area */}
         <div className="flex-1 overflow-y-auto">
-          {/* Content section with minimum height */}
-          <div className="relative min-h-[calc(100vh-300px)]">
+          <div className="relative min-h-[calc(100vh-400px)]">
             <div ref={contentRef} className="p-8 pt-4">
               {currentLesson && (
                 <div className="prose prose-invert">
@@ -397,32 +424,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
 
             {/* Gradient overlay */}
             <div className="pointer-events-none sticky bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent" />
-          </div>
-
-          {/* Keyboard section */}
-          <div className="sticky bottom-0 bg-gray-900 p-4 border-t border-gray-800">
-            <div className="flex justify-start">
-              <Keyboard
-                layout={KEYBOARD_LAYOUT}
-                display={getDisplay()}
-                buttonTheme={getButtonTheme()}
-                mergeDisplay={true}
-                physicalKeyboardHighlight={false}
-                physicalKeyboardHighlightPress={false}
-                useButtonTag={true}
-                disableButtonHold={true}
-                preventMouseDownDefault={true}
-                baseClass="simple-keyboard-base"
-                theme="hg-theme-default custom-theme"
-                debug={true}
-                onRender={() => {
-                  console.log(
-                    "[Keyboard] Rendered. DOM structure:",
-                    document.querySelector(".simple-keyboard-base")?.innerHTML
-                  );
-                }}
-              />
-            </div>
           </div>
         </div>
       </div>
