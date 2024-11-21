@@ -6,11 +6,8 @@ import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
 import { TASK_CONFIGS } from "../types/tasks";
 import type { TaskProgress } from "../types/tasks";
-import Keyboard from "react-simple-keyboard";
-import "react-simple-keyboard/build/css/index.css";
-import { KEY_DISPLAY_LABELS, KeyboardMapping } from "../constants/keyboard";
-import { getColors } from "../utils/colors";
-import { getLabelColorForNote } from "../utils/colors";
+import { KeyboardMapping } from "../constants/keyboard";
+import { PianoKeyboard } from "./PianoKeyboard";
 
 interface KeyboardState {
   activeKeyCodes: Set<string>;
@@ -28,15 +25,6 @@ interface LessonsPanelProps {
 
 // Memoize the Task components
 const MemoizedTask = React.memo(Task);
-
-const KEYBOARD_LAYOUT = {
-  default: [
-    "1 2 3 4 5 6 7 8 9 0 - =",
-    "q w e r t y u i o p [ ]",
-    "a s d f g h j k l ; '",
-    "z x c v b n m , . /",
-  ],
-};
 
 export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
   ({
@@ -112,121 +100,6 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
       []
     );
 
-    // Update the getButtonTheme function
-    const getButtonTheme = (keyboardState: KeyboardState) => {
-      if (!activeTaskId || !keyboardState.taskKeyboardMapping) return [];
-
-      const taskConfig = TASK_CONFIGS[activeTaskId];
-      if (!taskConfig?.keyboardMapping) return [];
-
-      const colors = getColors(0, taskConfig.colorMode || "chromatic");
-      const buttonTheme: Array<{ class: string; buttons: string }> = [];
-
-      // First, create a mapping of key labels to their notes
-      const keyLabelToNote: Record<string, number> = {};
-      Object.entries(taskConfig.keyboardMapping).forEach(
-        ([keyCode, mapping]) => {
-          const keyLabel = KEY_DISPLAY_LABELS[keyCode]?.toLowerCase();
-          if (keyLabel) {
-            keyLabelToNote[keyLabel] = mapping.note;
-          }
-        }
-      );
-
-      // Create styles for all keyboard keys
-      Object.entries(KEY_DISPLAY_LABELS).forEach(([keyCode, label]) => {
-        const keyLabel = label.toLowerCase();
-        const note = keyLabelToNote[keyLabel];
-
-        // If this key is mapped to a note
-        if (note !== undefined) {
-          const backgroundColor = colors[note];
-          const textColor = getLabelColorForNote(note);
-          const isActive = keyboardState.activeKeyCodes.has(keyCode);
-
-          const className = isActive
-            ? `${keyCode}-mapped key-active`
-            : `${keyCode}-mapped`;
-
-          buttonTheme.push({
-            class: className,
-            buttons: keyLabel,
-          });
-
-          // Add the CSS for this specific key
-          addKeyStyle(keyCode, backgroundColor, textColor);
-        } else {
-          // For unmapped keys, use a default style
-          buttonTheme.push({
-            class: `${keyCode}-unmapped`,
-            buttons: keyLabel,
-          });
-
-          // Add default styling for unmapped keys
-          addKeyStyle(keyCode, "#444", "rgba(255, 255, 255, 0.3)");
-        }
-      });
-
-      return buttonTheme;
-    };
-
-    // Update the addKeyStyle function
-    const addKeyStyle = (
-      keyCode: string,
-      backgroundColor: string,
-      textColor: string
-    ) => {
-      const style = document.createElement("style");
-      style.textContent = `
-        .simple-keyboard-base .${keyCode}-mapped,
-        .simple-keyboard-base .${keyCode}-unmapped {
-          background: ${backgroundColor} !important;
-          color: ${textColor} !important;
-        }
-        .simple-keyboard-base .${keyCode}-mapped.key-active {
-          background: ${backgroundColor} !important;
-          color: ${textColor} !important;
-          transform: scale(0.95);
-        }
-      `;
-
-      // Clean up existing style
-      const existingStyle = document.querySelector(
-        `style[data-key="${keyCode}"]`
-      );
-      if (existingStyle) existingStyle.remove();
-
-      style.setAttribute("data-key", keyCode);
-      document.head.appendChild(style);
-    };
-
-    // Add this function to get display mapping
-    const getDisplay = () => {
-      if (!activeTaskId) return {};
-
-      const taskConfig = TASK_CONFIGS[activeTaskId];
-      if (!taskConfig?.keyboardMapping) return {};
-
-      const display: Record<string, string> = {};
-
-      // Initialize all possible keys as empty
-      "1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./"
-        .split("")
-        .forEach((key) => {
-          display[key] = " ";
-        });
-
-      // Set only mapped keys to be visible with their labels
-      Object.entries(taskConfig.keyboardMapping).forEach(([key]) => {
-        const keyLabel = KEY_DISPLAY_LABELS[key]?.toLowerCase();
-        if (keyLabel) {
-          display[keyLabel] = keyLabel;
-        }
-      });
-
-      return display;
-    };
-
     // Add ref for content container
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -261,28 +134,10 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
         {/* Keyboard section - moved to top */}
         <div className="bg-gray-900 p-4 border-b border-gray-800">
           <div className="w-full flex justify-end">
-            <div className="w-[274px]">
-              <Keyboard
-                layout={KEYBOARD_LAYOUT}
-                display={getDisplay()}
-                buttonTheme={getButtonTheme(keyboardState)}
-                mergeDisplay={true}
-                physicalKeyboardHighlight={false}
-                physicalKeyboardHighlightPress={false}
-                useButtonTag={true}
-                disableButtonHold={true}
-                preventMouseDownDefault={true}
-                baseClass="simple-keyboard-base"
-                theme="hg-theme-default custom-theme"
-                debug={true}
-                onRender={() => {
-                  console.log(
-                    "[Keyboard] Rendered. DOM structure:",
-                    document.querySelector(".simple-keyboard-base")?.innerHTML
-                  );
-                }}
-              />
-            </div>
+            <PianoKeyboard
+              keyboardState={keyboardState}
+              activeTaskId={activeTaskId}
+            />
           </div>
         </div>
 

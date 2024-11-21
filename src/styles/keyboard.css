@@ -4,7 +4,6 @@
 }
 
 .simple-keyboard-base .hg-button {
-  background-color: #444 !important;
   height: 20px !important;
   width: 20px !important;
   border-radius: 3px !important;
@@ -24,17 +23,20 @@
   max-width: 20px !important;
 }
 
+.simple-keyboard-base .hg-row {
+  display: flex !important;
+  justify-content: flex-start !important;
+  margin: 2px 0 !important;
+}
+
 /* Row offsets for staggered layout */
-.simple-keyboard-base .hg-row:nth-child(2) {
-  padding-left: 10px !important;
-}
+.simple-keyboard-base .hg-row:nth-child(2) { padding-left: 10px !important; }
+.simple-keyboard-base .hg-row:nth-child(3) { padding-left: 15px !important; }
+.simple-keyboard-base .hg-row:nth-child(4) { padding-left: 20px !important; }
 
-.simple-keyboard-base .hg-row:nth-child(3) {
-  padding-left: 15px !important;
-}
-
-.simple-keyboard-base .hg-row:nth-child(4) {
-  padding-left: 20px !important;
+/* Hide unmapped keys text */
+.simple-keyboard-base .hg-button:not([class*="-mapped"]) {
+  color: transparent !important;
 }
 
 /* Special characters styling */
@@ -49,25 +51,4 @@
 .simple-keyboard-base .hg-button[data-skbtn="="] {
   font-family: monospace !important;
 }
-
-.simple-keyboard-base .hg-row {
-  display: flex !important;
-  justify-content: flex-start !important;
-  margin: 2px 0 !important;
-}
-
-/* Hide unmapped keys text */
-.simple-keyboard-base .hg-button:not([class*="-mapped"]) {
-  color: transparent !important;
-}
-
-/* Show text for mapped keys */
-.simple-keyboard-base .hg-button[class*="-mapped"] {
-  color: inherit !important;
-}
-
-/* Active key styling */
-.simple-keyboard-base .hg-button.key-active {
-  transform: scale(0.8) !important;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
-} 
+ 
