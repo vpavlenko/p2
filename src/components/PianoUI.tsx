@@ -42,7 +42,23 @@ interface PianoKeyProps {
   ) => Array<{ note: number; octave: number }>;
   isActive: boolean;
   activeTaskId: string | null;
+  keyboardMapping?: KeyboardMapping;
 }
+
+// Add helper to check if a note is part of scale task mapping
+const isNoteInScaleMapping = (
+  note: number,
+  octave: number,
+  taskId: string | null,
+  keyboardMapping?: KeyboardMapping
+): boolean => {
+  if (!taskId || !keyboardMapping || !taskId.includes("scale")) return true;
+
+  // Check if this note/octave combination exists in the mapping
+  return Object.values(keyboardMapping).some(
+    (mapping) => mapping.note === note && mapping.octave === octave
+  );
+};
 
 const PianoKey: React.FC<PianoKeyProps> = ({
   note,
@@ -57,6 +73,7 @@ const PianoKey: React.FC<PianoKeyProps> = ({
   releaseNotes,
   isActive,
   activeTaskId,
+  keyboardMapping,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
@@ -66,13 +83,28 @@ const PianoKey: React.FC<PianoKeyProps> = ({
     ? TASK_CONFIGS[activeTaskId]?.chromaticNotes
     : undefined;
 
+  // Check if this note should be colored based on scale mapping
+  const shouldColorNote = isNoteInScaleMapping(
+    note,
+    octave,
+    activeTaskId,
+    keyboardMapping
+  );
+
   // Determine which color mode to use for this note
-  const effectiveColorMode =
-    colorMode === "flat-chromatic"
-      ? "flat-chromatic"
-      : chromaticNotes?.includes(note)
-      ? "chromatic"
-      : "traditional";
+  const effectiveColorMode = (() => {
+    if (colorMode === "flat-chromatic") return "flat-chromatic";
+
+    // For scale tasks, only color mapped notes
+    if (activeTaskId?.includes("scale")) {
+      return shouldColorNote && chromaticNotes?.includes(note)
+        ? "chromatic"
+        : "traditional";
+    }
+
+    // For other tasks, use previous logic
+    return chromaticNotes?.includes(note) ? "chromatic" : "traditional";
+  })();
 
   const colors = getColors(tonic, effectiveColorMode);
   const relativeNote = (note - tonic + 12) % 12;
@@ -778,6 +810,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
                       colorMode === "flat-chromatic" ? 1 : isWhiteKey ? 1 : 2,
                   }}
                   activeTaskId={activeTaskId}
+                  keyboardMapping={taskKeyboardMapping}
                 />
               );
             }

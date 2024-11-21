@@ -47,6 +47,10 @@ export const TASK_SEQUENCE = [
   "play-chromatic-ascending-flat",
   "play-major-seconds-from-a0",
   "play-major-seconds-from-asharp0",
+  "play-lydian-scale",
+  "play-major-scale",
+  "play-mixolydian-scale",
+  "play-dorian-scale",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -84,6 +88,35 @@ export const NOTE_MAPPINGS = {
   "A#": createNoteMapping(10, ["Period", "KeyL", "KeyO", "Digit9"]),
   "F-again": createNoteMapping(5, ["KeyB", "KeyG", "KeyT", "Digit5"]),
   "F#": createNoteMapping(6, ["KeyN", "KeyH", "KeyY", "Digit6"]),
+  "lydian-c": createNoteMapping(0, ["KeyZ", "KeyZ", "KeyZ", "KeyZ"]),
+  "lydian-d": createNoteMapping(2, ["KeyX", "KeyX", "KeyX", "KeyX"]),
+  "lydian-e": createNoteMapping(4, ["KeyC", "KeyC", "KeyC", "KeyC"]),
+  "lydian-f#": createNoteMapping(6, ["KeyV", "KeyV", "KeyV", "KeyV"]),
+  "lydian-g": createNoteMapping(7, ["KeyB", "KeyB", "KeyB", "KeyB"]),
+  "lydian-a": createNoteMapping(9, ["KeyN", "KeyN", "KeyN", "KeyN"]),
+  "lydian-b": createNoteMapping(11, ["KeyM", "KeyM", "KeyM", "KeyM"]),
+  "major-c": createNoteMapping(0, ["KeyA", "KeyA", "KeyA", "KeyA"]),
+  "major-d": createNoteMapping(2, ["KeyS", "KeyS", "KeyS", "KeyS"]),
+  "major-e": createNoteMapping(4, ["KeyD", "KeyD", "KeyD", "KeyD"]),
+  "major-f": createNoteMapping(5, ["KeyF", "KeyF", "KeyF", "KeyF"]),
+  "major-g": createNoteMapping(7, ["KeyG", "KeyG", "KeyG", "KeyG"]),
+  "major-a": createNoteMapping(9, ["KeyH", "KeyH", "KeyH", "KeyH"]),
+  "major-b": createNoteMapping(11, ["KeyJ", "KeyJ", "KeyJ", "KeyJ"]),
+  "mixo-c": createNoteMapping(0, ["KeyQ", "KeyQ", "KeyQ", "KeyQ"]),
+  "mixo-d": createNoteMapping(2, ["KeyW", "KeyW", "KeyW", "KeyW"]),
+  "mixo-e": createNoteMapping(4, ["KeyE", "KeyE", "KeyE", "KeyE"]),
+  "mixo-f": createNoteMapping(5, ["KeyR", "KeyR", "KeyR", "KeyR"]),
+  "mixo-g": createNoteMapping(7, ["KeyT", "KeyT", "KeyT", "KeyT"]),
+  "mixo-a": createNoteMapping(9, ["KeyY", "KeyY", "KeyY", "KeyY"]),
+  "mixo-bb": createNoteMapping(10, ["KeyU", "KeyU", "KeyU", "KeyU"]),
+  "dorian-c": createNoteMapping(0, ["Digit1", "Digit1", "Digit1", "Digit1"]),
+  "dorian-d": createNoteMapping(2, ["Digit2", "Digit2", "Digit2", "Digit2"]),
+  "dorian-eb": createNoteMapping(3, ["Digit3", "Digit3", "Digit3", "Digit3"]),
+  "dorian-f": createNoteMapping(5, ["Digit4", "Digit4", "Digit4", "Digit4"]),
+  "dorian-g": createNoteMapping(7, ["Digit5", "Digit5", "Digit5", "Digit5"]),
+  "dorian-a": createNoteMapping(9, ["Digit6", "Digit6", "Digit6", "Digit6"]),
+  "dorian-bb": createNoteMapping(10, ["Digit7", "Digit7", "Digit7", "Digit7"]),
+  "dorian-c2": createNoteMapping(0, ["Digit8", "Digit8", "Digit8", "Digit8"]),
 } as const;
 
 // Helper function to convert NoteMapping to KeyboardMapping
@@ -551,6 +584,100 @@ const createFlatChromaticMapping = (
   return mapping;
 };
 
+// First define the scale sequences
+const SCALE_SEQUENCES = {
+  lydian: {
+    notes: [
+      { note: 0, octave: 2 }, // C
+      { note: 2, octave: 2 }, // D
+      { note: 4, octave: 2 }, // E
+      { note: 6, octave: 2 }, // F#
+      { note: 7, octave: 2 }, // G
+      { note: 9, octave: 2 }, // A
+      { note: 11, octave: 2 }, // B
+      { note: 0, octave: 3 }, // C (preview of next scale)
+    ],
+    keys: ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "KeyA"],
+    description: "Lydian scale (C D E F# G A B C)",
+  },
+  major: {
+    notes: [
+      { note: 0, octave: 3 }, // C
+      { note: 2, octave: 3 }, // D
+      { note: 4, octave: 3 }, // E
+      { note: 5, octave: 3 }, // F
+      { note: 7, octave: 3 }, // G
+      { note: 9, octave: 3 }, // A
+      { note: 11, octave: 3 }, // B
+      { note: 0, octave: 4 }, // C (preview of next scale)
+    ],
+    keys: ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyQ"],
+    description: "Major scale (C D E F G A B C)",
+  },
+  mixolydian: {
+    notes: [
+      { note: 0, octave: 4 }, // C
+      { note: 2, octave: 4 }, // D
+      { note: 4, octave: 4 }, // E
+      { note: 5, octave: 4 }, // F
+      { note: 7, octave: 4 }, // G
+      { note: 9, octave: 4 }, // A
+      { note: 10, octave: 4 }, // Bb
+      { note: 0, octave: 5 }, // C (preview of next scale)
+    ],
+    keys: ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "Digit1"],
+    description: "Mixolydian scale (C D E F G A Bb C)",
+  },
+  dorian: {
+    notes: [
+      { note: 0, octave: 5 }, // C
+      { note: 2, octave: 5 }, // D
+      { note: 3, octave: 5 }, // Eb
+      { note: 5, octave: 5 }, // F
+      { note: 7, octave: 5 }, // G
+      { note: 9, octave: 5 }, // A
+      { note: 10, octave: 5 }, // Bb
+      { note: 0, octave: 6 }, // C (final)
+    ],
+    keys: [
+      "Digit1",
+      "Digit2",
+      "Digit3",
+      "Digit4",
+      "Digit5",
+      "Digit6",
+      "Digit7",
+      "Digit8",
+    ],
+    description: "Dorian scale (C D Eb F G A Bb C)",
+  },
+} as const;
+
+// Helper to create cumulative keyboard mapping from scale definitions
+const createScaleKeyboardMapping = (
+  currentScale: (typeof SCALE_SEQUENCES)[keyof typeof SCALE_SEQUENCES],
+  previousScales: Array<keyof typeof SCALE_SEQUENCES> = []
+): KeyboardMapping => {
+  const mapping: KeyboardMapping = {};
+
+  // Add mappings from previous scales first
+  previousScales.forEach((scaleName) => {
+    const scale = SCALE_SEQUENCES[scaleName];
+    scale.notes.slice(0, -1).forEach(({ note, octave }, index) => {
+      // Exclude the last C
+      mapping[scale.keys[index]] = { note, octave };
+    });
+  });
+
+  // Add current scale's mappings
+  currentScale.notes.forEach(({ note, octave }, index) => {
+    mapping[currentScale.keys[index]] = { note, octave };
+  });
+
+  return mapping;
+};
+
+// Update TASK_CONFIGS with the modified scale tasks
 export const TASK_CONFIGS: Record<string, TaskConfig> = {
   // Lesson 1 tasks
   "play-c-across-octaves": createTaskConfig(
@@ -744,6 +871,83 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     ),
     checker: createSequenceChecker(majorSecondFromASharp0Sequence),
     previousTaskId: "play-major-seconds-from-a0",
+  },
+
+  "play-lydian-scale": {
+    id: "play-lydian-scale",
+    description: SCALE_SEQUENCES.lydian.description,
+    total: SCALE_SEQUENCES.lydian.notes.length,
+    requiredProgress: SCALE_SEQUENCES.lydian.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.lydian),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set(SCALE_SEQUENCES.lydian.notes.map((n) => n.note))
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.lydian.notes]),
+    previousTaskId: "play-major-seconds-from-asharp0",
+  },
+
+  "play-major-scale": {
+    id: "play-major-scale",
+    description: SCALE_SEQUENCES.major.description,
+    total: SCALE_SEQUENCES.major.notes.length,
+    requiredProgress: SCALE_SEQUENCES.major.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.major, [
+      "lydian",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note), // Include previous scale notes
+        ...SCALE_SEQUENCES.major.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.major.notes]),
+    previousTaskId: "play-lydian-scale",
+  },
+
+  "play-mixolydian-scale": {
+    id: "play-mixolydian-scale",
+    description: SCALE_SEQUENCES.mixolydian.description,
+    total: SCALE_SEQUENCES.mixolydian.notes.length,
+    requiredProgress: SCALE_SEQUENCES.mixolydian.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.mixolydian, [
+      "lydian",
+      "major",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.major.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.mixolydian.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.mixolydian.notes]),
+    previousTaskId: "play-major-scale",
+  },
+
+  "play-dorian-scale": {
+    id: "play-dorian-scale",
+    description: SCALE_SEQUENCES.dorian.description,
+    total: SCALE_SEQUENCES.dorian.notes.length,
+    requiredProgress: SCALE_SEQUENCES.dorian.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.dorian, [
+      "lydian",
+      "major",
+      "mixolydian",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.major.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.mixolydian.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.dorian.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.dorian.notes]),
+    previousTaskId: "play-mixolydian-scale",
   },
 };
 

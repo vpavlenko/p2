@@ -135,6 +135,32 @@ const LESSONS_WITHOUT_IDS: {
     ),
     taskIds: ["play-major-seconds-from-a0", "play-major-seconds-from-asharp0"],
   },
+  {
+    title: "Scale Modes",
+    content: (
+      <>
+        <P>
+          Let's explore different scale modes! Each row of keys maps to a
+          different mode:
+        </P>
+        <P>
+          Bottom row (Z-M): Lydian mode - like major scale but with a raised 4th
+        </P>
+        <P>
+          Middle row (A-J): Major scale (Ionian mode) - the familiar do-re-mi
+          pattern
+        </P>
+        <P>Top row (Q-U): Mixolydian mode - major scale with a lowered 7th</P>
+        <P>Number row (1-8): Dorian mode - minor scale with a raised 6th</P>
+      </>
+    ),
+    taskIds: [
+      "play-lydian-scale",
+      "play-major-scale",
+      "play-mixolydian-scale",
+      "play-dorian-scale",
+    ],
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
