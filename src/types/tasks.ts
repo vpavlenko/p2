@@ -540,7 +540,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-c-sharp": createTaskConfig(
     8,
     NOTE_MAPPINGS["C#"],
-    "C# notes across different octaves",
+    "D♭ notes across different octaves",
     [0, 1, 2, 4, 5, 7, 9, 11],
     2
   ),
@@ -554,7 +554,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-d-sharp": createTaskConfig(
     10,
     NOTE_MAPPINGS["D#"],
-    "D# notes across different octaves",
+    "E♭ notes across different octaves",
     [0, 1, 2, 3, 4, 5, 7, 9, 11],
     2
   ),
@@ -568,7 +568,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-g-sharp": createTaskConfig(
     12,
     NOTE_MAPPINGS["G#"],
-    "G# notes across different octaves",
+    "A♭ notes across different octaves",
     [0, 1, 2, 3, 4, 5, 7, 8, 9, 11],
     2
   ),
@@ -582,7 +582,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
   "play-a-sharp": createTaskConfig(
     14,
     NOTE_MAPPINGS["A#"],
-    "A# notes across different octaves",
+    "B♭ notes across different octaves",
     [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
     2
   ),

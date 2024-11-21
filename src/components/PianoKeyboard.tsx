@@ -148,7 +148,7 @@ export const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
   }, []);
 
   return (
-    <div className="w-[274px]">
+    <div className="w-[290px]">
       <Keyboard
         layout={KEYBOARD_LAYOUT}
         display={getDisplay()}
