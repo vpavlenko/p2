@@ -190,6 +190,41 @@ const LESSONS_WITHOUT_IDS: {
       "play-locrian-scale",
     ],
   },
+  {
+    title: "Major Chords",
+    content: (
+      <>
+        <P>
+          Now let's learn all twelve major chords! We'll start with C major in
+          the second octave, using three keys for the three notes of each chord.
+        </P>
+        <P>
+          The bottom row (Z-.) covers C, C#, and D major chords. The home row
+          (A-L) covers Eb, E, and F major chords. The top row (Q-O) covers F#,
+          G, and G# major chords. And finally the number row is grouped in
+          threes: 1-2-3 for A major, 4-5-6 for Bb major, and 7-8-9 for B major.
+        </P>
+        <P>
+          Each new chord builds on the previous ones, so you can always go back
+          and practice earlier chords!
+        </P>
+      </>
+    ),
+    taskIds: [
+      "play-c-major-chord",
+      "play-c-sharp-major-chord",
+      "play-d-major-chord",
+      "play-eb-major-chord",
+      "play-e-major-chord",
+      "play-f-major-chord",
+      "play-f-sharp-major-chord",
+      "play-g-major-chord",
+      "play-g-sharp-major-chord",
+      "play-a-major-chord",
+      "play-bb-major-chord",
+      "play-b-major-chord",
+    ],
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({
