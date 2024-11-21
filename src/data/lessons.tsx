@@ -161,6 +161,35 @@ const LESSONS_WITHOUT_IDS: {
       "play-dorian-scale",
     ],
   },
+  {
+    title: "More Scale Modes",
+    content: (
+      <>
+        <P>
+          Let's explore the remaining scale modes! Each row maps to a different
+          mode, continuing our pattern:
+        </P>
+        <P>
+          Bottom row (Z-A): Dorian mode again - but in a lower octave for
+          comparison
+        </P>
+        <P>
+          Middle row (A-J): Natural Minor (Aeolian) - the familiar sad scale
+        </P>
+        <P>Top row (Q-U): Phrygian mode - minor scale with a lowered 2nd</P>
+        <P>
+          Number row (1-8): Locrian mode - the darkest mode, with lowered 2nd
+          and 5th
+        </P>
+      </>
+    ),
+    taskIds: [
+      "play-dorian-low-scale",
+      "play-minor-scale",
+      "play-phrygian-scale",
+      "play-locrian-scale",
+    ],
+  },
 ];
 
 export const LESSONS = LESSONS_WITHOUT_IDS.map((lesson, index) => ({

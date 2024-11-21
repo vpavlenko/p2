@@ -51,6 +51,10 @@ export const TASK_SEQUENCE = [
   "play-major-scale",
   "play-mixolydian-scale",
   "play-dorian-scale",
+  "play-dorian-low-scale",
+  "play-minor-scale",
+  "play-phrygian-scale",
+  "play-locrian-scale",
 ] as const;
 
 // First, let's create a type for our key mappings
@@ -651,6 +655,71 @@ const SCALE_SEQUENCES = {
     ],
     description: "Dorian scale (C D Eb F G A Bb C)",
   },
+  dorianLow: {
+    notes: [
+      { note: 0, octave: 2 }, // C
+      { note: 2, octave: 2 }, // D
+      { note: 3, octave: 2 }, // Eb
+      { note: 5, octave: 2 }, // F
+      { note: 7, octave: 2 }, // G
+      { note: 9, octave: 2 }, // A
+      { note: 10, octave: 2 }, // Bb
+      { note: 0, octave: 3 }, // C (preview of next scale)
+    ],
+    keys: ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "KeyA"],
+    description: "Dorian scale in lower octave (C D Eb F G A Bb C)",
+  },
+  minor: {
+    notes: [
+      { note: 0, octave: 3 }, // C
+      { note: 2, octave: 3 }, // D
+      { note: 3, octave: 3 }, // Eb
+      { note: 5, octave: 3 }, // F
+      { note: 7, octave: 3 }, // G
+      { note: 8, octave: 3 }, // Ab
+      { note: 10, octave: 3 }, // Bb
+      { note: 0, octave: 4 }, // C (preview of next scale)
+    ],
+    keys: ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyQ"],
+    description: "Natural Minor scale (C D Eb F G Ab Bb C)",
+  },
+  phrygian: {
+    notes: [
+      { note: 0, octave: 4 }, // C
+      { note: 1, octave: 4 }, // Db
+      { note: 3, octave: 4 }, // Eb
+      { note: 5, octave: 4 }, // F
+      { note: 7, octave: 4 }, // G
+      { note: 8, octave: 4 }, // Ab
+      { note: 10, octave: 4 }, // Bb
+      { note: 0, octave: 5 }, // C (preview of next scale)
+    ],
+    keys: ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "Digit1"],
+    description: "Phrygian scale (C Db Eb F G Ab Bb C)",
+  },
+  locrian: {
+    notes: [
+      { note: 0, octave: 5 }, // C
+      { note: 1, octave: 5 }, // Db
+      { note: 3, octave: 5 }, // Eb
+      { note: 5, octave: 5 }, // F
+      { note: 6, octave: 5 }, // Gb
+      { note: 8, octave: 5 }, // Ab
+      { note: 10, octave: 5 }, // Bb
+      { note: 0, octave: 6 }, // C (final)
+    ],
+    keys: [
+      "Digit1",
+      "Digit2",
+      "Digit3",
+      "Digit4",
+      "Digit5",
+      "Digit6",
+      "Digit7",
+      "Digit8",
+    ],
+    description: "Locrian scale (C Db Eb F Gb Ab Bb C)",
+  },
 } as const;
 
 // Helper to create cumulative keyboard mapping from scale definitions
@@ -948,6 +1017,83 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     ),
     checker: createSequenceChecker([...SCALE_SEQUENCES.dorian.notes]),
     previousTaskId: "play-mixolydian-scale",
+  },
+
+  "play-dorian-low-scale": {
+    id: "play-dorian-low-scale",
+    description: SCALE_SEQUENCES.dorianLow.description,
+    total: SCALE_SEQUENCES.dorianLow.notes.length,
+    requiredProgress: SCALE_SEQUENCES.dorianLow.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.dorianLow),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set(SCALE_SEQUENCES.dorianLow.notes.map((n) => n.note))
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.dorianLow.notes]),
+    previousTaskId: "play-dorian-scale",
+  },
+
+  "play-minor-scale": {
+    id: "play-minor-scale",
+    description: SCALE_SEQUENCES.minor.description,
+    total: SCALE_SEQUENCES.minor.notes.length,
+    requiredProgress: SCALE_SEQUENCES.minor.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.minor, [
+      "dorianLow",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.dorianLow.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.minor.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.minor.notes]),
+    previousTaskId: "play-dorian-low-scale",
+  },
+
+  "play-phrygian-scale": {
+    id: "play-phrygian-scale",
+    description: SCALE_SEQUENCES.phrygian.description,
+    total: SCALE_SEQUENCES.phrygian.notes.length,
+    requiredProgress: SCALE_SEQUENCES.phrygian.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.phrygian, [
+      "dorianLow",
+      "minor",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.dorianLow.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.minor.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.phrygian.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.phrygian.notes]),
+    previousTaskId: "play-minor-scale",
+  },
+
+  "play-locrian-scale": {
+    id: "play-locrian-scale",
+    description: SCALE_SEQUENCES.locrian.description,
+    total: SCALE_SEQUENCES.locrian.notes.length,
+    requiredProgress: SCALE_SEQUENCES.locrian.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.locrian, [
+      "dorianLow",
+      "minor",
+      "phrygian",
+    ]),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set([
+        ...SCALE_SEQUENCES.dorianLow.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.minor.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.phrygian.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.locrian.notes.map((n) => n.note),
+      ])
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.locrian.notes]),
+    previousTaskId: "play-phrygian-scale",
   },
 };
 
