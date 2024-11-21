@@ -8,10 +8,13 @@ import { TASK_CONFIGS } from "../types/tasks";
 import type { TaskProgress } from "../types/tasks";
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
-import { KEY_DISPLAY_LABELS } from "../constants/keyboard";
+import { KEY_DISPLAY_LABELS, KeyboardMapping } from "../constants/keyboard";
 import { getColors } from "../utils/colors";
-import { SPECIAL_NOTE_COLORS } from "../components/PianoUI";
-import type { ChromaticNote } from "../types/tasks";
+
+interface KeyboardState {
+  activeKeyCodes: Set<string>;
+  taskKeyboardMapping?: KeyboardMapping;
+}
 
 interface LessonsPanelProps {
   currentLessonId: number;
@@ -19,6 +22,7 @@ interface LessonsPanelProps {
   taskProgress: TaskProgress[];
   activeTaskId: string | null;
   onSkipTask?: (taskId: string) => void;
+  keyboardState: KeyboardState;
 }
 
 // Memoize the Task components
@@ -40,6 +44,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
     taskProgress,
     activeTaskId,
     onSkipTask,
+    keyboardState,
   }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -107,100 +112,56 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
     );
 
     // Add this function to get button colors based on the current mapping
-    const getButtonTheme = () => {
-      if (!activeTaskId) {
-        console.log("[Keyboard] No active task");
-        return [];
-      }
+    const getButtonTheme = (keyboardState: KeyboardState) => {
+      if (!activeTaskId || !keyboardState.taskKeyboardMapping) return [];
 
       const taskConfig = TASK_CONFIGS[activeTaskId];
-      if (!taskConfig?.keyboardMapping) {
-        console.log("[Keyboard] No keyboard mapping for task:", activeTaskId);
-        return [];
-      }
+      if (!taskConfig?.keyboardMapping) return [];
 
       const colors = getColors(0, taskConfig.colorMode || "chromatic");
       const buttonTheme: Array<{ class: string; buttons: string }> = [];
 
-      console.log("[Keyboard] Building theme with:", {
-        taskId: activeTaskId,
-        colorMode: taskConfig.colorMode,
-        mapping: taskConfig.keyboardMapping,
-        colors,
-      });
+      Object.entries(taskConfig.keyboardMapping).forEach(
+        ([keyCode, mapping]) => {
+          const keyLabel = KEY_DISPLAY_LABELS[keyCode]?.toLowerCase();
+          if (keyLabel) {
+            const color = colors[mapping.note];
+            // Create the full className string at once
+            const className = keyboardState.activeKeyCodes.has(keyCode)
+              ? `${keyCode}-mapped key-active`
+              : `${keyCode}-mapped`;
 
-      // Debug the DOM structure
-      setTimeout(() => {
-        console.log(
-          "[Keyboard] Current keyboard DOM:",
-          document.querySelector(".simple-keyboard-base")?.innerHTML
-        );
-      }, 100);
+            buttonTheme.push({
+              class: className,
+              buttons: keyLabel,
+            });
 
-      Object.entries(taskConfig.keyboardMapping).forEach(([key, mapping]) => {
-        const keyLabel = KEY_DISPLAY_LABELS[key]?.toLowerCase();
-        if (keyLabel) {
-          const color = colors[mapping.note];
-          const className = `key-${keyLabel.replace(/[^a-z0-9]/g, "")}`;
-
-          const relativeNote = (mapping.note % 12) as ChromaticNote;
-          const isSpecialNote = SPECIAL_NOTE_COLORS.includes(relativeNote);
-          const textColor =
-            isSpecialNote || color === "#ffffff" ? "black" : "white";
-
-          console.log(`[Keyboard] Styling key ${keyLabel}:`, {
-            originalKey: key,
-            color,
-            textColor,
-            className,
-            relativeNote,
-            isSpecialNote,
-          });
-
-          buttonTheme.push({
-            class: className,
-            buttons: keyLabel,
-          });
-
-          // Try both direct button and button-text styling
-          const style = document.createElement("style");
-          style.textContent = `
-            /* Direct button styling */
-            .simple-keyboard-base .${className} {
-              background: ${color} !important;
-              color: ${textColor} !important;
-            }
-            
-            /* Button text styling */
-            .simple-keyboard-base .${className} span {
-              color: ${textColor} !important;
-            }
-            
-            /* Alternative selectors */
-            .simple-keyboard-base .hg-button.${className} {
-              background: ${color} !important;
-              color: ${textColor} !important;
-            }
-            
-            .simple-keyboard-base .hg-button.${className} span {
-              color: ${textColor} !important;
-            }
-          `;
-
-          // Clean up existing style
-          const existingStyle = document.querySelector(
-            `style[data-key="${className}"]`
-          );
-          if (existingStyle) {
-            existingStyle.remove();
+            // Add the CSS for this specific key
+            addKeyStyle(keyCode, color);
           }
-          style.setAttribute("data-key", className);
-          document.head.appendChild(style);
         }
-      });
+      );
 
-      console.log("[Keyboard] Final button theme:", buttonTheme);
       return buttonTheme;
+    };
+
+    // Helper to add per-key styles
+    const addKeyStyle = (keyCode: string, color: string) => {
+      const style = document.createElement("style");
+      style.textContent = `
+        .simple-keyboard-base .${keyCode}-mapped {
+          background: ${color} !important;
+        }
+      `;
+
+      // Clean up existing style
+      const existingStyle = document.querySelector(
+        `style[data-key="${keyCode}"]`
+      );
+      if (existingStyle) existingStyle.remove();
+
+      style.setAttribute("data-key", keyCode);
+      document.head.appendChild(style);
     };
 
     // Add this function to get display mapping
@@ -268,7 +229,7 @@ export const LessonsPanel: React.FC<LessonsPanelProps> = React.memo(
               <Keyboard
                 layout={KEYBOARD_LAYOUT}
                 display={getDisplay()}
-                buttonTheme={getButtonTheme()}
+                buttonTheme={getButtonTheme(keyboardState)}
                 mergeDisplay={true}
                 physicalKeyboardHighlight={false}
                 physicalKeyboardHighlightPress={false}

@@ -57,23 +57,19 @@
 }
 
 /* Hide unmapped keys text */
-.simple-keyboard-base .hg-button:not([class*="key-"]) {
+.simple-keyboard-base .hg-button:not([class*="-mapped"]) {
   color: transparent !important;
 }
 
 /* Show text for mapped keys */
-.simple-keyboard-base .hg-button[class*="key-"] {
+.simple-keyboard-base .hg-button[class*="-mapped"] {
   color: inherit !important;
 }
 
-/* Glow effect for active keys */
-.simple-keyboard-base .hg-button.hg-activeButton {
+/* Active key styling */
+.simple-keyboard-base .hg-button.key-active {
+  transform: scale(0.95) !important;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
-  transform: scale(0.95) !important;
-}
-
-/* Add glow effect to colored keys when active */
-.simple-keyboard-base .hg-button[class*="key-"].hg-activeButton {
-  box-shadow: 0 0 12px currentColor !important;
-  transform: scale(0.95) !important;
+  width: 15px !important;
+  height: 15px !important;
 } 

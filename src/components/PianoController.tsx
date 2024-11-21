@@ -186,6 +186,7 @@ export const PianoController: React.FC = () => {
   });
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [samplerReady, setSamplerReady] = useState(false);
+  const [activeKeyCodes, setActiveKeyCodes] = useState<Set<string>>(new Set());
 
   // Move resetTaskState inside the component
   const resetTaskState = useCallback((taskId: string) => {
@@ -753,6 +754,34 @@ export const PianoController: React.FC = () => {
     });
   }, []);
 
+  useEffect(
+    () => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        setActiveKeyCodes((prev) => new Set([...prev, event.code]));
+        // ... rest of key handling
+      };
+
+      const handleKeyUp = (event: KeyboardEvent) => {
+        setActiveKeyCodes((prev) => {
+          const next = new Set(prev);
+          next.delete(event.code);
+          return next;
+        });
+        // ... rest of key handling
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("keyup", handleKeyUp);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("keyup", handleKeyUp);
+      };
+    },
+    [
+      /* dependencies */
+    ]
+  );
+
   return (
     <>
       <LessonsPanel
@@ -761,6 +790,12 @@ export const PianoController: React.FC = () => {
         taskProgress={state.taskProgress}
         activeTaskId={currentActiveTaskId}
         onSkipTask={handleSkipTask}
+        keyboardState={{
+          activeKeyCodes,
+          taskKeyboardMapping: currentActiveTaskId
+            ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
+            : undefined,
+        }}
       />
       {!samplerReady ? (
         <div className="fixed top-0 left-[600px] right-0 bottom-0 bg-black flex items-center justify-center text-white">
