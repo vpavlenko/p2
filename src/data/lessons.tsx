@@ -82,19 +82,6 @@ const LESSONS_WITHOUT_IDS: {
     ],
   },
   {
-    title: "Free Play",
-    content: (
-      <>
-        <P>
-          Congratulations! You've completed the lessons. Now you can freely play
-          around with the piano. Try different tonics, voicings, and color
-          modes!
-        </P>
-      </>
-    ),
-    taskIds: [], // No tasks for free play
-  },
-  {
     title: "Chromatic Sequences",
     content: (
       <>
@@ -224,6 +211,57 @@ const LESSONS_WITHOUT_IDS: {
       "play-bb-major-chord",
       "play-b-major-chord",
     ],
+  },
+  {
+    title: "Minor Chords",
+    content: (
+      <>
+        <P>
+          Now let's learn all twelve minor chords! Like major chords, each minor
+          chord has three notes, but the middle note (the third) is lowered by
+          one semitone, giving that characteristic melancholic sound.
+        </P>
+        <P>
+          We'll use the same keyboard layout pattern as major chords: Bottom row
+          (Z-.) for C minor, C# minor, and D minor; Home row (A-L) for Eb minor,
+          E minor, and F minor; Top row (Q-O) for F# minor, G minor, and G#
+          minor; Number row grouped in threes: 1-2-3 for A minor, 4-5-6 for Bb
+          minor, and 7-8-9 for B minor.
+        </P>
+        <P>
+          Each minor chord follows this pattern: root note, minor third (3
+          semitones up), and perfect fifth (7 semitones up). For example, C
+          minor is C (root), Eb (minor third), and G (perfect fifth).
+        </P>
+      </>
+    ),
+    taskIds: [
+      "play-c-minor-chord",
+      "play-c-sharp-minor-chord",
+      "play-d-minor-chord",
+      "play-eb-minor-chord",
+      "play-e-minor-chord",
+      "play-f-minor-chord",
+      "play-f-sharp-minor-chord",
+      "play-g-minor-chord",
+      "play-g-sharp-minor-chord",
+      "play-a-minor-chord",
+      "play-bb-minor-chord",
+      "play-b-minor-chord",
+    ],
+  },
+  {
+    title: "Free Play",
+    content: (
+      <>
+        <P>
+          Congratulations! You've completed the lessons. Now you can freely play
+          around with the piano. Try different tonics, voicings, and color
+          modes!
+        </P>
+      </>
+    ),
+    taskIds: [], // No tasks for free play
   },
 ];
 
