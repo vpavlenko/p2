@@ -93,6 +93,9 @@ const PianoKey: React.FC<PianoKeyProps> = ({
 
   // Determine which color mode to use for this note
   const effectiveColorMode = (() => {
+    // For free play (no active task), use the passed colorMode directly
+    if (!activeTaskId) return colorMode;
+
     if (colorMode === "flat-chromatic") return "flat-chromatic";
 
     // For scale tasks, only color mapped notes
@@ -141,12 +144,22 @@ const PianoKey: React.FC<PianoKeyProps> = ({
 
   const keyStyle = {
     ...style,
-    backgroundColor: colors[note],
+    backgroundColor:
+      effectiveColorMode === "traditional"
+        ? isWhiteKey
+          ? "#FFFFFF"
+          : "#000000" // Traditional colors
+        : colors[note], // Chromatic/flat-chromatic colors
     position: "absolute" as const,
     userSelect: "none" as const,
     fontSize: "10px",
     textAlign: "center" as const,
-    color: getLabelColorForNote(relativeNote),
+    color:
+      effectiveColorMode === "traditional"
+        ? isWhiteKey
+          ? "#000000"
+          : "#FFFFFF" // Traditional mode: black on white, white on black
+        : getLabelColorForNote(relativeNote), // Chromatic modes: use special colors
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "flex-end" as const,
@@ -758,10 +771,8 @@ export const PianoUI: React.FC<PianoUIProps> = ({
           marginRight: MARGIN_PX / 2,
         }}
       >
-        {activeTaskId === null && taskKeyboardMapping === undefined && (
-          <ShiftIndicator totalWidth={totalWidth} />
-        )}
-        {activeTaskId === null && taskKeyboardMapping === undefined ? (
+        {/* Only show controls in Free Play mode (when no task is active) */}
+        {!activeTaskId && (
           <>
             <ShiftIndicator totalWidth={totalWidth} />
             <PianoControls
@@ -773,11 +784,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
               onVoicingChange={onVoicingChange}
             />
           </>
-        ) : (
-          // Keep space for future UI elements
-          <div style={{ height: "40px" }} />
         )}
-
         {Object.entries(OCTAVE_RANGES).map(([octave, range]) => {
           const octaveNum = parseInt(octave);
           return Array.from({ length: range.length }, (_, i) => {
