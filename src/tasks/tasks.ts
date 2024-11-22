@@ -30,62 +30,12 @@ export interface TaskProgress {
   status: "active" | "completing" | "completed";
 }
 
-export const TASK_SEQUENCE = [
-  "play-c-across-octaves",
-  "play-d-across-octaves",
-  "play-e-across-octaves",
-  "play-f-across-octaves",
-  "play-g-across-octaves",
-  "play-a-across-octaves",
-  "play-b-across-octaves",
-  "play-d-again",
-  "play-c-sharp",
-  "play-e-again",
-  "play-d-sharp",
-  "play-a-again",
-  "play-g-sharp",
-  "play-b-again",
-  "play-a-sharp",
-  "play-f-again",
-  "play-f-sharp",
-  "play-chromatic-ascending",
-  "play-chromatic-descending",
-  "play-chromatic-ascending-flat",
-  "play-major-seconds-from-a0",
-  "play-major-seconds-from-asharp0",
-  "play-lydian-scale",
-  "play-major-scale",
-  "play-mixolydian-scale",
-  "play-dorian-scale",
-  "play-dorian-low-scale",
-  "play-minor-scale",
-  "play-phrygian-scale",
-  "play-locrian-scale",
-  "play-c-major-chord",
-  "play-c-sharp-major-chord",
-  "play-d-major-chord",
-  "play-eb-major-chord",
-  "play-e-major-chord",
-  "play-f-major-chord",
-  "play-f-sharp-major-chord",
-  "play-g-major-chord",
-  "play-g-sharp-major-chord",
-  "play-a-major-chord",
-  "play-bb-major-chord",
-  "play-b-major-chord",
-  "play-c-minor-chord",
-  "play-c-sharp-minor-chord",
-  "play-d-minor-chord",
-  "play-eb-minor-chord",
-  "play-e-minor-chord",
-  "play-f-minor-chord",
-  "play-f-sharp-minor-chord",
-  "play-g-minor-chord",
-  "play-g-sharp-minor-chord",
-  "play-a-minor-chord",
-  "play-bb-minor-chord",
-  "play-b-minor-chord",
-] as const;
+const taskSequenceArray = LESSONS.reduce<string[]>(
+  (sequence, lesson) => [...sequence, ...lesson.taskIds],
+  []
+);
+
+export const TASK_SEQUENCE = taskSequenceArray;
 
 // First, let's create a type for our key mappings
 export type NoteMapping = {
