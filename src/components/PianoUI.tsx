@@ -519,6 +519,7 @@ interface PianoUIProps {
   taskProgress: TaskProgress[];
   taskPlayedNotes: Record<string, Set<string>>;
   state: PianoControllerState;
+  setActiveKeyCodes: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export const PianoUI: React.FC<PianoUIProps> = ({
@@ -538,6 +539,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
   taskProgress,
   taskPlayedNotes,
   state,
+  setActiveKeyCodes,
 }) => {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -553,6 +555,9 @@ export const PianoUI: React.FC<PianoUIProps> = ({
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
+      // Fix the type by explicitly typing the prev parameter
+      setActiveKeyCodes((prev: Set<string>) => new Set([...prev, event.code]));
+
       const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
       if (event.ctrlKey && event.code in currentKeyboardMap) {
@@ -577,6 +582,13 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
+      // Fix the type by explicitly typing the prev parameter
+      setActiveKeyCodes((prev: Set<string>) => {
+        const next = new Set(prev);
+        next.delete(event.code);
+        return next;
+      });
+
       const currentKeyboardMap = getKeyboardMap(colorMode, taskKeyboardMapping);
 
       setActiveKeys((prev) => {
@@ -613,6 +625,7 @@ export const PianoUI: React.FC<PianoUIProps> = ({
     setTonic,
     colorMode,
     taskKeyboardMapping,
+    setActiveKeyCodes,
   ]);
 
   useEffect(() => {

@@ -578,29 +578,6 @@ export const PianoController: React.FC = () => {
   // Get the current active task ID
   const currentActiveTaskId = getActiveTaskId(state, currentLessonId);
 
-  // Add debug logging for keyboard events
-  const handleKeyDown = useCallback(
-    async (event: KeyboardEvent) => {
-      console.log("Key down event:", {
-        code: event.code,
-        key: event.key,
-        activeTaskId: currentActiveTaskId,
-        taskMapping: currentActiveTaskId
-          ? TASK_CONFIGS[currentActiveTaskId]?.keyboardMapping
-          : undefined,
-      });
-
-      // ... rest of key handling
-    },
-    [currentActiveTaskId]
-  );
-
-  // Add effect to attach keyboard listeners
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
-
   // Add this effect to reset taskPlayedNotes when lesson changes
   useEffect(() => {
     console.log("[taskPlayedNotes] Resetting for lesson:", currentLessonId);
@@ -669,34 +646,6 @@ export const PianoController: React.FC = () => {
       };
     });
   }, []);
-
-  useEffect(
-    () => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        setActiveKeyCodes((prev) => new Set([...prev, event.code]));
-        // ... rest of key handling
-      };
-
-      const handleKeyUp = (event: KeyboardEvent) => {
-        setActiveKeyCodes((prev) => {
-          const next = new Set(prev);
-          next.delete(event.code);
-          return next;
-        });
-        // ... rest of key handling
-      };
-
-      window.addEventListener("keydown", handleKeyDown);
-      window.addEventListener("keyup", handleKeyUp);
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-        window.removeEventListener("keyup", handleKeyUp);
-      };
-    },
-    [
-      /* dependencies */
-    ]
-  );
 
   // Add this effect to initialize sequenceCheckers when tasks change
   useEffect(() => {
@@ -775,6 +724,7 @@ export const PianoController: React.FC = () => {
           taskProgress={state.taskProgress}
           taskPlayedNotes={state.taskPlayedNotes}
           state={state}
+          setActiveKeyCodes={setActiveKeyCodes}
         />
       )}
     </>
