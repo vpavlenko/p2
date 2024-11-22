@@ -14,7 +14,7 @@ import {
   TASK_CONFIGS,
   canTaskBeActivated,
   getNextTaskId,
-} from "../types/tasks";
+} from "../tasks/tasks";
 import { ensureSamplerLoaded } from "../audio/sampler";
 
 const NOTE_NAMES = [

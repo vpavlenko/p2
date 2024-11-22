@@ -1,6 +1,6 @@
 import React from "react";
 import confetti from "canvas-confetti";
-import { TaskConfig, TaskProgress } from "../types/tasks";
+import { TaskConfig, TaskProgress } from "../tasks/tasks";
 
 interface TaskProps {
   taskConfig: TaskConfig;

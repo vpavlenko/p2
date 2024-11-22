@@ -4,8 +4,8 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import { URL_PREFIX } from "../constants/routes";
 import { Task } from "./Task";
-import { TASK_CONFIGS } from "../types/tasks";
-import type { TaskProgress } from "../types/tasks";
+import { TASK_CONFIGS } from "../tasks/tasks";
+import type { TaskProgress } from "../tasks/tasks";
 import { KeyboardMapping } from "../constants/keyboard";
 import { PianoKeyboard } from "./PianoKeyboard";
 

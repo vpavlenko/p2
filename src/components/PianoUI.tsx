@@ -11,8 +11,8 @@ import {
 import { PianoControls } from "./PianoControls";
 import { Voicing } from "../constants/voicings";
 import { StopIcon } from "@heroicons/react/24/solid";
-import { TASK_CONFIGS, TaskConfig } from "../types/tasks";
-import type { TaskProgress } from "../types/tasks";
+import { TASK_CONFIGS, TaskConfig } from "../tasks/tasks";
+import type { TaskProgress } from "../tasks/tasks";
 import { PianoControllerState } from "./PianoController";
 
 const BLACK_KEYS = [1, 3, -1, 6, 8, 10, -1];

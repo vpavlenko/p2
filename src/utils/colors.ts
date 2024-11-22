@@ -1,5 +1,5 @@
 import { ColorMode } from "../components/types";
-import { ChromaticNote } from "../types/tasks";
+import { ChromaticNote } from "../tasks/tasks";
 
 export const COLORS: { [key: number]: string } = {
   0: "white",

@@ -3,7 +3,7 @@ import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import { KEY_DISPLAY_LABELS, KeyboardMapping } from "../constants/keyboard";
 import { getColors, getLabelColorForNote } from "../utils/colors";
-import { TASK_CONFIGS } from "../types/tasks";
+import { TASK_CONFIGS } from "../tasks/tasks";
 
 interface KeyboardState {
   activeKeyCodes: Set<string>;
