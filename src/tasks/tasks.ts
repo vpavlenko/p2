@@ -827,23 +827,42 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     previousTaskId: "play-major-seconds-from-a0",
   },
 
+  "play-major-scale": {
+    id: "play-major-scale",
+    description: SCALE_SEQUENCES.major.description,
+    total: SCALE_SEQUENCES.major.notes.length,
+    requiredProgress: SCALE_SEQUENCES.major.notes.length,
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.major),
+    colorMode: "chromatic",
+    chromaticNotes: Array.from(
+      new Set(SCALE_SEQUENCES.major.notes.map((n) => n.note))
+    ),
+    checker: createSequenceChecker([...SCALE_SEQUENCES.major.notes]),
+    previousTaskId: "play-major-seconds-from-asharp0",
+  },
+
   "play-lydian-scale": {
     id: "play-lydian-scale",
     description: SCALE_SEQUENCES.lydian.description,
     total: SCALE_SEQUENCES.lydian.notes.length,
     requiredProgress: SCALE_SEQUENCES.lydian.notes.length,
-    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.lydian),
+    keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.lydian, [
+      "major",
+    ]),
     colorMode: "chromatic",
     chromaticNotes: Array.from(
-      new Set(SCALE_SEQUENCES.lydian.notes.map((n) => n.note))
+      new Set([
+        ...SCALE_SEQUENCES.major.notes.map((n) => n.note),
+        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note),
+      ])
     ),
     checker: createSequenceChecker([...SCALE_SEQUENCES.lydian.notes]),
-    previousTaskId: "play-major-seconds-from-asharp0",
+    previousTaskId: "play-major-scale",
   },
 
-  "play-major-scale": {
-    id: "play-major-scale",
-    description: SCALE_SEQUENCES.major.description,
+  "play-major-scale-with-lydian": {
+    id: "play-major-scale-with-lydian",
+    description: "Major scale (Ionian mode) - now with both rows available",
     total: SCALE_SEQUENCES.major.notes.length,
     requiredProgress: SCALE_SEQUENCES.major.notes.length,
     keyboardMapping: createScaleKeyboardMapping(SCALE_SEQUENCES.major, [
@@ -852,7 +871,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
     colorMode: "chromatic",
     chromaticNotes: Array.from(
       new Set([
-        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note), // Include previous scale notes
+        ...SCALE_SEQUENCES.lydian.notes.map((n) => n.note),
         ...SCALE_SEQUENCES.major.notes.map((n) => n.note),
       ])
     ),
@@ -878,7 +897,7 @@ export const TASK_CONFIGS: Record<string, TaskConfig> = {
       ])
     ),
     checker: createSequenceChecker([...SCALE_SEQUENCES.mixolydian.notes]),
-    previousTaskId: "play-major-scale",
+    previousTaskId: "play-major-scale-with-lydian",
   },
 
   "play-dorian-scale": {

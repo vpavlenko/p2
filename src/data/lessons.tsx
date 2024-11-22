@@ -131,19 +131,20 @@ const LESSONS_WITHOUT_IDS: {
           different mode:
         </P>
         <P>
-          Bottom row (Z-M): Lydian mode - like major scale but with a raised 4th
-        </P>
-        <P>
           Middle row (A-J): Major scale (Ionian mode) - the familiar do-re-mi
           pattern
+        </P>
+        <P>
+          Bottom row (Z-M): Lydian mode - like major scale but with a raised 4th
         </P>
         <P>Top row (Q-U): Mixolydian mode - major scale with a lowered 7th</P>
         <P>Number row (1-8): Dorian mode - minor scale with a raised 6th</P>
       </>
     ),
     taskIds: [
-      "play-lydian-scale",
       "play-major-scale",
+      "play-lydian-scale",
+      "play-major-scale-with-lydian",
       "play-mixolydian-scale",
       "play-dorian-scale",
     ],
