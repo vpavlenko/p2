@@ -252,6 +252,44 @@ const LESSONS_WITHOUT_IDS: {
     ],
   },
   {
+    title: "C Major and C Minor Relations",
+    content: (
+      <>
+        <P>
+          Let's explore the relationship between C major and C minor scales and
+          their primary chords. We'll start with the C major scale and its
+          primary chords (I, IV, V), then compare them with their minor
+          counterparts.
+        </P>
+        <P>
+          First, play the C major scale ascending from C3 to C4. Then we'll
+          explore the three primary chords in C major: C major (I), F major
+          (IV), and G major (V).
+        </P>
+        <P>
+          Next, we'll play the C minor scale, which differs from C major by
+          having a lowered third (Eb), sixth (Ab), and seventh (Bb). Finally,
+          we'll play the primary chords in C minor: C minor (i), F minor (iv),
+          and G minor (v).
+        </P>
+        <P>
+          Notice how the chord qualities change between major and minor keys,
+          while the root notes remain the same!
+        </P>
+      </>
+    ),
+    taskIds: [
+      "play-c-major-scale-sequence",
+      "play-c-major-primary-i",
+      "play-c-major-primary-iv",
+      "play-c-major-primary-v",
+      "play-c-minor-scale-sequence",
+      "play-c-minor-primary-i",
+      "play-c-minor-primary-iv",
+      "play-c-minor-primary-v",
+    ],
+  },
+  {
     title: "Free Play",
     content: (
       <>
