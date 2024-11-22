@@ -635,28 +635,28 @@ const createScaleKeyboardMapping = (
 
 const C_MAJOR_SCALE_SEQUENCE = {
   notes: [
-    { note: 0, octave: 3 }, // C3
-    { note: 2, octave: 3 }, // D3
-    { note: 4, octave: 3 }, // E3
-    { note: 5, octave: 3 }, // F3
-    { note: 7, octave: 3 }, // G3
-    { note: 9, octave: 3 }, // A3
-    { note: 11, octave: 3 }, // B3
-    { note: 0, octave: 4 }, // C4
+    { note: 0 as ChromaticNote, octave: 3 }, // C3
+    { note: 2 as ChromaticNote, octave: 3 }, // D3
+    { note: 4 as ChromaticNote, octave: 3 }, // E3
+    { note: 5 as ChromaticNote, octave: 3 }, // F3
+    { note: 7 as ChromaticNote, octave: 3 }, // G3
+    { note: 9 as ChromaticNote, octave: 3 }, // A3
+    { note: 11 as ChromaticNote, octave: 3 }, // B3
+    { note: 0 as ChromaticNote, octave: 4 }, // C4
   ],
   keys: ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma"],
 };
 
 const C_MINOR_SCALE_SEQUENCE = {
   notes: [
-    { note: 0, octave: 3 }, // C3
-    { note: 2, octave: 3 }, // D3
-    { note: 3, octave: 3 }, // Eb3
-    { note: 5, octave: 3 }, // F3
-    { note: 7, octave: 3 }, // G3
-    { note: 8, octave: 3 }, // Ab3
-    { note: 10, octave: 3 }, // Bb3
-    { note: 0, octave: 4 }, // C4
+    { note: 0 as ChromaticNote, octave: 3 }, // C3
+    { note: 2 as ChromaticNote, octave: 3 }, // D3
+    { note: 3 as ChromaticNote, octave: 3 }, // Eb3
+    { note: 5 as ChromaticNote, octave: 3 }, // F3
+    { note: 7 as ChromaticNote, octave: 3 }, // G3
+    { note: 8 as ChromaticNote, octave: 3 }, // Ab3
+    { note: 10 as ChromaticNote, octave: 3 }, // Bb3
+    { note: 0 as ChromaticNote, octave: 4 }, // C4
   ],
   keys: ["KeyZ", "KeyX", "KeyD", "KeyV", "KeyB", "KeyH", "KeyJ", "Comma"],
 };
